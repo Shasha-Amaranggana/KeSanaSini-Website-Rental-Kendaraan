@@ -18,19 +18,24 @@ Kelola Akun - KeSanaSini
         <aside class="account-sidebar">
             <div class="sidebar-profile">
                 <div class="profile-avatar">
-                    <i class="fa-solid fa-circle-user"></i>
+                    <i class="fa-regular fa-user"></i>
                 </div>
-                <strong>blabla@gmail.com</strong>
+                <div class="user-profile-info">
+                    <strong>{{ user.name }}</strong>
+                    <span class="user-email" title="{{ user.email }}">
+                        {{ user.email }}
+                    </span>
+                </div>
             </div>
 
             <nav class="sidebar-menu">
-                <a href="#" class="sidebar-link active">
-                    <i class="fa-regular fa-file-lines"></i>
+                <a href="{{ url_for('main.kelola_akun') }}" class="sidebar-link active">
+                    <i class="fa-regular fa-user"></i>
                     <span>Data Diri Saya</span>
                 </a>
 
-                <a href="#" class="sidebar-link">
-                    <i class="fa-regular fa-clock"></i>
+                <a href="{{ url_for('main.kelola_pesanan') }}" class="sidebar-link">
+                    <i class="fa-solid fa-receipt"></i>
                     <span>Pesanan Saya</span>
                 </a>
 
@@ -39,10 +44,15 @@ Kelola Akun - KeSanaSini
                     <span>Riwayat Pesanan</span>
                 </a>
 
+                <a href="#" class="sidebar-link">
+                    <i class="fa-regular fa-bell"></i>
+                    <span>Notifikasi</span>
+                </a>
+
                 <div class="sidebar-divider"></div>
 
                 <a href="#" class="sidebar-link logout-link">
-                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <i class="fa-solid fa-right-from-bracket"></i>
                     <span>Log Out</span>
                 </a>
             </nav>
@@ -63,7 +73,7 @@ Kelola Akun - KeSanaSini
                         <div class="form-group">
                             <label for="full-name">Nama Lengkap</label>
                             <input type="text" id="full-name"
-                                   name="full_name"
+                                   name="name" value="{{ user.name or '' }}"
                                    placeholder="Nama Pengguna">
                         </div>
 
@@ -73,32 +83,42 @@ Kelola Akun - KeSanaSini
 
                                 <div class="birth-inputs">
                                     <select name="birth_day" aria-label="Tanggal">
-                                        <option value="10">10</option>
+                                        <option value="">Tanggal</option>
                                         {% for day in range(1, 32) %}
-                                            {% if day != 10 %}
-                                            <option value="{{ day }}">{{ day }}</option>
-                                            {% endif %}
+                                        <option value="{{ day }}"
+                                            {% if user.birth_date and user.birth_date.day == day %}
+                                                selected
+                                            {% endif %}>
+                                            {{ day }}
+                                        </option>
                                         {% endfor %}
                                     </select>
 
                                     <select name="birth_month" aria-label="Bulan">
-                                        {% for month in [
-                                            'Januari', 'Februari', 'Maret',
-                                            'April', 'Mei', 'Juni', 'Juli',
-                                            'Agustus', 'September', 'Oktober',
-                                            'November', 'Desember'
+                                        <option value="">Bulan</option>
+                                        {% set months = [
+                                            'Januari', 'Februari', 'Maret', 'April',
+                                            'Mei', 'Juni', 'Juli', 'Agustus',
+                                            'September', 'Oktober', 'November', 'Desember'
                                         ] %}
-                                        <option value="{{ month }}"
-                                            {% if month == 'April' %}selected{% endif %}>
+
+                                        {% for month in months %}
+                                        <option value="{{ loop.index }}"
+                                            {% if user.birth_date and user.birth_date.month == loop.index %}
+                                                selected
+                                            {% endif %}>
                                             {{ month }}
                                         </option>
                                         {% endfor %}
                                     </select>
 
                                     <select name="birth_year" aria-label="Tahun">
-                                        {% for year in range(2007, 1949, -1) %}
+                                        <option value="">Tahun</option>
+                                        {% for year in range(2026, 1949, -1) %}
                                         <option value="{{ year }}"
-                                            {% if year == 2007 %}selected{% endif %}>
+                                            {% if user.birth_date and user.birth_date.year == year %}
+                                                selected
+                                            {% endif %}>
                                             {{ year }}
                                         </option>
                                         {% endfor %}
@@ -108,9 +128,17 @@ Kelola Akun - KeSanaSini
 
                             <div class="form-group gender-group">
                                 <label for="gender">Jenis Kelamin</label>
+
                                 <select id="gender" name="gender">
-                                    <option value="Perempuan">Perempuan</option>
-                                    <option value="Laki-laki">Laki-laki</option>
+                                    <option value="Perempuan"
+                                        {% if user.gender == 'Perempuan' %}selected{% endif %}>
+                                        Perempuan
+                                    </option>
+
+                                    <option value="Laki-laki"
+                                        {% if user.gender == 'Laki-laki' %}selected{% endif %}>
+                                        Laki-laki
+                                    </option>
                                 </select>
                             </div>
                         </div>
@@ -121,11 +149,34 @@ Kelola Akun - KeSanaSini
 
                                 <label class="upload-box" for="ktp">
                                     <i class="fa-regular fa-address-card"></i>
-                                    <span class="upload-status">Unggah KTP</span>
+                                    <span id="ktp-status"
+                                        class="upload-status {% if not user.ktp_file %}file-missing{% else %}file-uploaded{% endif %}">
+                                        {% if user.ktp_file %}
+                                            KTP sudah diunggah
+                                        {% else %}
+                                            KTP belum diunggah
+                                        {% endif %}
+                                    </span>
                                 </label>
 
                                 <input type="file" id="ktp" name="ktp"
                                        accept="image/*,.pdf" hidden>
+
+                                <div id="ktp-preview" class="document-preview">
+                                    {% if user.ktp_file %}
+                                        {% set ext = user.ktp_file.rsplit('.', 1)[-1].lower() %}
+                                        {% if ext in ['jpg', 'jpeg', 'png', 'webp'] %}
+                                            <img
+                                                src="{{ url_for('static', filename='uploads/dokumen_akun/' ~ user.ktp_file) }}"
+                                                alt="Pratinjau KTP"
+                                                onclick="window.open(this.src, '_blank')"
+                                            >
+                                        {% elif ext == 'pdf' %}
+                                            <a href="{{ url_for('static', filename='uploads/dokumen_akun/' ~ user.ktp_file) }}"
+                                            target="_blank">Lihat dokumen KTP (PDF)</a>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
                             </div>
 
                             <div class="form-group document-group">
@@ -133,13 +184,55 @@ Kelola Akun - KeSanaSini
 
                                 <label class="upload-box" for="sim">
                                     <i class="fa-regular fa-address-card"></i>
-                                    <span class="upload-status">Unggah SIM</span>
+                                    <span id="sim-status"
+                                        class="upload-status {% if not user.sim_file %}file-missing{% else %}file-uploaded{% endif %}">
+                                        {% if user.sim_file %}
+                                            SIM sudah diunggah
+                                        {% else %}
+                                            SIM belum diunggah
+                                        {% endif %}
+                                    </span>
                                 </label>
 
                                 <input type="file" id="sim" name="sim"
                                        accept="image/*,.pdf" hidden>
+
+                                <div id="sim-preview" class="document-preview">
+                                    {% if user.sim_file %}
+                                        {% set ext = user.sim_file.rsplit('.', 1)[-1].lower() %}
+                                        {% if ext in ['jpg', 'jpeg', 'png', 'webp'] %}
+                                            <img
+                                                src="{{ url_for('static', filename='uploads/dokumen_akun/' ~ user.sim_file) }}"
+                                                alt="Pratinjau SIM"
+                                                onclick="window.open(this.src, '_blank')"
+                                            >
+                                        {% elif ext == 'pdf' %}
+                                            <a href="{{ url_for('static', filename='uploads/dokumen_akun/' ~ user.sim_file) }}"
+                                            target="_blank">Lihat dokumen SIM (PDF)</a>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+
                             </div>
                         </div>
+
+                        {% if not user.ktp_path or not user.sim_path %}
+                            <div class="document-warning">
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                                <strong>Dokumen belum lengkap.</strong>
+
+                                Anda belum dapat melakukan sewa lepas kunci.
+                                Silakan unggah
+                                {% if not user.ktp_path and not user.sim_path %}
+                                    KTP dan SIM
+                                {% elif not user.ktp_path %}
+                                    KTP
+                                {% else %}
+                                    SIM
+                                {% endif %}
+                                terlebih dahulu.
+                            </div>
+                        {% endif %}
 
                         <div class="save-row">
                             <button type="submit" class="save-button">
@@ -155,25 +248,40 @@ Kelola Akun - KeSanaSini
 
                     <div class="card-body">
                         <div class="form-group">
-                            <label for="email">E-mail</label>
-                            <input type="email" id="email" name="email"
-                                   placeholder="E-mail">
+                            <label for="email">E-Mail</label>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                value="{{ user.email or '' }}"
+                                readonly
+                            >
                         </div>
 
                         <div class="form-row contact-row">
                             <div class="form-group">
                                 <label for="phone">No Telepon</label>
-                                <input type="tel" id="phone" name="phone"
-                                       placeholder="08xxxxxxxxxx">
+                                <input
+                                    type="tel"
+                                    id="phone"
+                                    name="phone"
+                                    value="{{ user.phone or '' }}"
+                                    placeholder="08xxxxxxxxxx"
+                                >
                             </div>
 
                             <div class="form-group">
                                 <label for="emergency-phone">No Darurat</label>
-                                <input type="tel" id="emergency-phone"
-                                       name="emergency_phone"
-                                       placeholder="08xxxxxxxxxx">
+                                <input
+                                    type="tel"
+                                    id="emergency-phone"
+                                    name="emergency_phone"
+                                    value="{{ user.emergency_phone or '' }}"
+                                    placeholder="08xxxxxxxxxx"
+                                >
                             </div>
                         </div>
+
                     </div>
                 </section>
             </form>
@@ -182,23 +290,57 @@ Kelola Akun - KeSanaSini
     </div>
 </main>
 
-<script>
-    document.querySelectorAll('input[type="file"]').forEach(input => {
-        input.addEventListener('change', function () {
-            const status = document.querySelector(
-                `label[for="${this.id}"] .upload-status`
-            );
 
-            if (this.files.length > 0) {
-                status.textContent = this.files[0].name;
-                status.classList.add('file-selected');
-            } else {
-                status.textContent = this.id === 'ktp'
-                    ? 'Unggah KTP'
-                    : 'Unggah SIM';
-                status.classList.remove('file-selected');
-            }
-        });
+<script>
+function setupDocumentPreview(inputId, statusId, previewId, label) {
+    const input = document.getElementById(inputId);
+    const status = document.getElementById(statusId);
+    const preview = document.getElementById(previewId);
+
+    input.addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+
+        const allowedTypes = [
+            'image/jpeg',
+            'image/png',
+            'image/webp',
+            'application/pdf'
+        ];
+
+        if (!allowedTypes.includes(file.type)) {
+            status.textContent = 'Format file tidak didukung';
+            status.classList.remove('file-uploaded');
+            status.classList.add('file-missing');
+            preview.innerHTML = '';
+            this.value = '';
+            return;
+        }
+
+        status.textContent = file.name;
+        status.classList.remove('file-missing');
+        status.classList.add('file-uploaded');
+
+        preview.innerHTML = '';
+
+        if (file.type.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.alt = 'Pratinjau ' + label;
+            img.onclick = () => window.open(img.src, '_blank');
+            preview.appendChild(img);
+        } else {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(file);
+            link.target = '_blank';
+            link.textContent = 'Buka PDF ' + label;
+            preview.appendChild(link);
+        }
     });
+}
+
+setupDocumentPreview('ktp', 'ktp-status', 'ktp-preview', 'KTP');
+setupDocumentPreview('sim', 'sim-status', 'sim-preview', 'SIM');
 </script>
+
 {% endblock %}

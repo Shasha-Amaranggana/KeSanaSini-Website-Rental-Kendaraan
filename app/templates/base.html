@@ -56,10 +56,8 @@
         <nav class="nav-menu">
 
             <a href="{{ url_for('main.index') }}"
-               class="nav-link active">
-
+            class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}">
                 Menu Utama
-
             </a>
 
             <a href="#"

@@ -519,6 +519,31 @@ def kelola_akun():
     )
 
 
+@bp.route('/kelola-pesanan', methods=['GET', 'POST'])
+def kelola_pesanan():
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+
+    user = User.query.get(session['user_id'])
+
+    if not user:
+        session.clear()
+        return redirect(url_for('main.login'))
+
+    pesanan = (
+        Rental.query
+        .filter_by(user_id=user.id)
+        .order_by(Rental.created_at.desc())
+        .all()
+    )
+
+    return render_template(
+        'user/halKelolaPesanan.html',
+        user=user,
+        pesanan=pesanan
+    )
+
+
 
 # =========================================================
 # HALAMAN LOGIN | REGISTER | LOGOUT
