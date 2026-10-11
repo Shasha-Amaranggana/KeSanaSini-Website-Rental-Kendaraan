@@ -21,6 +21,14 @@ class User(db.Model):
     # Kolom baru untuk membedakan Admin dan User
     role = db.Column(db.String(20), nullable=False, default='user')
 
+    # ---- Tambahan modul Kelola Pelanggan & Admin ----       <-- mulai tambahan
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+    profile_photo = db.Column(db.String(255), nullable=True)
+    ktp_number = db.Column(db.String(20), nullable=True)
+    sim_number = db.Column(db.String(20), nullable=True)
+    # Kolom role menjadi penentu kelas: Customer / Admin / SuperAdmin
+    __mapper_args__ = {'polymorphic_on': role}               
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
@@ -302,3 +310,89 @@ class Review(db.Model):
 
     user = db.relationship('User', backref=db.backref('reviews', lazy=True))
     vehicle = db.relationship('Vehicle', backref=db.backref('reviews', lazy=True))
+
+
+
+# =========================================================
+# MODEL TURUNAN USER  (Kelola Pelanggan & Kelola Admin)
+#
+#   User (induk)
+#    |-- Customer          role = 'user'
+#    |-- Admin             role = 'admin'
+#         |-- SuperAdmin   role = 'superadmin'
+#
+# Tidak ada tabel baru: semuanya tetap di tabel `user`,
+# kolom `role` yang menentukan kelas objeknya.
+# =========================================================
+class ProfileMixin:
+    """Perilaku bersama untuk semua jenis pengguna (foto profil & dokumen)."""
+
+    @property
+    def avatar_path(self):
+        """Path foto profil relatif terhadap folder static, atau None."""
+        if self.profile_photo:
+            return f"uploads/profil/{self.profile_photo}"
+        return None
+
+    def _document(self, label, attr):
+        """
+        Cari dokumen (KTP/SIM). Urutan pencarian:
+        1) file di akun user (halaman Kelola Akun), 2) file dari penyewaan terbaru.
+        """
+        own = getattr(self, attr)
+        if own:
+            path = f"uploads/dokumen_akun/{own}"
+            filename = own
+        else:
+            column = getattr(Rental, attr)
+            rental = (Rental.query
+                      .filter(Rental.user_id == self.id, column.isnot(None), column != '')
+                      .order_by(Rental.created_at.desc())
+                      .first())
+            if rental is None:
+                return {'label': label, 'path': None, 'is_pdf': False}
+            filename = getattr(rental, attr)
+            path = f"uploads/dokumen/{filename}"
+        return {'label': label, 'path': path, 'is_pdf': filename.lower().endswith('.pdf')}
+
+    @property
+    def documents(self):
+        return [self._document('KTP', 'ktp_file'), self._document('SIM', 'sim_file')]
+
+
+class Customer(ProfileMixin, User):
+    """Pelanggan / penyewa kendaraan."""
+    ROLE = 'user'
+    CODE_PREFIX = 'PLG'
+    __mapper_args__ = {'polymorphic_identity': ROLE}
+
+    @property
+    def code(self):
+        return f"{self.CODE_PREFIX}{self.id:03d}"      # contoh: PLG001
+
+    @property
+    def rental_history(self):
+        return (Rental.query
+                .filter_by(user_id=self.id)
+                .order_by(Rental.created_at.desc())
+                .all())
+
+
+class Admin(ProfileMixin, User):
+    """Admin biasa."""
+    ROLE = 'admin'
+    CODE_PREFIX = 'ADM'
+    is_super_admin = False
+    __mapper_args__ = {'polymorphic_identity': ROLE}
+
+    @property
+    def code(self):
+        return f"{self.CODE_PREFIX}{self.id:03d}"      # contoh: ADM002
+
+
+class SuperAdmin(Admin):
+    """Super Admin = Admin + hak mengelola akun admin lain."""
+    ROLE = 'superadmin'
+    CODE_PREFIX = 'SA'
+    is_super_admin = True
+    __mapper_args__ = {'polymorphic_identity': ROLE}

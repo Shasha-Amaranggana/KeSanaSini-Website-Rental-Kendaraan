@@ -58,7 +58,7 @@
                 <div class="dropdown">
                     <div class="dropdown-header">
                         {{ admin.name }}<br>
-                        <small style="color:#5B5B5B;font-weight:400">Administrator</small>
+                        <small style="color:#5B5B5B;font-weight:400">{{ 'Super Admin' if session.get('user_role') == 'superadmin' else 'Administrator' }}</small>
                     </div>
                     <a href="{{ url_for('main.logout') }}" class="dropdown-item danger">
                         <i class="fa-solid fa-right-from-bracket"></i> Keluar
@@ -79,7 +79,7 @@
         <a href="{{ url_for('main.admin_penyewaan') }}" class="menu-item {{ 'active' if active_menu == 'penyewaan' }}">
             <i class="fa-solid fa-file-signature"></i> Penyewaan
         </a>
-        <a href="{{ url_for('main.admin_pelanggan') }}" class="menu-item {{ 'active' if active_menu == 'pelanggan' }}">
+        <a href="{{ url_for('kelola_pelanggan.daftar') }}" class="menu-item {{ 'active' if active_menu == 'pelanggan' }}">
             <i class="fa-solid fa-users"></i> Pelanggan
         </a>
         <a href="{{ url_for('main.admin_sopir') }}" class="menu-item {{ 'active' if active_menu == 'sopir' }}">
@@ -88,6 +88,11 @@
         <a href="{{ url_for('main.admin_tracking') }}" class="menu-item {{ 'active' if active_menu == 'tracking' }}">
             <i class="fa-solid fa-map-location-dot"></i> Live Tracking
         </a>
+        {% if session.get('user_role') == 'superadmin' %}
+        <a href="{{ url_for('kelola_admin.daftar') }}" class="menu-item {{ 'active' if active_menu == 'admin' }}">
+            <i class="fa-solid fa-user-shield"></i> Admin
+        </a>
+        {% endif %}
     </nav>
 
     <!-- ================= KONTEN ================= -->

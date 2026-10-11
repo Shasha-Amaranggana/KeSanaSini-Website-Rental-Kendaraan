@@ -1,0 +1,106 @@
+{% extends 'admin/base_admin.html' %}
+{% from 'admin/_macros_pengguna.html' import avatar, field, pager, status_form, switch_script %}
+
+{% block title %}Pelanggan{% endblock %}
+
+{% block content %}
+<div class="kp kp-grid-3">
+
+    <!-- ===== PANEL 1: DAFTAR PELANGGAN ===== -->
+    <section class="kp-card">
+        <h2>Daftar Pelanggan</h2>
+        <form class="kp-search" method="get" action="{{ url_for('kelola_pelanggan.daftar') }}">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" name="q" value="{{ keyword }}" placeholder="Cari pelanggan berdasarkan ID, nama, ..." autocomplete="off">
+        </form>
+
+        <table class="kp-table">
+            <thead><tr><th>ID Pelanggan</th><th>Nama</th></tr></thead>
+            <tbody>
+            {% for c in pagination.items %}
+                {% set link = url_for('kelola_pelanggan.daftar', id=c.id, page=pagination.page, q=keyword or None) %}
+                <tr class="{{ 'selected' if selected and selected.id == c.id }}">
+                    <td><a href="{{ link }}">#{{ c.code }}</a></td>
+                    <td><a href="{{ link }}">{{ c.name }}</a></td>
+                </tr>
+            {% else %}
+                <tr><td colspan="2" class="kp-empty">Pelanggan tidak ditemukan</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        {{ pager(pagination, 'kelola_pelanggan.daftar', keyword, selected) }}
+    </section>
+
+    <!-- ===== PANEL 2: DETAIL & EDIT PELANGGAN ===== -->
+    <section class="kp-card">
+        <h2>Detail &amp; Edit Pelanggan</h2>
+        <div class="kp-code">#{{ selected.code if selected else '-' }}</div>
+
+        <div class="kp-profile">
+            {{ avatar(selected.avatar_path if selected else None) }}
+            <div class="kp-docs">
+                <i class="fa-regular fa-id-card"></i>
+                {% if selected %}
+                    <a href="#dokumen" class="kp-btn small">Lihat Foto</a>
+                {% else %}
+                    <span class="kp-btn small disabled">Lihat Foto</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {{ field('Nama', selected.name if selected else '') }}
+        {{ field('No.KTP', selected.ktp_number if selected else '') }}
+        {{ field('No.SIM', selected.sim_number if selected else '') }}
+        {{ field('No. Telepon', selected.phone if selected else '') }}
+        {{ field('Email', selected.email if selected else '') }}
+
+        {{ status_form(selected, url_for('kelola_pelanggan.ubah_status', user_id=selected.id) if selected else '#', pagination, keyword) }}
+    </section>
+
+    <!-- ===== PANEL 3: RIWAYAT PENYEWAAN ===== -->
+    <section class="kp-card">
+        <h2>Riwayat Penyewaan</h2>
+        <table class="kp-table">
+            <thead><tr><th>ID Booking</th><th>Tanggal Sewa</th></tr></thead>
+            <tbody>
+            {% if not selected %}
+                <tr><td>#---</td><td>--/--/--</td></tr>
+            {% else %}
+                {% for r in rentals %}
+                    <tr><td>#{{ r.booking_code }}</td><td>{{ r.start_date.strftime('%d/%m/%Y') }}</td></tr>
+                {% else %}
+                    <tr><td colspan="2" class="kp-empty">Belum ada penyewaan</td></tr>
+                {% endfor %}
+            {% endif %}
+            </tbody>
+        </table>
+    </section>
+</div>
+
+<!-- ===== POPUP "LIHAT FOTO" (dokumen KTP & SIM) ===== -->
+{% if selected %}
+<div class="kp kp-modal" id="dokumen">
+    <div class="kp-card">
+        <h2>Dokumen {{ selected.name }}</h2>
+        <div class="kp-doc-grid">
+        {% for d in selected.documents %}
+            <div class="kp-doc">
+                <b>{{ d.label }}</b>
+                {% if not d.path %}
+                    <div class="kp-doc-empty">Belum diunggah</div>
+                {% elif d.is_pdf %}
+                    <a class="kp-btn small" target="_blank" href="{{ url_for('static', filename=d.path) }}">Buka PDF</a>
+                {% else %}
+                    <img src="{{ url_for('static', filename=d.path) }}" alt="{{ d.label }}">
+                {% endif %}
+            </div>
+        {% endfor %}
+        </div>
+        <div class="kp-actions"><a href="#" class="kp-btn">Tutup</a></div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}{{ switch_script() }}{% endblock %}

@@ -39,6 +39,27 @@ def run_seed():
     db.session.add(user_biasa)
     db.session.add(admin_web)
 
+    # Akun Super Admin + beberapa admin contoh (modul Kelola Admin)
+    super_admin = User(
+        name="Super Admin", birth_date=date(1988, 3, 3), gender="Laki-laki",
+        email="superadmin@sanasini.com", phone="08999000111", emergency_phone="08999000222",
+        ktp_number="1234567890123456", sim_number="123456789012", role="superadmin"
+    )
+    super_admin.set_password("admin123")
+    db.session.add(super_admin)
+
+    for nama, email, aktif in [("Mimin Jakan", "mimin@sanasini.com", False),
+                               ("Lamin Temet", "lamin@sanasini.com", True),
+                               ("Fandi Santoso", "fandi@sanasini.com", True)]:
+        staf = User(
+            name=nama, birth_date=date(1995, 1, 1), gender="Laki-laki", email=email,
+            phone="08777000111", emergency_phone="08777000222",
+            ktp_number="1234567890123456", sim_number="123456789012",
+            role="admin", is_active=aktif
+        )
+        staf.set_password("admin123")
+        db.session.add(staf)
+
     # 3. BUAT DATA KENDARAAN
     print("Memasukkan data kendaraan...")
     vehicles = [

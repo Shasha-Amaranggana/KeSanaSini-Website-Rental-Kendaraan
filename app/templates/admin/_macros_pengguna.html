@@ -1,0 +1,69 @@
+{# Komponen kecil yang dipakai bersama oleh halaman Pelanggan & Admin #}
+
+{% macro avatar(path) %}
+<div class="kp-avatar">
+    {% if path %}
+        <img src="{{ url_for('static', filename=path) }}" alt="Foto profil">
+    {% else %}
+        <i class="fa-solid fa-user"></i>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% macro field(label, value) %}
+<div class="kp-field">
+    <label>{{ label }}</label>
+    <input type="text" value="{{ value if value else '-' }}" readonly>
+</div>
+{% endmacro %}
+
+{# Pagination: |<  <  1 2 3  >  >| #}
+{% macro pager(pagination, endpoint, keyword, selected) %}
+{% set sel_id = selected.id if selected else None %}
+<div class="kp-pager">
+    <a class="{{ 'off' if not pagination.has_prev }}" href="{{ url_for(endpoint, page=1, q=keyword or None, id=sel_id) }}">|&lt;</a>
+    <a class="{{ 'off' if not pagination.has_prev }}" href="{{ url_for(endpoint, page=pagination.prev_num or 1, q=keyword or None, id=sel_id) }}">&lt;</a>
+    {% for i in range(1, pagination.pages + 1) %}
+        <a class="{{ 'on' if i == pagination.page }}" href="{{ url_for(endpoint, page=i, q=keyword or None, id=sel_id) }}">{{ i }}</a>
+    {% endfor %}
+    <a class="{{ 'off' if not pagination.has_next }}" href="{{ url_for(endpoint, page=pagination.next_num or pagination.page, q=keyword or None, id=sel_id) }}">&gt;</a>
+    <a class="{{ 'off' if not pagination.has_next }}" href="{{ url_for(endpoint, page=pagination.pages or 1, q=keyword or None, id=sel_id) }}">&gt;|</a>
+</div>
+{% endmacro %}
+
+{# Saklar status akun + tombol Simpan Perubahan #}
+{% macro status_form(selected, action_url, pagination, keyword) %}
+<form method="post" action="{{ action_url if selected else '#' }}" class="kp-status-form">
+    <input type="hidden" name="page" value="{{ pagination.page }}">
+    <input type="hidden" name="q" value="{{ keyword }}">
+    <fieldset {{ 'disabled' if not selected }}>
+        <div class="kp-status">
+            <span>Status Akun</span>
+            <label class="kp-switch">
+                <input type="checkbox" name="is_active" value="1" {{ 'checked' if selected and selected.is_active }}>
+                <span class="kp-slider"></span>
+            </label>
+            {% if selected and selected.is_active %}
+                <b class="kp-state on">Aktif</b>
+            {% else %}
+                <b class="kp-state off">Tidak Aktif</b>
+            {% endif %}
+        </div>
+        <small class="kp-hint">Nonaktifkan untuk membatasi akses rental</small>
+        <div class="kp-actions"><button type="submit" class="kp-btn">Simpan Perubahan</button></div>
+    </fieldset>
+</form>
+{% endmacro %}
+
+{# JavaScript kecil: label Aktif/Tidak Aktif ikut berubah saat saklar digeser #}
+{% macro switch_script() %}
+<script>
+    document.querySelectorAll('.kp-switch input').forEach(function (cb) {
+        var label = cb.closest('.kp-status').querySelector('.kp-state');
+        cb.addEventListener('change', function () {
+            label.textContent = cb.checked ? 'Aktif' : 'Tidak Aktif';
+            label.className = 'kp-state ' + (cb.checked ? 'on' : 'off');
+        });
+    });
+</script>
+{% endmacro %}

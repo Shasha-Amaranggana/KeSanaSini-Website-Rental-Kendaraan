@@ -538,7 +538,7 @@ def login():
             session['user_role'] = user.role  # Simpan jabatan di session
             
             # POLISI LALU LINTAS (If-Else Role)
-            if user.role == 'admin':
+            if user.role in ('admin', 'superadmin'):
                 return redirect(url_for('main.admin_dashboard'))
             else:
                 return redirect(url_for('main.index'))
@@ -556,7 +556,7 @@ def admin_required(view_func):
     """Decorator: hanya user dengan role 'admin' yang boleh masuk."""
     @wraps(view_func)
     def wrapper(*args, **kwargs):
-        if 'user_id' not in session or session.get('user_role') != 'admin':
+        if 'user_id' not in session or session.get('user_role') not in ('admin', 'superadmin'):
             flash('Anda tidak memiliki akses ke halaman ini!')
             return redirect(url_for('main.login'))
         return view_func(*args, **kwargs)
@@ -877,6 +877,322 @@ def admin_pelanggan():
                            title='Pelanggan', icon='fa-users', **admin_context())
 
 ALLOWED_IMG_EXT = {'jpg', 'jpeg', 'png', 'webp'}
+
+# =========================================================
+# KELOLA PELANGGAN (admin_bp)  &  KELOLA ADMIN (superadmin_bp)
+# =========================================================
+import re
+from flask.views import MethodView
+from sqlalchemy.exc import IntegrityError
+from app.models import Customer, Admin
+
+admin_bp = Blueprint('kelola_pelanggan', __name__, url_prefix='/admin/kelola-pelanggan')
+superadmin_bp = Blueprint('kelola_admin', __name__, url_prefix='/superadmin/kelola-admin')
+
+
+# ---------- PENJAGA AKSES ----------
+def superadmin_required(view_func):
+    """Decorator: hanya role 'superadmin'. (Untuk Admin biasa & Super Admin pakai admin_required.)"""
+    @wraps(view_func)
+    def wrapper(*args, **kwargs):
+        if 'user_id' not in session or session.get('user_role') != 'superadmin':
+            flash('Anda tidak memiliki akses ke halaman ini!')
+            return redirect(url_for('main.login'))
+        return view_func(*args, **kwargs)
+    return wrapper
+
+
+class AccountStatusGuard:
+    """
+    Menegakkan status akun (aktif / nonaktif) di SETIAP request:
+      - Admin / Super Admin nonaktif -> otomatis dikeluarkan (logout).
+      - Pelanggan nonaktif           -> tidak boleh membuka halaman penyewaan.
+    """
+    STAFF_ROLES = ('admin', 'superadmin')
+    EXEMPT_ENDPOINTS = ('static', 'main.login', 'main.logout')
+    RENTAL_ENDPOINTS = ('main.pesanan',)
+
+    @classmethod
+    def check(cls):
+        user_id = session.get('user_id')
+        if not user_id or request.endpoint is None or request.endpoint in cls.EXEMPT_ENDPOINTS:
+            return None
+
+        user = db.session.get(User, user_id)
+        if user is None or user.is_active:
+            return None
+
+        if user.role in cls.STAFF_ROLES:
+            session.clear()
+            flash('Akun admin Anda dinonaktifkan. Hubungi Super Admin.')
+            return redirect(url_for('main.login'))
+
+        if request.endpoint in cls.RENTAL_ENDPOINTS:
+            flash('Akun Anda dinonaktifkan sehingga tidak dapat menyewa kendaraan. Hubungi admin.')
+            return redirect(url_for('main.index'))
+        return None
+
+
+# Dijalankan di setiap request setelah admin_bp terdaftar
+admin_bp.before_app_request(AccountStatusGuard.check)
+
+
+# ---------- SERVICE (logika bisnis, berbasis class) ----------
+class ValidationError(Exception):
+    """Dilempar saat input form tidak valid. `messages` berisi daftar pesan."""
+    def __init__(self, messages):
+        super().__init__('; '.join(messages))
+        self.messages = messages
+
+
+class BaseUserService:
+    """Logika umum: daftar -> cari -> pilih -> ubah status."""
+    model = None            # diisi oleh kelas turunan
+    PER_PAGE = 8
+
+    def base_query(self):
+        return self.model.query.filter(self.model.role == self.model.ROLE)
+
+    def search(self, keyword, page):
+        """Pencarian (nama / email / no. HP / kode ID seperti PLG001) + pagination."""
+        query = self.base_query()
+        keyword = (keyword or '').strip()
+        if keyword:
+            pattern = f'%{keyword}%'
+            conditions = [
+                self.model.name.ilike(pattern),
+                self.model.email.ilike(pattern),
+                self.model.phone.ilike(pattern),
+            ]
+            digits = ''.join(ch for ch in keyword if ch.isdigit())
+            if digits and keyword.upper().startswith(self.model.CODE_PREFIX):
+                conditions.append(self.model.id == int(digits))
+            query = query.filter(or_(*conditions))
+        return query.order_by(self.model.id).paginate(
+            page=page, per_page=self.PER_PAGE, error_out=False)
+
+    def find(self, user_id):
+        """Ambil satu data, atau None kalau tidak ada / id kosong."""
+        if not user_id:
+            return None
+        return self.base_query().filter(self.model.id == user_id).first()
+
+    def get_or_404(self, user_id):
+        return self.base_query().filter(self.model.id == user_id).first_or_404()
+
+    def set_active(self, user, active):
+        user.is_active = bool(active)
+        db.session.commit()
+        return user
+
+
+class CustomerService(BaseUserService):
+    model = Customer
+
+    def rental_history(self, customer):
+        return customer.rental_history
+
+
+class AdminService(BaseUserService):
+    model = Admin
+
+    EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+    PHONE_RE = re.compile(r'^\+?\d{10,15}$')
+    MIN_PASSWORD = 8
+    ALLOWED_PHOTO_EXT = {'jpg', 'jpeg', 'png', 'webp'}
+
+    # Kolom wajib (NOT NULL) milik User yang tidak ada di form "Tambah Admin"
+    DEFAULT_BIRTH_DATE = date(2000, 1, 1)
+    DEFAULT_GENDER = '-'
+
+    def create(self, form, photo=None):
+        """Validasi form lalu buat akun admin baru. Return objek Admin."""
+        name = (form.get('name') or '').strip()
+        email = (form.get('email') or '').strip()
+        phone = (form.get('phone') or '').strip()
+        password = form.get('password') or ''
+        confirm = form.get('confirm_password') or ''
+
+        errors = []
+        if not name:
+            errors.append('Nama lengkap wajib diisi.')
+        if not self.EMAIL_RE.match(email):
+            errors.append('Email tidak valid (contoh: nama@domain.com).')
+        elif User.query.filter(db.func.lower(User.email) == email.lower()).first():
+            errors.append('Email sudah terdaftar.')
+        if not self.PHONE_RE.match(phone):
+            errors.append('Nomor HP harus berupa angka 10-15 digit.')
+        if len(password) < self.MIN_PASSWORD:
+            errors.append(f'Password minimal {self.MIN_PASSWORD} karakter.')
+        elif password != confirm:
+            errors.append('Konfirmasi password tidak cocok.')
+
+        photo_ext = None
+        if photo and photo.filename:
+            photo_ext = photo.filename.rsplit('.', 1)[-1].lower() if '.' in photo.filename else ''
+            if photo_ext not in self.ALLOWED_PHOTO_EXT:
+                errors.append('Foto profil harus berformat JPG, JPEG, PNG, atau WEBP.')
+
+        if errors:
+            raise ValidationError(errors)
+
+        filename = self._save_photo(photo, photo_ext) if photo_ext else None
+        new_admin = Admin(
+            name=name, email=email, phone=phone, emergency_phone=phone,
+            birth_date=self.DEFAULT_BIRTH_DATE, gender=self.DEFAULT_GENDER,
+            role=Admin.ROLE, is_active=True, profile_photo=filename,
+        )
+        new_admin.set_password(password)
+
+        try:
+            db.session.add(new_admin)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            self._delete_photo(filename)
+            raise ValidationError(['Email sudah terdaftar.'])
+        return new_admin
+
+    # ---------- penyimpanan foto profil ----------
+    @staticmethod
+    def _photo_folder():
+        return os.path.join(current_app.root_path, 'static', 'uploads', 'profil')
+
+    def _save_photo(self, file_storage, ext):
+        folder = self._photo_folder()
+        os.makedirs(folder, exist_ok=True)
+        filename = secure_filename(f"admin_{datetime.now().strftime('%Y%m%d%H%M%S%f')}.{ext}")
+        file_storage.save(os.path.join(folder, filename))
+        return filename
+
+    def _delete_photo(self, filename):
+        if filename:
+            path = os.path.join(self._photo_folder(), filename)
+            if os.path.exists(path):
+                os.remove(path)
+
+
+# ---------- CONTROLLER ADMIN: halaman Pelanggan (admin_bp) ----------
+class PelangganListView(MethodView):
+    """Daftar pelanggan + (jika dipilih) detail, dokumen, dan riwayat penyewaan."""
+    decorators = [admin_required]
+    service = CustomerService()
+
+    def get(self):
+        keyword = request.args.get('q', '').strip()
+        page = request.args.get('page', 1, type=int)
+        selected = self.service.find(request.args.get('id', type=int))
+
+        return render_template(
+            'admin/pelanggan.html',
+            active_menu='pelanggan',
+            pagination=self.service.search(keyword, page),
+            selected=selected,
+            rentals=self.service.rental_history(selected) if selected else [],
+            keyword=keyword,
+            **admin_context()
+        )
+
+
+class PelangganStatusView(MethodView):
+    """Simpan perubahan status akun pelanggan (aktif / nonaktif)."""
+    decorators = [admin_required]
+    service = CustomerService()
+
+    def post(self, user_id):
+        customer = self.service.get_or_404(user_id)
+        active = request.form.get('is_active') == '1'
+        self.service.set_active(customer, active)
+        flash(f"Status akun {customer.name} diubah menjadi "
+              f"{'Aktif' if active else 'Tidak Aktif'}.")
+        return redirect(url_for(
+            'kelola_pelanggan.daftar',
+            id=customer.id,
+            page=request.form.get('page', 1, type=int),
+            q=request.form.get('q') or None,
+        ))
+
+
+admin_bp.add_url_rule('/', view_func=PelangganListView.as_view('daftar'))
+admin_bp.add_url_rule('/<int:user_id>/status',
+                      view_func=PelangganStatusView.as_view('ubah_status'),
+                      methods=['POST'])
+
+
+# ---------- CONTROLLER SUPER ADMIN: halaman Admin (superadmin_bp) ----------
+class AdminListView(MethodView):
+    """Daftar admin + detail admin yang dipilih."""
+    decorators = [superadmin_required]
+    service = AdminService()
+
+    def get(self):
+        keyword = request.args.get('q', '').strip()
+        page = request.args.get('page', 1, type=int)
+
+        return render_template(
+            'admin/admin_list.html',
+            active_menu='admin',
+            pagination=self.service.search(keyword, page),
+            selected=self.service.find(request.args.get('id', type=int)),
+            keyword=keyword,
+            **admin_context()
+        )
+
+
+class AdminStatusView(MethodView):
+    """Simpan perubahan status akun admin (aktif / nonaktif)."""
+    decorators = [superadmin_required]
+    service = AdminService()
+
+    def post(self, user_id):
+        target = self.service.get_or_404(user_id)
+        active = request.form.get('is_active') == '1'
+        self.service.set_active(target, active)
+        flash(f"Status akun {target.name} diubah menjadi "
+              f"{'Aktif' if active else 'Tidak Aktif'}.")
+        return redirect(url_for(
+            'kelola_admin.daftar',
+            id=target.id,
+            page=request.form.get('page', 1, type=int),
+            q=request.form.get('q') or None,
+        ))
+
+
+class AdminCreateView(MethodView):
+    """Form Tambah Admin Baru."""
+    decorators = [superadmin_required]
+    service = AdminService()
+
+    def _render(self, errors=None):
+        return render_template(
+            'admin/admin_tambah.html',
+            active_menu='admin',
+            errors=errors or [],
+            form=request.form,
+            **admin_context()
+        )
+
+    def get(self):
+        return self._render()
+
+    def post(self):
+        try:
+            new_admin = self.service.create(request.form, request.files.get('foto_profil'))
+        except ValidationError as error:
+            return self._render(error.messages)
+        flash(f'Akun admin {new_admin.name} berhasil ditambahkan.')
+        return redirect(url_for('kelola_admin.daftar', id=new_admin.id))
+
+
+superadmin_bp.add_url_rule('/', view_func=AdminListView.as_view('daftar'))
+superadmin_bp.add_url_rule('/<int:user_id>/status',
+                           view_func=AdminStatusView.as_view('ubah_status'),
+                           methods=['POST'])
+superadmin_bp.add_url_rule('/tambah', view_func=AdminCreateView.as_view('tambah'),
+                           methods=['GET', 'POST'])
+
+
+
 
 def _save_driver_file(file_storage, prefix):
     """Simpan foto sopir / SIM ke static/uploads/sopir. Return nama file, atau None."""

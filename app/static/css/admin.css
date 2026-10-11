@@ -328,3 +328,108 @@ tbody td:first-child, thead th:first-child { padding-left: 16px; }
 .placeholder i { font-size: 54px; color: var(--orange); margin-bottom: 16px; }
 .placeholder h2 { font-size: 24px; margin-bottom: 6px; }
 .placeholder p { color: var(--muted); }
+
+/* =========================================================
+   Modul Kelola Pelanggan & Kelola Admin
+   Semua aturan diawali .kp supaya TIDAK bentrok dengan CSS tim lain.
+   ========================================================= */
+.kp { --o:#F58F48; --o2:#E07A2F; --o-soft:#FBD3B3; --head:#D9DFEB; --line:#E2E5EC; --mut:#777; --ok:#1F9D3A; --bad:#D62828;
+      font-family: 'Poppins', sans-serif; color:#1E1E1E; }
+.kp * { box-sizing: border-box; }
+
+/* ---------- Tata letak ---------- */
+.kp-grid-3 { display:grid; grid-template-columns: 1.15fr 1.1fr 1fr; gap:18px; align-items:start; }
+.kp-grid-2 { display:grid; grid-template-columns: 1.6fr 1fr; gap:18px; align-items:start; }
+.kp-grid-form { display:grid; grid-template-columns: 1.7fr 1fr; gap:18px; align-items:stretch; }
+.kp-card { background:#fff; border-radius:12px; box-shadow:0 2px 8px #0002; padding:20px 22px; }
+.kp-card.center { text-align:center; display:flex; flex-direction:column; align-items:center; gap:16px; }
+.kp-card h2 { margin:0 0 12px; font-size:17px; font-weight:600; }
+.kp-code { font-size:13px; color:var(--mut); margin:-6px 0 14px; }
+
+/* ---------- Pencarian ---------- */
+.kp-search { display:flex; align-items:center; gap:8px; border:1.5px solid #3a3a3a; border-radius:6px; padding:0 12px; height:38px; margin:12px 0; }
+.kp-search:focus-within { border-color:var(--o); box-shadow:0 0 0 3px #ff9a4d40; }
+.kp-search input { border:0; outline:0; flex:1; font:inherit; font-size:13px; background:transparent; }
+
+/* ---------- Tabel ---------- */
+.kp-table { width:100%; border-collapse:collapse; font-size:13px; }
+.kp-table th { background:var(--head); text-align:left; padding:9px 10px; font-weight:600; }
+.kp-table td { padding:0; border-bottom:3px solid #d8d4cf; }
+.kp-table td a { display:block; padding:10px; color:inherit; text-decoration:none; }
+.kp-table tr.selected td { background:#F9DCC6; }
+.kp-table tbody tr:hover td { background:#FFF1E6; }
+.kp-table tr.selected:hover td { background:#F9DCC6; }
+/* tabel riwayat (tanpa link) butuh padding sendiri */
+.kp-table td:not(:has(a)) { padding:10px; }
+.kp-empty { text-align:center; color:var(--mut); padding:22px !important; }
+
+/* ---------- Pagination ---------- */
+.kp-pager { display:flex; justify-content:center; gap:6px; margin-top:18px; flex-wrap:wrap; }
+.kp-pager a { min-width:30px; height:30px; padding:0 6px; border-radius:6px; background:var(--head); color:#3a3a3a; font-size:12px;
+              display:flex; align-items:center; justify-content:center; text-decoration:none; }
+.kp-pager a.on { background:var(--o); color:#fff; }
+.kp-pager a.off { opacity:.45; pointer-events:none; }
+
+/* ---------- Profil & dokumen ---------- */
+.kp-profile { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.kp-avatar { width:92px; height:92px; border-radius:50%; background:#E3E7FB; display:flex; align-items:center; justify-content:center;
+             overflow:hidden; font-size:42px; color:var(--o2); flex-shrink:0; }
+.kp-avatar img { width:100%; height:100%; object-fit:cover; }
+.kp-docs { display:flex; flex-direction:column; align-items:center; gap:8px; font-size:34px; color:#4a78b8; }
+
+/* ---------- Field baca-saja ---------- */
+.kp-field { display:grid; grid-template-columns: 92px 1fr; align-items:center; gap:8px; margin:9px 0; font-size:13px; }
+.kp-field input { width:100%; border:1.5px solid #333; border-radius:6px; padding:6px 10px; font:inherit; font-size:12px; background:#fff; }
+
+/* ---------- Status akun ---------- */
+.kp-status-form fieldset { border:0; padding:0; margin:0; }
+.kp-status-form fieldset:disabled { opacity:.55; }
+.kp-status { display:flex; align-items:center; gap:10px; margin-top:18px; font-size:13px; }
+.kp-switch { position:relative; width:46px; height:22px; display:inline-block; }
+.kp-switch input { opacity:0; width:0; height:0; }
+.kp-slider { position:absolute; inset:0; background:#E84A4A; border-radius:22px; cursor:pointer; transition:.2s; }
+.kp-slider::before { content:''; position:absolute; width:16px; height:16px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.2s; }
+.kp-switch input:checked + .kp-slider { background:#1F9D3A; }
+.kp-switch input:checked + .kp-slider::before { transform:translateX(24px); }
+.kp-state.on { color:var(--ok); } .kp-state.off { color:var(--bad); }
+.kp-hint { display:block; font-size:10px; color:var(--mut); margin:2px 0 0; }
+.kp-badge { display:inline-block; padding:4px 12px; border-radius:6px; font-size:11px; font-weight:600; }
+.kp-badge.on { background:#7EE05E; color:#17802A; } .kp-badge.off { background:#F22; color:#fff; }
+
+/* ---------- Tombol ---------- */
+.kp-btn { display:inline-block; border:1px solid var(--o); background:var(--o); color:#fff; padding:8px 18px; border-radius:6px; cursor:pointer;
+          font:600 13px 'Poppins', sans-serif; text-decoration:none; }
+.kp-btn:hover { background:var(--o2); }
+.kp-btn.small { padding:5px 12px; font-size:11px; }
+.kp-btn.outline { background:#fff; color:#3a3a3a; border-color:#bbb; }
+.kp-btn.outline:hover { background:#FFF1E6; }
+.kp-btn.disabled { opacity:.5; cursor:default; }
+.kp-actions { display:flex; justify-content:flex-end; margin-top:16px; }
+.kp-actions.between { justify-content:flex-start; margin-top:auto; padding-top:24px; }
+.kp-actions.end { margin-top:auto; width:100%; }
+
+/* ---------- Form Tambah Admin ---------- */
+.kp-box { border:2px solid #b5a99d; border-radius:8px; padding:18px; box-shadow:0 2px 5px #0002; }
+.kp-input { margin-bottom:14px; }
+.kp-input label { display:block; font-weight:600; font-size:14px; margin-bottom:6px; }
+.kp-input input { width:100%; border:1.5px solid #333; border-radius:6px; padding:9px 12px; font:inherit; font-size:13px; }
+.kp-input input:focus { outline:0; border-color:var(--o); box-shadow:0 0 0 3px #ff9a4d40; }
+.kp-two { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.kp-pass { position:relative; }
+.kp-pass input { padding-right:40px; }
+.kp-eye { position:absolute; right:8px; top:50%; transform:translateY(-50%); border:0; background:none; cursor:pointer; font-size:16px; color:#333; }
+.kp-errors { list-style:none; margin:0 0 14px; padding:12px 16px; background:#FDECEC; border:1px solid #F5B5B5; border-radius:8px; color:#9B1C1C; font-size:13px; }
+.kp-errors li + li { margin-top:4px; }
+
+/* ---------- Popup Lihat Foto ---------- */
+.kp-modal { display:none; position:fixed; inset:0; background:#0007; align-items:center; justify-content:center; padding:20px; z-index:999; }
+.kp-modal:target { display:flex; }
+.kp-modal .kp-card { width:min(720px,100%); max-height:90vh; overflow:auto; }
+.kp-doc-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.kp-doc b { display:block; margin-bottom:6px; font-size:13px; }
+.kp-doc img { width:100%; border-radius:8px; border:1px solid var(--line); }
+.kp-doc-empty { padding:36px 10px; text-align:center; background:var(--head); border-radius:8px; color:var(--mut); font-size:12px; }
+
+/* ---------- Responsif ---------- */
+@media (max-width:1150px) { .kp-grid-3 { grid-template-columns:1fr 1fr; } }
+@media (max-width:800px)  { .kp-grid-3, .kp-grid-2, .kp-grid-form, .kp-two, .kp-doc-grid { grid-template-columns:1fr; } }
