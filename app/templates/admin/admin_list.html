@@ -1,0 +1,59 @@
+{% extends 'admin/base_admin.html' %}
+{% from 'admin/_macros_pengguna.html' import avatar, field, pager, status_form, switch_script %}
+
+{% block title %}Admin{% endblock %}
+
+{% block content %}
+<div class="kp kp-grid-2">
+
+    <!-- ===== PANEL 1: DAFTAR ADMIN ===== -->
+    <section class="kp-card">
+        <h2>Daftar Admin</h2>
+        <a href="{{ url_for('kelola_admin.tambah') }}" class="kp-btn small">+ Tambah Admin</a>
+
+        <form class="kp-search" method="get" action="{{ url_for('kelola_admin.daftar') }}">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" name="q" value="{{ keyword }}" placeholder="Cari admin berdasarkan ID, nama, ..." autocomplete="off">
+        </form>
+
+        <table class="kp-table">
+            <thead><tr><th>ID Admin</th><th>Nama</th><th>Status</th></tr></thead>
+            <tbody>
+            {% for a in pagination.items %}
+                {% set link = url_for('kelola_admin.daftar', id=a.id, page=pagination.page, q=keyword or None) %}
+                <tr class="{{ 'selected' if selected and selected.id == a.id }}">
+                    <td><a href="{{ link }}">#{{ a.code }}</a></td>
+                    <td><a href="{{ link }}">{{ a.name }}</a></td>
+                    <td><a href="{{ link }}">
+                        {% if a.is_active %}<span class="kp-badge on">Aktif</span>
+                        {% else %}<span class="kp-badge off">Tidak Aktif</span>{% endif %}
+                    </a></td>
+                </tr>
+            {% else %}
+                <tr><td colspan="3" class="kp-empty">Admin tidak ditemukan</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        {{ pager(pagination, 'kelola_admin.daftar', keyword, selected) }}
+    </section>
+
+    <!-- ===== PANEL 2: DETAIL & EDIT ADMIN ===== -->
+    <section class="kp-card">
+        <h2>Detail &amp; Edit Admin</h2>
+        <div class="kp-code">#{{ selected.code if selected else '-' }}</div>
+
+        <div class="kp-profile">{{ avatar(selected.avatar_path if selected else None) }}</div>
+
+        {{ field('Nama', selected.name if selected else '') }}
+        {{ field('No.KTP', selected.ktp_number if selected else '') }}
+        {{ field('No.SIM', selected.sim_number if selected else '') }}
+        {{ field('No. Telepon', selected.phone if selected else '') }}
+        {{ field('Email', selected.email if selected else '') }}
+
+        {{ status_form(selected, url_for('kelola_admin.ubah_status', user_id=selected.id) if selected else '#', pagination, keyword) }}
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}{{ switch_script() }}{% endblock %}

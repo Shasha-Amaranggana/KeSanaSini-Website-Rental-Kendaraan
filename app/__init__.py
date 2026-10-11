@@ -23,7 +23,9 @@ def create_app():
 
     # Register the routes with the app
     app.register_blueprint(routes.bp)
-
+    app.register_blueprint(routes.admin_bp)        # Kelola Pelanggan (Admin)
+    app.register_blueprint(routes.superadmin_bp)   # Kelola Admin (Super Admin)
+    
     # Create the database tables if they don't exist
     with app.app_context():
         db.create_all()
