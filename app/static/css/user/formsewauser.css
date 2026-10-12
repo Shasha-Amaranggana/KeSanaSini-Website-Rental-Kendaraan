@@ -1,3 +1,44 @@
+/* =====================================================
+        RESET
+===================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+
+.order-section {
+    width: 100%;
+    min-height: 525px;
+    padding: 26px 5% 44px;
+
+    background: linear-gradient(
+        to bottom,
+        #FFD9A6 0%,
+        #FFE6C4 55%,
+        #FFF0D8 100%
+    );
+
+    position: relative;
+    isolation: isolate;
+}
+
+.order-section::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    background-image: url("../../images/vehicle-pattern.png");
+    background-repeat: repeat;
+    background-position: center;
+    background-size: 500px auto;
+
+    z-index: -1;
+    pointer-events: none;
+}
+
 .order-section,
 .order-section input,
 .order-section select,
@@ -6,11 +47,10 @@
     font-family: 'Poppins', sans-serif;
 }
 
-.order-section {
-    width: 84%;
+.order-container {
+    width: 100%;
     max-width: 1100px;
     margin: 0 auto;
-    padding: 40px 0 70px;
 }
 
 .order-top {

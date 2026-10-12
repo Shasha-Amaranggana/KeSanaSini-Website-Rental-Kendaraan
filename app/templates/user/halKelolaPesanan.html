@@ -7,7 +7,7 @@ Kelola Pesanan - KeSanaSini
 {% block body_class %}orders-page{% endblock %}
 
 {% block css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/halKelolaPesanan.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user/halKelolaPesanan.css') }}">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 {% endblock %}
 
@@ -17,48 +17,7 @@ Kelola Pesanan - KeSanaSini
     <div class="account-layout">
 
         <!-- SIDEBAR -->
-        <aside class="account-sidebar">
-            <div class="sidebar-profile">
-                <div class="profile-avatar">
-                    <i class="fa-regular fa-user"></i>
-                </div>
-                <div class="user-profile-info">
-                    <strong>{{ user.name }}</strong>
-                    <span class="user-email" title="{{ user.email }}">
-                        {{ user.email }}
-                    </span>
-                </div>
-            </div>
-
-            <nav class="sidebar-menu">
-                <a href="{{ url_for('main.kelola_akun') }}" class="sidebar-link">
-                    <i class="fa-regular fa-user"></i>
-                    <span>Data Diri Saya</span>
-                </a>
-
-                <a href="{{ url_for('main.kelola_pesanan') }}" class="sidebar-link active">
-                    <i class="fa-solid fa-receipt"></i>
-                    <span>Pesanan Saya</span>
-                </a>
-
-                <a href="#" class="sidebar-link">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                    <span>Riwayat Pesanan</span>
-                </a>
-
-                <a href="#" class="sidebar-link">
-                    <i class="fa-regular fa-bell"></i>
-                    <span>Notifikasi</span>
-                </a>
-
-                <div class="sidebar-divider"></div>
-
-                <a href="#" class="sidebar-link logout-link">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    <span>Log Out</span>
-                </a>
-            </nav>
-        </aside>
+        {% include 'user/sidebarKelola.html' %}
 
         <!-- KONTEN PESANAN -->
         <section class="account-content">
@@ -226,12 +185,10 @@ Kelola Pesanan - KeSanaSini
                             </strong>
                         </div>
 
-                        <button
-                            type="button"
-                            class="order-detail-button"
-                        >
+                        <a href="{{ url_for('main.detail_pesanan', rental_id=rental.id) }}"
+                        class="order-detail-button">
                             Lihat Detail
-                        </button>
+                        </a>
                     </div>
 
                 </article>
@@ -339,180 +296,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // PENCARIAN
     searchInput.addEventListener('input', filterOrders);
-
-    // BUKA DETAIL HANYA MELALUI TOMBOL
-    cards.forEach(function (card) {
-        const detailButton = card.querySelector('.order-detail-button');
-
-        if (!detailButton) return;
-
-        detailButton.addEventListener('click', function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-
-            const data = card.dataset;
-
-
-            detailContent.innerHTML = `
-                <article class="order-detail-combined">
-
-                    <!-- HEADER GABUNGAN -->
-                    <div class="combined-header">
-                        <div class="combined-vehicle">
-                            <h2>${data.name}</h2>
-                            <span>NO. PESANAN: ${data.bookingCode}</span>
-                        </div>
-
-                        <span class="timeline-current-status">
-                            ${data.status}
-                        </span>
-                    </div>
-
-                    <!-- TIMELINE STATUS -->
-                    <div class="timeline-section">
-                        <div class="timeline-steps">
-
-                            <div class="timeline-step completed">
-                                <div class="timeline-icon">
-                                    <i class="fa-solid fa-file-lines"></i>
-                                </div>
-                                <span>Pesanan Dibuat</span>
-                                <small>${data.startDate}</small>
-                            </div>
-
-                            <div class="timeline-step">
-                                <div class="timeline-icon">
-                                    <i class="fa-solid fa-wallet"></i>
-                                </div>
-                                <span>Pembayaran</span>
-                            </div>
-
-                            <div class="timeline-step">
-                                <div class="timeline-icon">
-                                    <i class="fa-solid fa-car-side"></i>
-                                </div>
-                                <span>Pengambilan</span>
-                            </div>
-
-                            <div class="timeline-step">
-                                <div class="timeline-icon">
-                                    <i class="fa-solid fa-key"></i>
-                                </div>
-                                <span>Sedang Disewa</span>
-                            </div>
-
-                            <div class="timeline-step">
-                                <div class="timeline-icon">
-                                    <i class="fa-solid fa-circle-check"></i>
-                                </div>
-                                <span>Selesai</span>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <!-- GARIS PEMISAH -->
-                    <div class="detail-section-divider"></div>
-
-                    <!-- INFORMASI KENDARAAN -->
-                    <div class="order-detail-body">
-
-                        <div class="order-detail-info">
-                            <p>
-                                <i class="fa-regular fa-calendar"></i>
-                                Mulai: ${data.startDate}
-                            </p>
-
-                            <p>
-                                <i class="fa-regular fa-calendar-check"></i>
-                                Pengembalian: ${data.endDate}
-                            </p>
-
-                            <p>
-                                <i class="fa-regular fa-clock"></i>
-                                Durasi: ${data.duration} hari
-                            </p>
-
-                            <p>
-                                <i class="fa-solid fa-car-side"></i>
-                                ${data.driver}
-                            </p>
-                        </div>
-
-                        <div class="order-detail-pricing">
-                            <h3>Rincian Biaya</h3>
-
-                            <p>
-                                <span>Sewa kendaraan</span>
-                                <strong>${rupiah(data.vehicleCost)}</strong>
-                            </p>
-
-                            <p>
-                                <span>Biaya sopir</span>
-                                <strong>${rupiah(data.driverCost)}</strong>
-                            </p>
-
-                            <p>
-                                <span>Aksesori</span>
-                                <strong>${rupiah(data.accessoriesCost)}</strong>
-                            </p>
-
-                            <p>
-                                <span>Asuransi</span>
-                                <strong>${rupiah(data.insuranceCost)}</strong>
-                            </p>
-
-                            <p class="detail-total">
-                                <span>Total pesanan</span>
-                                <strong>${rupiah(data.totalPrice)}</strong>
-                            </p>
-
-                            <h3>Informasi Pembayaran</h3>
-
-                            <p>
-                                <span>Metode pembayaran</span>
-                                <strong>${data.paymentMethod}</strong>
-                            </p>
-
-                            <p>
-                                <span>Status pembayaran</span>
-                                <strong>${data.paymentStatus || '-'}</strong>
-                            </p>
-                        </div>
-
-                    </div>
-                </article>
-            `;
-
-
-            // Sembunyikan daftar dan fitur pencarian/filter
-            orderList.hidden = true;
-            orderTabs.hidden = true;
-            searchContainer.hidden = true;
-
-            // Tampilkan detail pesanan
-            detailPanel.hidden = false;
-
-            detailPanel.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        });
-    });
-
-    // KEMBALI KE DAFTAR PESANAN
-    backButton.addEventListener('click', function () {
-        detailPanel.hidden = true;
-        orderList.hidden = false;
-        orderTabs.hidden = false;
-        searchContainer.hidden = false;
-        detailContent.innerHTML = '';
-
-        orderList.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-        });
-    });
 
     filterOrders();
 });
