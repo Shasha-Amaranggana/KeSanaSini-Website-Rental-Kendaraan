@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}
+Kelola Notifikasi - KeSanaSini
+{% endblock %}
+
+{% block body_class %}
+notifications-page
+{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user/halKelolaNotifikasi.css') }}">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<main class="account-page">
+    <div class="account-layout">
+
+        <!-- SIDEBAR -->
+        {% include 'user/sidebarKelola.html' %}
+
+        <!-- KONTEN NOTIFIKASI -->
+        <section class="account-content">
+            <h1>Notifikasi</h1>
+
+            <div class="notification-list">
+                {% if notifications %}
+                    {% for notification in notifications %}
+                    <article class="notification-card
+                        {% if not notification.is_read %}unread{% endif %}">
+
+                        <div class="notification-icon">
+                            <i class="fa-solid fa-bell"></i>
+                        </div>
+
+                        <div class="notification-content">
+                            <div class="notification-heading">
+                                <h3>{{ notification.title }}</h3>
+
+                                {% if not notification.is_read %}
+                                    <span class="notification-badge">Baru</span>
+                                {% endif %}
+                            </div>
+
+                            <p>{{ notification.message }}</p>
+
+                            <div class="notification-meta">
+                                <span>
+                                    Kode Pesanan:
+                                    {{ notification.rental.booking_code }}
+                                </span>
+
+                                <span>
+                                    {{ notification.created_at.strftime('%d-%m-%Y %H:%M') }}
+                                </span>
+                            </div>
+
+                            <a
+                                href="{{ url_for('main.detail_pesanan', rental_id=notification.rental_id) }}"
+                                class="notification-detail-button">
+                                Lihat Pesanan
+                            </a>
+                        </div>
+
+                    </article>
+                    {% endfor %}
+                {% else %}
+                    <div class="notification-empty">
+                        <i class="fa-regular fa-bell-slash"></i>
+                        <h2>Belum Ada Notifikasi</h2>
+                        <p>
+                            Pemberitahuan perubahan status pesanan
+                            akan muncul di sini.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+    </div>
+</main>
+{% endblock %}

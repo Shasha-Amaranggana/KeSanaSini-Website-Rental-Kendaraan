@@ -1,0 +1,264 @@
+
+/* =====================================================
+   RESET
+===================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* =====================================================
+   HALAMAN KELOLA NOTIFIKASI
+===================================================== */
+.account-page {
+    width: 100%;
+    min-height: 525px;
+    padding: 26px 5% 44px;
+    background: linear-gradient(
+        to bottom,
+        #FFD9A6 0%,
+        #FFE6C4 55%,
+        #FFF0D8 100%
+    );
+    position: relative;
+    isolation: isolate;
+}
+
+.account-page::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("../../images/vehicle-pattern.png");
+    background-repeat: repeat;
+    background-position: center;
+    background-size: 500px auto;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.account-layout {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 25px;
+    max-width: 1050px;
+    margin: 0 auto;
+    align-items: start;
+}
+
+/* =====================================================
+   KONTEN UTAMA
+===================================================== */
+.account-content {
+    min-width: 0;
+}
+
+.account-content > h1 {
+    margin: -3px 0 25px;
+    color: #484848;
+    font-size: 22px;
+    line-height: 1.3;
+    font-weight: 800;
+}
+
+/* =====================================================
+   DAFTAR NOTIFIKASI
+===================================================== */
+.notification-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 14px;
+}
+
+/* =====================================================
+   KARTU NOTIFIKASI
+===================================================== */
+.notification-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 18px 20px;
+    background: #ffffff;
+    border: 1px solid #e7e1da;
+    border-radius: 8px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.07);
+    transition: border-color 0.2s ease;
+}
+
+.notification-card:hover {
+    border-color: #f5b47e;
+}
+
+/* NOTIFIKASI BELUM DIBACA */
+.notification-card.unread {
+    background: #fffaf5;
+    border-left: 4px solid #f47721;
+}
+
+/* IKON NOTIFIKASI */
+.notification-icon {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #fff0df;
+    color: #f47721;
+    font-size: 18px;
+}
+
+/* ISI NOTIFIKASI */
+.notification-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-heading {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 7px;
+}
+
+.notification-heading h3 {
+    color: #484848;
+    font-size: 14px;
+    line-height: 1.5;
+    font-weight: 700;
+}
+
+/* LABEL BARU */
+.notification-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: #fff0df;
+    color: #ed781f;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+/* PESAN NOTIFIKASI */
+.notification-content > p {
+    margin-bottom: 12px;
+    color: #686868;
+    font-size: 12px;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+}
+
+/* KODE PESANAN DAN WAKTU */
+.notification-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    margin-bottom: 12px;
+    color: #888888;
+    font-size: 10px;
+}
+
+.notification-meta span {
+    line-height: 1.6;
+}
+
+/* TOMBOL LIHAT PESANAN */
+.notification-detail-button {
+    display: inline-block;
+    padding: 7px 12px;
+    border: 1px solid #dddddd;
+    border-radius: 5px;
+    background: #ffffff;
+    color: #666666;
+    font-size: 11px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: 0.2s ease;
+}
+
+.notification-detail-button:hover {
+    border-color: #f47721;
+    color: #f47721;
+}
+
+/* =====================================================
+   KONDISI BELUM ADA NOTIFIKASI
+===================================================== */
+.notification-empty {
+    padding: 45px 20px;
+    background: #ffffff;
+    border: 1px solid #e7e1da;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.notification-empty > i {
+    margin-bottom: 12px;
+    color: #f4a261;
+    font-size: 38px;
+}
+
+.notification-empty h2 {
+    margin-bottom: 8px;
+    color: #444444;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.notification-empty p {
+    max-width: 400px;
+    margin: 0 auto;
+    color: #888888;
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+@media (max-width: 700px) {
+    .account-page {
+        padding: 20px 4%;
+    }
+
+    .account-layout {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .account-content > h1 {
+        font-size: 18px;
+    }
+
+    .notification-card {
+        gap: 12px;
+        padding: 15px;
+    }
+
+    .notification-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 15px;
+    }
+
+    .notification-heading h3 {
+        font-size: 13px;
+    }
+
+    .notification-content > p {
+        font-size: 11px;
+    }
+
+    .notification-meta {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .notification-empty {
+        padding: 35px 15px;
+    }
+}
