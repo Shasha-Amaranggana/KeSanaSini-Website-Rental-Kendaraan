@@ -28,12 +28,14 @@
             <span>Pesanan Saya</span>
         </a>
 
-        <a href="#" class="sidebar-link">
+        <a href="{{ url_for('main.riwayat_pesanan') }}"
+        class="sidebar-link {{ 'active' if request.endpoint == 'main.riwayat_pesanan' else '' }}">
             <i class="fa-solid fa-clock-rotate-left"></i>
             <span>Riwayat Pesanan</span>
         </a>
 
-        <a href="#" class="sidebar-link">
+        <a href="{{ url_for('main.notifikasi') }}"
+        class="sidebar-link {{ 'active' if request.endpoint == 'main.notifikasi' else '' }}">
             <i class="fa-regular fa-bell"></i>
             <span>Notifikasi</span>
         </a>

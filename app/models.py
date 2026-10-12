@@ -131,6 +131,7 @@ class Vehicle(db.Model):
             return "Disewa"
         return "Tersedia"
 
+
 # =========================================================
 # DRIVER MODEL (Sopir)
 # =========================================================
@@ -199,6 +200,7 @@ class Driver(db.Model):
         if n >= 3.5:
             return 'Baik'
         return 'Cukup' if n > 0 else 'Belum ada penilaian'
+
 
 # =========================================================
 # RENTAL MODEL (Data Penyewaan)
@@ -297,6 +299,7 @@ class Rental(db.Model):
         # Perbaikan kalkulasi total harga sesuai desain yang lengkap
         return self.vehicle_cost + self.driver_cost + self.accessories_cost + self.insurance_cost
 
+
 # =========================================================
 # REVIEW MODEL (Ulasan Pengguna)
 # =========================================================
@@ -310,6 +313,48 @@ class Review(db.Model):
 
     user = db.relationship('User', backref=db.backref('reviews', lazy=True))
     vehicle = db.relationship('Vehicle', backref=db.backref('reviews', lazy=True))
+
+
+# =========================================================
+# NOTIFICATION MODEL (Notifikasi Pengguna)
+# =========================================================
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('user.id'),
+        nullable=False
+    )
+
+    rental_id = db.Column(
+        db.Integer,
+        db.ForeignKey('rental.id'),
+        nullable=False
+    )
+
+    title = db.Column(db.String(100), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+
+    old_status = db.Column(db.String(50), nullable=True)
+    new_status = db.Column(db.String(50), nullable=False)
+
+    is_read = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.now
+    )
+
+    user = db.relationship(
+        'User',
+        backref=db.backref('notifications', lazy=True)
+    )
+
+    rental = db.relationship(
+        'Rental',
+        backref=db.backref('notifications', lazy=True)
+    )
 
 
 

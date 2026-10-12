@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
-from app.models import User, Vehicle, Rental, Review, Driver
+from app.models import (
+    User, Vehicle, Rental, Review, Driver, Notification)
 from sqlalchemy import or_
 from datetime import datetime, date, timedelta
 from werkzeug.utils import secure_filename
@@ -544,7 +545,6 @@ def kelola_pesanan():
     )
 
 
-
 @bp.route('/detail-pesanan/<int:rental_id>')
 def detail_pesanan(rental_id):
     if 'user_id' not in session:
@@ -566,6 +566,63 @@ def detail_pesanan(rental_id):
         'user/halDetailPesanan.html',
         user=user,
         rental=rental
+    )
+
+
+@bp.route('/riwayat-pesanan')
+def riwayat_pesanan():
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+
+    user = User.query.get(session['user_id'])
+
+    if not user:
+        session.clear()
+        return redirect(url_for('main.login'))
+
+    pesanan = (
+        Rental.query
+        .filter_by(user_id=user.id, status='Selesai')
+        .order_by(Rental.created_at.desc())
+        .all()
+    )
+
+    return render_template(
+        'user/halKelolaPesanan.html',
+        user=user,
+        pesanan=pesanan,
+        halaman='riwayat'
+    )
+
+
+@bp.route('/notifikasi')
+def notifikasi():
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+
+    user = User.query.get(session['user_id'])
+
+    if not user:
+        session.clear()
+        return redirect(url_for('main.login'))
+
+    notifications = (
+        Notification.query
+        .filter_by(user_id=user.id)
+        .order_by(Notification.created_at.desc())
+        .all()
+    )
+
+    unread_count = Notification.query.filter_by(
+        user_id=user.id,
+        is_read=False
+    ).count()
+
+    return render_template(
+        'user/halKelolaNotifikasi.html',
+        user=user,
+        notifications=notifications,
+        unread_count=unread_count
     )
 
 
@@ -678,6 +735,7 @@ def admin_dashboard():
     )
 
 
+
 @bp.route('/admin/penyewaan/<int:rental_id>/status', methods=['POST'])
 @admin_required
 def admin_update_rental_status(rental_id):
@@ -687,11 +745,38 @@ def admin_update_rental_status(rental_id):
     if new_status not in Rental.ALL_STATUS:
         flash('Status tidak valid.')
     else:
-        rental.status = new_status
-        db.session.commit()
-        flash(f'Status {rental.booking_code} diubah menjadi "{new_status}".')
+        old_status = rental.status
 
-    return redirect(request.referrer or url_for('main.admin_dashboard'))
+        # Simpan notifikasi hanya jika status benar-benar berubah
+        if old_status != new_status:
+            rental.status = new_status
+
+            notification = Notification(
+                user_id=rental.user_id,
+                rental_id=rental.id,
+                title='Status Pesanan Diperbarui',
+                message=(
+                    f'Status pesanan {rental.booking_code} '
+                    f'berubah dari "{old_status}" '
+                    f'menjadi "{new_status}".'
+                ),
+                old_status=old_status,
+                new_status=new_status
+            )
+
+            db.session.add(notification)
+            db.session.commit()
+
+            flash(
+                f'Status {rental.booking_code} diubah menjadi "{new_status}".'
+            )
+        else:
+            flash('Status pesanan tidak mengalami perubahan.')
+
+    return redirect(
+        request.referrer or url_for('main.admin_dashboard')
+    )
+
 
 
 # =========================================================
@@ -885,6 +970,19 @@ def admin_penyewaan_edit(id):
         old_status = rental.status
         new_status = request.form.get('status')
         driver_id = request.form.get('driver_id')
+
+        if new_status in Rental.ALL_STATUS and new_status != old_status:
+            db.session.add(Notification(
+                user_id=rental.user_id,
+                rental_id=rental.id,
+                title='Status Pesanan Diperbarui',
+                message=(
+                    f'Status pesanan {rental.booking_code} '
+                    f'berubah dari "{old_status}" menjadi "{new_status}".'
+                ),
+                old_status=old_status,
+                new_status=new_status
+            ))
         
         if new_status in Rental.ALL_STATUS:
             rental.status = new_status

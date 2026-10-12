@@ -21,40 +21,48 @@ Kelola Pesanan - KeSanaSini
 
         <!-- KONTEN PESANAN -->
         <section class="account-content">
-            <h1>Daftar Pesanan Aktif</h1>
+            <h1>
+                {% if halaman == 'riwayat' %}
+                    Riwayat Pesanan
+                {% else %}
+                    Daftar Pesanan Aktif
+                {% endif %}
+            </h1>
 
             <!-- NAVBAR STATUS PESANAN -->
-            <nav class="order-tabs" id="order-tabs">
-                <a href="#semua"
-                class="order-tab active"
-                data-status="semua">
-                    Semua
-                </a>
+            {% if halaman != 'riwayat' %}
+                <nav class="order-tabs" id="order-tabs">
+                    <a href="#semua"
+                    class="order-tab active"
+                    data-status="semua">
+                        Semua
+                    </a>
 
-                <a href="#belum-dibayar"
-                class="order-tab"
-                data-status="belum-dibayar">
-                    Belum Dibayar
-                </a>
+                    <a href="#belum-dibayar"
+                    class="order-tab"
+                    data-status="belum-dibayar">
+                        Belum Dibayar
+                    </a>
 
-                <a href="#sedang-diproses"
-                class="order-tab"
-                data-status="sedang-diproses">
-                    Sedang Diproses
-                </a>
+                    <a href="#sedang-diproses"
+                    class="order-tab"
+                    data-status="sedang-diproses">
+                        Sedang Diproses
+                    </a>
 
-                <a href="#sedang-digunakan"
-                class="order-tab"
-                data-status="sedang-digunakan">
-                    Sedang Digunakan
-                </a>
+                    <a href="#sedang-digunakan"
+                    class="order-tab"
+                    data-status="sedang-digunakan">
+                        Sedang Digunakan
+                    </a>
 
-                <a href="#dibatalkan"
-                class="order-tab"
-                data-status="dibatalkan">
-                    Dibatalkan
-                </a>
-            </nav>
+                    <a href="#dibatalkan"
+                    class="order-tab"
+                    data-status="dibatalkan">
+                        Dibatalkan
+                    </a>
+                </nav>
+            {% endif %}
 
             <!-- PENCARIAN PESANAN -->
             <div class="order-search" id="order-search-container">
@@ -196,17 +204,25 @@ Kelola Pesanan - KeSanaSini
                 {% else %}
                 <div class="empty-order">
                     <i class="fa-regular fa-clipboard"></i>
-                    <h3>Belum Ada Pesanan</h3>
-                    <p>Pesanan penyewaan kamu akan muncul di sini.</p>
-                    <a href="{{ url_for('main.index') }}">Cari Kendaraan</a>
+
+                    {% if halaman == 'riwayat' %}
+                        <h3>Belum Ada Riwayat Pesanan</h3>
+                        <p>Pesanan yang sudah selesai akan muncul di sini.</p>
+                    {% else %}
+                        <h3>Belum Ada Pesanan</h3>
+                        <p>Pesanan penyewaan kamu akan muncul di sini.</p>
+                        <a href="{{ url_for('main.index') }}">Cari Kendaraan</a>
+                    {% endif %}
                 </div>
                 {% endfor %}
 
+                {% if pesanan %}
                 <div class="empty-order" id="no-filter-results" hidden>
                     <i class="fa-regular fa-clipboard"></i>
                     <h3>Pesanan Tidak Ditemukan</h3>
                     <p>Tidak ada pesanan yang sesuai dengan pencarian atau status.</p>
                 </div>
+                {% endif %}
 
             </div>
 
