@@ -427,10 +427,12 @@
     padding: 7px 12px;
     border: 1px solid #dddddd;
     border-radius: 5px;
+    background: #ffffff;
     color: #666666;
-    text-decoration: none;
+    font-family: 'Poppins', sans-serif;
     font-size: 11px;
-    transition: 0.2s;
+    cursor: pointer;
+    transition: 0.2s ease;
 }
 
 .order-detail-button:hover {
@@ -473,6 +475,312 @@
     color: white;
     text-decoration: none;
     font-size: 12px;
+}
+
+.order-card[hidden],
+#no-filter-results[hidden] {
+    display: none !important;
+}
+
+
+
+.order-detail-panel[hidden],
+.order-list[hidden] {
+    display: none !important;
+}
+
+.order-detail-panel {
+    width: 100%;
+}
+
+.back-to-orders {
+    margin-bottom: 20px;
+    padding: 10px 16px;
+    border: 1px solid #ddd;
+    border-radius: 7px;
+    background: #fff;
+    color: #444;
+    font: inherit;
+    cursor: pointer;
+}
+
+.back-to-orders:hover {
+    color: #e87519;
+    border-color: #e87519;
+}
+
+.order-detail-pricing {
+    padding: 22px;
+}
+
+.order-detail-pricing h3 {
+    margin: 18px 0 12px;
+    color: #303847;
+}
+
+.order-detail-pricing p {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.order-detail-pricing p span {
+    color: #666;
+}
+
+.order-detail-pricing .detail-total {
+    margin-top: 8px;
+    border-bottom: none;
+    font-size: 18px;
+}
+
+.detail-total strong {
+    color: #e87519;
+}
+
+/* Pastikan elemen dengan atribut hidden benar-benar disembunyikan */
+.order-tabs[hidden],
+.order-search[hidden],
+.order-list[hidden],
+.order-detail-panel[hidden] {
+    display: none !important;
+}
+
+
+/* =====================================================
+   CARD DETAIL PESANAN GABUNGAN
+===================================================== */
+
+.order-detail-combined {
+    width: 100%;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e7e1da;
+    border-radius: 10px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.07);
+}
+
+/* Header nama kendaraan dan nomor pesanan */
+.combined-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 22px 24px;
+    background: #ffffff;
+}
+
+.combined-vehicle h2 {
+    margin-bottom: 5px;
+    color: #303847;
+    font-size: 19px;
+    font-weight: 800;
+}
+
+.combined-vehicle span {
+    color: #777777;
+    font-size: 12px;
+}
+
+.timeline-current-status {
+    flex-shrink: 0;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: #fff0df;
+    color: #ed741d;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* Bagian timeline */
+.timeline-section {
+    padding: 12px 18px 28px;
+}
+
+.timeline-steps {
+    display: flex;
+    align-items: flex-start;
+    padding: 18px 0;
+}
+
+.timeline-step {
+    position: relative;
+    z-index: 0;
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    color: #888888;
+    font-size: 12px;
+    text-align: center;
+}
+
+.timeline-icon {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 58px;
+    height: 58px;
+    border: 4px solid #dddddd;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #cccccc;
+    font-size: 22px;
+}
+
+/* Garis antar tahap */
+.timeline-step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: 27px;
+    left: calc(50% + 29px);
+    width: calc(100% - 58px);
+    height: 4px;
+    background: #dddddd;
+}
+
+.timeline-step.completed .timeline-icon {
+    border-color: #25bf5a;
+    color: #25bf5a;
+}
+
+.timeline-step.completed:not(:last-child)::after {
+    background: #25bf5a;
+}
+
+.timeline-step.current .timeline-icon {
+    border-color: #25bf5a;
+    background: #25bf5a;
+    color: #ffffff;
+}
+
+.timeline-step span {
+    max-width: 130px;
+    line-height: 1.5;
+}
+
+.timeline-step small {
+    color: #aaaaaa;
+    font-size: 11px;
+}
+
+/* Garis pemisah timeline dan informasi sewa */
+.detail-section-divider {
+    height: 1px;
+    background: #e7e1da;
+}
+
+/* Bagian informasi kendaraan dan biaya */
+.order-detail-body {
+    padding: 24px;
+}
+
+.order-detail-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 38px;
+}
+
+.order-detail-info p {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #686868;
+    font-size: 13px;
+}
+
+.order-detail-info i {
+    width: 15px;
+    color: #888888;
+}
+
+.order-detail-pricing {
+    padding: 0;
+}
+
+.order-detail-pricing h3 {
+    margin: 0 0 12px;
+    color: #303847;
+    font-size: 20px;
+}
+
+.order-detail-pricing h3:not(:first-child) {
+    margin-top: 28px;
+}
+
+.order-detail-pricing p {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 13px 0;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.order-detail-pricing p span {
+    color: #666666;
+}
+
+.order-detail-pricing p strong {
+    text-align: right;
+}
+
+.order-detail-pricing .detail-total {
+    margin-top: 8px;
+    border-bottom: none;
+    font-size: 18px;
+}
+
+.detail-total strong {
+    color: #e87519;
+}
+
+/* Tampilan layar kecil */
+@media (max-width: 700px) {
+    .combined-header {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 18px;
+    }
+
+    .timeline-section {
+        padding: 10px 5px 20px;
+    }
+
+    .timeline-steps {
+        padding: 15px 0;
+    }
+
+    .timeline-step {
+        gap: 7px;
+        font-size: 10px;
+    }
+
+    .timeline-icon {
+        width: 38px;
+        height: 38px;
+        border-width: 3px;
+        font-size: 15px;
+    }
+
+    .timeline-step:not(:last-child)::after {
+        top: 17px;
+        left: calc(50% + 19px);
+        width: calc(100% - 38px);
+        height: 3px;
+    }
+
+    .order-detail-body {
+        padding: 18px;
+    }
 }
 
 

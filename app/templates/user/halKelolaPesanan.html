@@ -65,7 +65,7 @@ Kelola Pesanan - KeSanaSini
             <h1>Daftar Pesanan Aktif</h1>
 
             <!-- NAVBAR STATUS PESANAN -->
-            <nav class="order-tabs">
+            <nav class="order-tabs" id="order-tabs">
                 <a href="#semua"
                 class="order-tab active"
                 data-status="semua">
@@ -98,7 +98,7 @@ Kelola Pesanan - KeSanaSini
             </nav>
 
             <!-- PENCARIAN PESANAN -->
-            <div class="order-search">
+            <div class="order-search" id="order-search-container">
                 <i class="fa-solid fa-magnifying-glass"></i>
 
                 <input
@@ -113,20 +113,42 @@ Kelola Pesanan - KeSanaSini
             <div class="order-list" id="order-list">
 
                 {% for rental in pesanan %}
+
+                {% set filter_status = 'semua' %}
+
+                {% if rental.status == 'Menunggu Pembayaran' %}
+                    {% set filter_status = 'belum-dibayar' %}
+                {% elif rental.status in ['Menunggu Konfirmasi', 'Kendaraan Dalam Pengambilan'] %}
+                    {% set filter_status = 'sedang-diproses' %}
+                {% elif rental.status in ['Kendaraan Sedang Dipakai', 'Dalam Proses Pengembalian'] %}
+                    {% set filter_status = 'sedang-digunakan' %}
+                {% elif rental.status == 'Batal' %}
+                    {% set filter_status = 'dibatalkan' %}
+                {% endif %}
+
                 <article
                     class="order-card"
                     data-status="{{ rental.status }}"
+                    data-filter-status="{{ filter_status }}"
                     data-name="{{ rental.vehicle.brand }} {{ rental.vehicle.model }}"
+                    data-booking-code="{{ rental.booking_code }}"
+                    data-start-date="{{ rental.start_date | tanggal_id }}"
+                    data-end-date="{{ rental.end_date | tanggal_id }}"
+                    data-duration="{{ rental.duration_days }}"
+                    data-driver="{{ 'Dengan Sopir' if rental.with_driver else 'Lepas Kunci' }}"
+                    data-vehicle-cost="{{ rental.vehicle_cost }}"
+                    data-driver-cost="{{ rental.driver_cost }}"
+                    data-accessories-cost="{{ rental.accessories_cost }}"
+                    data-insurance-cost="{{ rental.insurance_cost }}"
+                    data-total-price="{{ rental.total_price }}"
+                    data-payment-method="{{ rental.payment_method or 'Belum dipilih' }}"
+                    data-payment-status="{{ rental.payment_status }}"
                 >
 
-                    <!-- HEADER KARTU -->
+                    <!-- HEADER -->
                     <div class="order-card-header">
                         <div class="order-vehicle-name">
-                            <h3>
-                                {{ rental.vehicle.brand }}
-                                {{ rental.vehicle.model }}
-                            </h3>
-
+                            <h3>{{ rental.vehicle.brand }} {{ rental.vehicle.model }}</h3>
                             <span class="order-code">
                                 Kode: {{ rental.booking_code }}
                             </span>
@@ -137,16 +159,13 @@ Kelola Pesanan - KeSanaSini
                         </span>
                     </div>
 
-                    <!-- DETAIL KENDARAAN -->
+                    <!-- BODY -->
                     <div class="order-card-body">
 
                         <div class="order-vehicle-image">
                             {% if rental.vehicle.photo %}
                                 <img
-                                    src="{{ url_for(
-                                        'static',
-                                        filename='images/' ~ rental.vehicle.photo
-                                    ) }}"
+                                    src="{{ url_for('static', filename='images/' ~ rental.vehicle.photo) }}"
                                     alt="{{ rental.vehicle.brand }} {{ rental.vehicle.model }}"
                                 >
                             {% else %}
@@ -156,72 +175,63 @@ Kelola Pesanan - KeSanaSini
 
                         <div class="order-vehicle-info">
                             <p>
-                                <i class="fa-regular fa-calendar"></i>
-                                Mulai:
-                                {{ rental.start_date | tanggal_id }}
+                                <i class="fa-solid fa-users"></i>
+                                {{ rental.vehicle.seats }} Penumpang
                             </p>
 
                             <p>
-                                <i class="fa-solid fa-calendar-check"></i>
-                                Pengembalian:
-                                {{ rental.end_date | tanggal_id }}
+                                <i class="fa-solid fa-suitcase"></i>
+                                {{ rental.vehicle.luggage }} Bagasi
                             </p>
 
-                            <p>
-                                <i class="fa-solid fa-clock"></i>
-                                Durasi:
-                                {{ (rental.end_date - rental.start_date).days }}
-                                hari
-                            </p>
-
-                            {% if rental.with_driver %}
-                            <p>
-                                <i class="fa-solid fa-user-tie"></i>
-                                Dengan sopir
-                            </p>
-                            {% else %}
                             <p>
                                 <i class="fa-solid fa-car-side"></i>
-                                Lepas kunci
+                                {{ 'Dengan Sopir' if rental.with_driver else 'Lepas Kunci' }}
                             </p>
-                            {% endif %}
+
+                            <p>
+                                <i class="fa-regular fa-clock"></i>
+                                Durasi {{ rental.duration_days }} hari
+                            </p>
                         </div>
 
                         <div class="order-price">
-                            <span>Total pesanan</span>
+                            <span>Harga kendaraan</span>
 
                             <strong>
-                                Rp{{ "{:,.0f}".format(
-                                    rental.vehicle.price_per_day *
-                                    (rental.end_date - rental.start_date).days
-                                ).replace(",", ".") }}
+                                Rp{{ "{:,.0f}".format(rental.vehicle.price_per_day).replace(",", ".") }}/hari
                             </strong>
 
+                            {% if rental.with_driver %}
                             <small>
-                                Rp{{ "{:,.0f}".format(
-                                    rental.vehicle.price_per_day
-                                ).replace(",", ".") }}/hari
+                                + Rp{{ "{:,.0f}".format(rental.DRIVER_FEE).replace(",", ".") }}/hari
+                                (sopir)
                             </small>
+                            {% endif %}
                         </div>
 
                     </div>
 
-                    <!-- FOOTER KARTU -->
+                    <!-- FOOTER -->
                     <div class="order-card-footer">
-                        <span>
-                            Dipesan pada
-                            {{ rental.created_at | tanggal_id }}
-                        </span>
+                        <div class="order-date-range">
+                            {{ rental.start_date | tanggal_id }}
+                            – {{ rental.end_date | tanggal_id }}
+                        </div>
 
-                        <a
-                            href="{{ url_for(
-                                'main.detail_kendaraan',
-                                vehicle_id=rental.vehicle_id
-                            ) }}"
+                        <div class="order-total">
+                            <span>Total pesanan:</span>
+                            <strong>
+                                Rp{{ "{:,.0f}".format(rental.total_price).replace(",", ".") }}
+                            </strong>
+                        </div>
+
+                        <button
+                            type="button"
                             class="order-detail-button"
                         >
-                            Lihat Kendaraan
-                        </a>
+                            Lihat Detail
+                        </button>
                     </div>
 
                 </article>
@@ -231,19 +241,283 @@ Kelola Pesanan - KeSanaSini
                     <i class="fa-regular fa-clipboard"></i>
                     <h3>Belum Ada Pesanan</h3>
                     <p>Pesanan penyewaan kamu akan muncul di sini.</p>
-
-                    <a href="{{ url_for('main.index') }}">
-                        Cari Kendaraan
-                    </a>
+                    <a href="{{ url_for('main.index') }}">Cari Kendaraan</a>
                 </div>
                 {% endfor %}
 
+                <div class="empty-order" id="no-filter-results" hidden>
+                    <i class="fa-regular fa-clipboard"></i>
+                    <h3>Pesanan Tidak Ditemukan</h3>
+                    <p>Tidak ada pesanan yang sesuai dengan pencarian atau status.</p>
+                </div>
+
             </div>
+
+            <!-- PANEL DETAIL PESANAN -->
+            <div class="order-detail-panel" id="order-detail-panel" hidden>
+                <button type="button" class="back-to-orders" id="back-to-orders">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Kembali ke Daftar Pesanan
+                </button>
+
+                <div id="order-detail-content"></div>
+            </div>
+
 
         </section>
 
     </div>
 </main>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const tabs = document.querySelectorAll('.order-tab');
+    const cards = document.querySelectorAll('.order-card');
+    const searchInput = document.getElementById('search-order');
+    const emptyResult = document.getElementById('no-filter-results');
+
+    const orderList = document.getElementById('order-list');
+    const detailPanel = document.getElementById('order-detail-panel');
+    const detailContent = document.getElementById('order-detail-content');
+    const backButton = document.getElementById('back-to-orders');
+    const orderTabs = document.getElementById('order-tabs');
+    const searchContainer = document.getElementById('order-search-container');
+
+    let activeStatus = 'semua';
+
+    // FORMAT RUPIAH
+    function rupiah(value) {
+        return 'Rp' + Number(value || 0).toLocaleString('id-ID');
+    }
+
+    // FILTER STATUS DAN PENCARIAN
+    function filterOrders() {
+        const keyword = searchInput.value.trim().toLowerCase();
+        let visibleCount = 0;
+
+        cards.forEach(function (card) {
+            const status = card.dataset.filterStatus;
+            const name = (card.dataset.name || '').toLowerCase();
+            const code = (
+                card.querySelector('.order-code')?.textContent || ''
+            ).toLowerCase();
+
+            const matchesStatus =
+                activeStatus === 'semua' || status === activeStatus;
+
+            const matchesSearch =
+                name.includes(keyword) || code.includes(keyword);
+
+            const visible = matchesStatus && matchesSearch;
+
+            card.hidden = !visible;
+
+            if (visible) {
+                visibleCount++;
+            }
+        });
+
+        emptyResult.hidden = visibleCount > 0;
+    }
+
+    // KLIK TAB STATUS
+    tabs.forEach(function (tab) {
+        tab.addEventListener('click', function (event) {
+            event.preventDefault();
+
+            activeStatus = tab.dataset.status;
+
+            tabs.forEach(function (item) {
+                item.classList.toggle('active', item === tab);
+            });
+
+            filterOrders();
+        });
+    });
+
+    // PENCARIAN
+    searchInput.addEventListener('input', filterOrders);
+
+    // BUKA DETAIL HANYA MELALUI TOMBOL
+    cards.forEach(function (card) {
+        const detailButton = card.querySelector('.order-detail-button');
+
+        if (!detailButton) return;
+
+        detailButton.addEventListener('click', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const data = card.dataset;
+
+
+            detailContent.innerHTML = `
+                <article class="order-detail-combined">
+
+                    <!-- HEADER GABUNGAN -->
+                    <div class="combined-header">
+                        <div class="combined-vehicle">
+                            <h2>${data.name}</h2>
+                            <span>NO. PESANAN: ${data.bookingCode}</span>
+                        </div>
+
+                        <span class="timeline-current-status">
+                            ${data.status}
+                        </span>
+                    </div>
+
+                    <!-- TIMELINE STATUS -->
+                    <div class="timeline-section">
+                        <div class="timeline-steps">
+
+                            <div class="timeline-step completed">
+                                <div class="timeline-icon">
+                                    <i class="fa-solid fa-file-lines"></i>
+                                </div>
+                                <span>Pesanan Dibuat</span>
+                                <small>${data.startDate}</small>
+                            </div>
+
+                            <div class="timeline-step">
+                                <div class="timeline-icon">
+                                    <i class="fa-solid fa-wallet"></i>
+                                </div>
+                                <span>Pembayaran</span>
+                            </div>
+
+                            <div class="timeline-step">
+                                <div class="timeline-icon">
+                                    <i class="fa-solid fa-car-side"></i>
+                                </div>
+                                <span>Pengambilan</span>
+                            </div>
+
+                            <div class="timeline-step">
+                                <div class="timeline-icon">
+                                    <i class="fa-solid fa-key"></i>
+                                </div>
+                                <span>Sedang Disewa</span>
+                            </div>
+
+                            <div class="timeline-step">
+                                <div class="timeline-icon">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                </div>
+                                <span>Selesai</span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- GARIS PEMISAH -->
+                    <div class="detail-section-divider"></div>
+
+                    <!-- INFORMASI KENDARAAN -->
+                    <div class="order-detail-body">
+
+                        <div class="order-detail-info">
+                            <p>
+                                <i class="fa-regular fa-calendar"></i>
+                                Mulai: ${data.startDate}
+                            </p>
+
+                            <p>
+                                <i class="fa-regular fa-calendar-check"></i>
+                                Pengembalian: ${data.endDate}
+                            </p>
+
+                            <p>
+                                <i class="fa-regular fa-clock"></i>
+                                Durasi: ${data.duration} hari
+                            </p>
+
+                            <p>
+                                <i class="fa-solid fa-car-side"></i>
+                                ${data.driver}
+                            </p>
+                        </div>
+
+                        <div class="order-detail-pricing">
+                            <h3>Rincian Biaya</h3>
+
+                            <p>
+                                <span>Sewa kendaraan</span>
+                                <strong>${rupiah(data.vehicleCost)}</strong>
+                            </p>
+
+                            <p>
+                                <span>Biaya sopir</span>
+                                <strong>${rupiah(data.driverCost)}</strong>
+                            </p>
+
+                            <p>
+                                <span>Aksesori</span>
+                                <strong>${rupiah(data.accessoriesCost)}</strong>
+                            </p>
+
+                            <p>
+                                <span>Asuransi</span>
+                                <strong>${rupiah(data.insuranceCost)}</strong>
+                            </p>
+
+                            <p class="detail-total">
+                                <span>Total pesanan</span>
+                                <strong>${rupiah(data.totalPrice)}</strong>
+                            </p>
+
+                            <h3>Informasi Pembayaran</h3>
+
+                            <p>
+                                <span>Metode pembayaran</span>
+                                <strong>${data.paymentMethod}</strong>
+                            </p>
+
+                            <p>
+                                <span>Status pembayaran</span>
+                                <strong>${data.paymentStatus || '-'}</strong>
+                            </p>
+                        </div>
+
+                    </div>
+                </article>
+            `;
+
+
+            // Sembunyikan daftar dan fitur pencarian/filter
+            orderList.hidden = true;
+            orderTabs.hidden = true;
+            searchContainer.hidden = true;
+
+            // Tampilkan detail pesanan
+            detailPanel.hidden = false;
+
+            detailPanel.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        });
+    });
+
+    // KEMBALI KE DAFTAR PESANAN
+    backButton.addEventListener('click', function () {
+        detailPanel.hidden = true;
+        orderList.hidden = false;
+        orderTabs.hidden = false;
+        searchContainer.hidden = false;
+        detailContent.innerHTML = '';
+
+        orderList.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    });
+
+    filterOrders();
+});
+</script>
+
 
 
 {% endblock %}
