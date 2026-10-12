@@ -29,12 +29,12 @@ Kelola Pesanan - KeSanaSini
             </div>
 
             <nav class="sidebar-menu">
-                <a href="{{ url_for('main.kelola_akun') }}" class="sidebar-link active">
+                <a href="{{ url_for('main.kelola_akun') }}" class="sidebar-link">
                     <i class="fa-regular fa-user"></i>
                     <span>Data Diri Saya</span>
                 </a>
 
-                <a href="{{ url_for('main.kelola_pesanan') }}" class="sidebar-link">
+                <a href="{{ url_for('main.kelola_pesanan') }}" class="sidebar-link active">
                     <i class="fa-solid fa-receipt"></i>
                     <span>Pesanan Saya</span>
                 </a>
@@ -58,233 +58,61 @@ Kelola Pesanan - KeSanaSini
             </nav>
         </aside>
 
-        <!-- KONTEN AKUN -->
+        <!-- KONTEN PESANAN -->
         <section class="account-content">
             <h1>Daftar Pesanan Aktif</h1>
 
-            <form method="POST" action="{{ url_for('main.kelola_akun') }}" enctype="multipart/form-data"
-                  class="account-form">
+            <!-- NAVBAR STATUS PESANAN -->
+            <nav class="order-tabs">
+                <a href="#semua"
+                class="order-tab active"
+                data-status="semua">
+                    Semua
+                </a>
 
-                <!-- DATA DIRI -->
-                <section class="account-card">
-                    <h2 class="card-heading">Data Diri Pribadi</h2>
+                <a href="#belum-dibayar"
+                class="order-tab"
+                data-status="belum-dibayar">
+                    Belum Dibayar
+                </a>
 
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label for="full-name">Nama Lengkap</label>
-                            <input type="text" id="full-name"
-                                   name="name" value="{{ user.name or '' }}"
-                                   placeholder="Nama Pengguna">
-                        </div>
+                <a href="#sedang-diproses"
+                class="order-tab"
+                data-status="sedang-diproses">
+                    Sedang Diproses
+                </a>
 
-                        <div class="form-row personal-row">
-                            <div class="form-group birth-group">
-                                <label>Tanggal Lahir</label>
+                <a href="#sedang-digunakan"
+                class="order-tab"
+                data-status="sedang-digunakan">
+                    Sedang Digunakan
+                </a>
 
-                                <div class="birth-inputs">
-                                    <select name="birth_day" aria-label="Tanggal">
-                                        <option value="">Tanggal</option>
-                                        {% for day in range(1, 32) %}
-                                        <option value="{{ day }}"
-                                            {% if user.birth_date and user.birth_date.day == day %}
-                                                selected
-                                            {% endif %}>
-                                            {{ day }}
-                                        </option>
-                                        {% endfor %}
-                                    </select>
+                <a href="#dibatalkan"
+                class="order-tab"
+                data-status="dibatalkan">
+                    Dibatalkan
+                </a>
+            </nav>
 
-                                    <select name="birth_month" aria-label="Bulan">
-                                        <option value="">Bulan</option>
-                                        {% set months = [
-                                            'Januari', 'Februari', 'Maret', 'April',
-                                            'Mei', 'Juni', 'Juli', 'Agustus',
-                                            'September', 'Oktober', 'November', 'Desember'
-                                        ] %}
+            <!-- PENCARIAN PESANAN -->
+            <div class="order-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
 
-                                        {% for month in months %}
-                                        <option value="{{ loop.index }}"
-                                            {% if user.birth_date and user.birth_date.month == loop.index %}
-                                                selected
-                                            {% endif %}>
-                                            {{ month }}
-                                        </option>
-                                        {% endfor %}
-                                    </select>
+                <input
+                    type="search"
+                    id="search-order"
+                    placeholder="Cari pesanan..."
+                    aria-label="Cari pesanan"
+                >
+            </div>
 
-                                    <select name="birth_year" aria-label="Tahun">
-                                        <option value="">Tahun</option>
-                                        {% for year in range(2026, 1949, -1) %}
-                                        <option value="{{ year }}"
-                                            {% if user.birth_date and user.birth_date.year == year %}
-                                                selected
-                                            {% endif %}>
-                                            {{ year }}
-                                        </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                            </div>
+            <!-- DAFTAR CARD PESANAN -->
+            <div class="order-list" id="order-list">
 
-                            <div class="form-group gender-group">
-                                <label for="gender">Jenis Kelamin</label>
+                <!-- Card pesanan akan ditambahkan di sini nanti -->
 
-                                <select id="gender" name="gender">
-                                    <option value="Perempuan"
-                                        {% if user.gender == 'Perempuan' %}selected{% endif %}>
-                                        Perempuan
-                                    </option>
-
-                                    <option value="Laki-laki"
-                                        {% if user.gender == 'Laki-laki' %}selected{% endif %}>
-                                        Laki-laki
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="document-row">
-                            <div class="form-group document-group">
-                                <label for="ktp">Foto Kartu Tanda Penduduk</label>
-
-                                <label class="upload-box" for="ktp">
-                                    <i class="fa-regular fa-address-card"></i>
-                                    <span id="ktp-status"
-                                        class="upload-status {% if not user.ktp_file %}file-missing{% else %}file-uploaded{% endif %}">
-                                        {% if user.ktp_file %}
-                                            KTP sudah diunggah
-                                        {% else %}
-                                            KTP belum diunggah
-                                        {% endif %}
-                                    </span>
-                                </label>
-
-                                <input type="file" id="ktp" name="ktp"
-                                       accept="image/*,.pdf" hidden>
-
-                                <div id="ktp-preview" class="document-preview">
-                                    {% if user.ktp_file %}
-                                        {% set ext = user.ktp_file.rsplit('.', 1)[-1].lower() %}
-                                        {% if ext in ['jpg', 'jpeg', 'png', 'webp'] %}
-                                            <img
-                                                src="{{ url_for('static', filename='uploads/dokumen_akun/' ~ user.ktp_file) }}"
-                                                alt="Pratinjau KTP"
-                                                onclick="window.open(this.src, '_blank')"
-                                            >
-                                        {% elif ext == 'pdf' %}
-                                            <a href="{{ url_for('static', filename='uploads/dokumen_akun/' ~ user.ktp_file) }}"
-                                            target="_blank">Lihat dokumen KTP (PDF)</a>
-                                        {% endif %}
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <div class="form-group document-group">
-                                <label for="sim">Foto Surat Izin Mengemudi</label>
-
-                                <label class="upload-box" for="sim">
-                                    <i class="fa-regular fa-address-card"></i>
-                                    <span id="sim-status"
-                                        class="upload-status {% if not user.sim_file %}file-missing{% else %}file-uploaded{% endif %}">
-                                        {% if user.sim_file %}
-                                            SIM sudah diunggah
-                                        {% else %}
-                                            SIM belum diunggah
-                                        {% endif %}
-                                    </span>
-                                </label>
-
-                                <input type="file" id="sim" name="sim"
-                                       accept="image/*,.pdf" hidden>
-
-                                <div id="sim-preview" class="document-preview">
-                                    {% if user.sim_file %}
-                                        {% set ext = user.sim_file.rsplit('.', 1)[-1].lower() %}
-                                        {% if ext in ['jpg', 'jpeg', 'png', 'webp'] %}
-                                            <img
-                                                src="{{ url_for('static', filename='uploads/dokumen_akun/' ~ user.sim_file) }}"
-                                                alt="Pratinjau SIM"
-                                                onclick="window.open(this.src, '_blank')"
-                                            >
-                                        {% elif ext == 'pdf' %}
-                                            <a href="{{ url_for('static', filename='uploads/dokumen_akun/' ~ user.sim_file) }}"
-                                            target="_blank">Lihat dokumen SIM (PDF)</a>
-                                        {% endif %}
-                                    {% endif %}
-                                </div>
-
-                            </div>
-                        </div>
-
-                        {% if not user.ktp_path or not user.sim_path %}
-                            <div class="document-warning">
-                                <i class="fa-solid fa-circle-exclamation"></i>
-                                <strong>Dokumen belum lengkap.</strong>
-
-                                Anda belum dapat melakukan sewa lepas kunci.
-                                Silakan unggah
-                                {% if not user.ktp_path and not user.sim_path %}
-                                    KTP dan SIM
-                                {% elif not user.ktp_path %}
-                                    KTP
-                                {% else %}
-                                    SIM
-                                {% endif %}
-                                terlebih dahulu.
-                            </div>
-                        {% endif %}
-
-                        <div class="save-row">
-                            <button type="submit" class="save-button">
-                                SIMPAN
-                            </button>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- DATA LAINNYA -->
-                <section class="account-card additional-card">
-                    <h2 class="card-heading">Data Lainnya</h2>
-
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label for="email">E-Mail</label>
-                            <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                value="{{ user.email or '' }}"
-                                readonly
-                            >
-                        </div>
-
-                        <div class="form-row contact-row">
-                            <div class="form-group">
-                                <label for="phone">No Telepon</label>
-                                <input
-                                    type="tel"
-                                    id="phone"
-                                    name="phone"
-                                    value="{{ user.phone or '' }}"
-                                    placeholder="08xxxxxxxxxx"
-                                >
-                            </div>
-
-                            <div class="form-group">
-                                <label for="emergency-phone">No Darurat</label>
-                                <input
-                                    type="tel"
-                                    id="emergency-phone"
-                                    name="emergency_phone"
-                                    value="{{ user.emergency_phone or '' }}"
-                                    placeholder="08xxxxxxxxxx"
-                                >
-                            </div>
-                        </div>
-
-                    </div>
-                </section>
-            </form>
+            </div>
         </section>
 
     </div>
