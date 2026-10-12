@@ -60,9 +60,8 @@
                 Menu Utama
             </a>
 
-            <a href="#"
-               class="nav-link">
-
+            <a href="{{ url_for('main.kelola_pesanan') }}"
+            class="nav-link {{ 'active' if request.endpoint == 'main.kelola_pesanan' else '' }}">
                 Pesanan Saya
 
             </a>
