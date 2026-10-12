@@ -4,6 +4,8 @@
 Kelola Pesanan - KeSanaSini
 {% endblock %}
 
+{% block body_class %}orders-page{% endblock %}
+
 {% block css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/halKelolaPesanan.css') }}">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -110,9 +112,134 @@ Kelola Pesanan - KeSanaSini
             <!-- DAFTAR CARD PESANAN -->
             <div class="order-list" id="order-list">
 
-                <!-- Card pesanan akan ditambahkan di sini nanti -->
+                {% for rental in pesanan %}
+                <article
+                    class="order-card"
+                    data-status="{{ rental.status }}"
+                    data-name="{{ rental.vehicle.brand }} {{ rental.vehicle.model }}"
+                >
+
+                    <!-- HEADER KARTU -->
+                    <div class="order-card-header">
+                        <div class="order-vehicle-name">
+                            <h3>
+                                {{ rental.vehicle.brand }}
+                                {{ rental.vehicle.model }}
+                            </h3>
+
+                            <span class="order-code">
+                                Kode: {{ rental.booking_code }}
+                            </span>
+                        </div>
+
+                        <span class="order-status">
+                            {{ rental.status }}
+                        </span>
+                    </div>
+
+                    <!-- DETAIL KENDARAAN -->
+                    <div class="order-card-body">
+
+                        <div class="order-vehicle-image">
+                            {% if rental.vehicle.photo %}
+                                <img
+                                    src="{{ url_for(
+                                        'static',
+                                        filename='images/' ~ rental.vehicle.photo
+                                    ) }}"
+                                    alt="{{ rental.vehicle.brand }} {{ rental.vehicle.model }}"
+                                >
+                            {% else %}
+                                <i class="fa-solid fa-car"></i>
+                            {% endif %}
+                        </div>
+
+                        <div class="order-vehicle-info">
+                            <p>
+                                <i class="fa-regular fa-calendar"></i>
+                                Mulai:
+                                {{ rental.start_date | tanggal_id }}
+                            </p>
+
+                            <p>
+                                <i class="fa-solid fa-calendar-check"></i>
+                                Pengembalian:
+                                {{ rental.end_date | tanggal_id }}
+                            </p>
+
+                            <p>
+                                <i class="fa-solid fa-clock"></i>
+                                Durasi:
+                                {{ (rental.end_date - rental.start_date).days }}
+                                hari
+                            </p>
+
+                            {% if rental.with_driver %}
+                            <p>
+                                <i class="fa-solid fa-user-tie"></i>
+                                Dengan sopir
+                            </p>
+                            {% else %}
+                            <p>
+                                <i class="fa-solid fa-car-side"></i>
+                                Lepas kunci
+                            </p>
+                            {% endif %}
+                        </div>
+
+                        <div class="order-price">
+                            <span>Total pesanan</span>
+
+                            <strong>
+                                Rp{{ "{:,.0f}".format(
+                                    rental.vehicle.price_per_day *
+                                    (rental.end_date - rental.start_date).days
+                                ).replace(",", ".") }}
+                            </strong>
+
+                            <small>
+                                Rp{{ "{:,.0f}".format(
+                                    rental.vehicle.price_per_day
+                                ).replace(",", ".") }}/hari
+                            </small>
+                        </div>
+
+                    </div>
+
+                    <!-- FOOTER KARTU -->
+                    <div class="order-card-footer">
+                        <span>
+                            Dipesan pada
+                            {{ rental.created_at | tanggal_id }}
+                        </span>
+
+                        <a
+                            href="{{ url_for(
+                                'main.detail_kendaraan',
+                                vehicle_id=rental.vehicle_id
+                            ) }}"
+                            class="order-detail-button"
+                        >
+                            Lihat Kendaraan
+                        </a>
+                    </div>
+
+                </article>
+
+                {% else %}
+                <div class="empty-order">
+                    <i class="fa-regular fa-clipboard"></i>
+                    <h3>Belum Ada Pesanan</h3>
+                    <p>Pesanan penyewaan kamu akan muncul di sini.</p>
+
+                    <a href="{{ url_for('main.index') }}">
+                        Cari Kendaraan
+                    </a>
+                </div>
+                {% endfor %}
 
             </div>
+
         </section>
 
     </div>

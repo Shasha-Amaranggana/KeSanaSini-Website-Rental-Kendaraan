@@ -11,16 +11,34 @@
 /* =====================================================
    HALAMAN KELOLA AKUN
 ===================================================== */
-
 .account-page {
     width: 100%;
     min-height: 525px;
     padding: 26px 5% 44px;
-    background-color: #fff5e4;
+
+    background: linear-gradient(
+        to bottom,
+        #FFD9A6 0%,
+        #FFE6C4 55%,
+        #FFF0D8 100%
+    );
+
+    position: relative;
+    isolation: isolate;
+}
+
+.account-page::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+
     background-image: url("../images/vehicle-pattern.png");
     background-repeat: repeat;
     background-position: center;
     background-size: 500px auto;
+
+    z-index: -1;
+    pointer-events: none;
 }
 
 .account-layout {

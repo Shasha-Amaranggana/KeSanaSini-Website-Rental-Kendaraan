@@ -60,6 +60,22 @@ body.user-page {
     background-attachment: fixed;
 }
 
+/* Khusus halaman Kelola Pesanan */
+body.user-page.orders-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+body.user-page.orders-page > main.account-page {
+    flex: 1 0 auto;
+}
+
+body.user-page.orders-page > .footer {
+    flex-shrink: 0;
+}
+
+
 
 /* =====================================================
    NAVBAR
