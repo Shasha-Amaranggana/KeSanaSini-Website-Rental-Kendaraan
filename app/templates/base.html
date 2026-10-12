@@ -37,9 +37,7 @@
 
 <body class="user-page {% block body_class %}{% endblock %}">
 
-
     <!-- NAVBAR -->
-
     <header class="navbar">
 
         <a href="{{ url_for('main.index') }}"
@@ -61,7 +59,7 @@
             </a>
 
             <a href="{{ url_for('main.kelola_pesanan') }}"
-            class="nav-link {{ 'active' if request.endpoint == 'main.kelola_pesanan' else '' }}">
+            class="nav-link {{ 'active' if request.endpoint in ['main.kelola_pesanan', 'main.detail_pesanan'] else '' }}">
                 Pesanan Saya
 
             </a>
@@ -150,22 +148,15 @@
 
     </header>
 
-
     <!-- ISI HALAMAN -->
-
     {% block content %}
     {% endblock %}
 
-
     <!-- FOOTER -->
-
     <footer class="footer">
-
     </footer>
 
-
     <!-- JAVASCRIPT GLOBAL -->
-
     <script>
 
         const userMenu =

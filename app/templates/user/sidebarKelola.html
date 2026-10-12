@@ -1,0 +1,50 @@
+<!-- SIDEBAR -->
+<aside class="account-sidebar">
+
+    <div class="sidebar-profile">
+        <div class="profile-avatar">
+            <i class="fa-regular fa-user"></i>
+        </div>
+
+        <div class="user-profile-info">
+            <strong>{{ user.name }}</strong>
+            <span class="user-email" title="{{ user.email }}">
+                {{ user.email }}
+            </span>
+        </div>
+    </div>
+
+    <nav class="sidebar-menu">
+
+        <a href="{{ url_for('main.kelola_akun') }}"
+           class="sidebar-link {{ 'active' if request.endpoint == 'main.kelola_akun' else '' }}">
+            <i class="fa-regular fa-user"></i>
+            <span>Data Diri Saya</span>
+        </a>
+
+        <a href="{{ url_for('main.kelola_pesanan') }}"
+           class="sidebar-link {{ 'active' if request.endpoint in ['main.kelola_pesanan', 'main.detail_pesanan'] else '' }}">
+            <i class="fa-solid fa-receipt"></i>
+            <span>Pesanan Saya</span>
+        </a>
+
+        <a href="#" class="sidebar-link">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <span>Riwayat Pesanan</span>
+        </a>
+
+        <a href="#" class="sidebar-link">
+            <i class="fa-regular fa-bell"></i>
+            <span>Notifikasi</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+
+        <a href="{{ url_for('main.logout') }}"
+           class="sidebar-link logout-link">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Log Out</span>
+        </a>
+
+    </nav>
+</aside>

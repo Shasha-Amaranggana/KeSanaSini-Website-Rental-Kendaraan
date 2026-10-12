@@ -6,7 +6,7 @@ KeSanaSini - Form Sewa
 
 {% block css %}
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/formsewauser.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user/formsewauser.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -18,246 +18,248 @@ KeSanaSini - Form Sewa
 
 <section class="order-section">
 
-    <!-- ================= HEADER ================= -->
-    <div class="order-top">
-        <div>
-            <a class="order-back"
-               href="{{ url_for('main.detail_kendaraan', vehicle_id=vehicle.id,
-                                date=pickup_date, duration=duration) }}">
-                <i class="fa-solid fa-arrow-left-long"></i> Kembali ke detail kendaraan
-            </a>
-            <h1 class="order-title"><span>FORM</span> SEWA</h1>
-        </div>
-
-        <div class="order-vehicle">
-            <img src="{{ url_for('static', filename='images/' + vehicle.photo) }}"
-                 alt="{{ vehicle.full_name }}">
+    <div class="order-container">
+        <!-- ================= HEADER ================= -->
+        <div class="order-top">
             <div>
-                <strong>{{ vehicle.full_name }}</strong>
-                <span>{{ vehicle.vehicle_number }}</span>
+                <a class="order-back"
+                href="{{ url_for('main.detail_kendaraan', vehicle_id=vehicle.id,
+                                    date=pickup_date, duration=duration) }}">
+                    <i class="fa-solid fa-arrow-left-long"></i> Kembali ke detail kendaraan
+                </a>
+                <h1 class="order-title"><span>FORM</span> SEWA</h1>
+            </div>
+
+            <div class="order-vehicle">
+                <img src="{{ url_for('static', filename='images/' + vehicle.photo) }}"
+                    alt="{{ vehicle.full_name }}">
+                <div>
+                    <strong>{{ vehicle.full_name }}</strong>
+                    <span>{{ vehicle.vehicle_number }}</span>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Pesan error / info -->
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    <div class="order-alert">
-        {% for m in messages %}
-        <p><i class="fa-solid fa-circle-exclamation"></i> {{ m }}</p>
-        {% endfor %}
-    </div>
-    {% endif %}
-    {% endwith %}
+        <!-- Pesan error / info -->
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="order-alert">
+            {% for m in messages %}
+            <p><i class="fa-solid fa-circle-exclamation"></i> {{ m }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
 
-    <!-- ================= FORM ================= -->
-    <form id="formSewa"
-        class="order-layout"
-        method="POST"
-        enctype="multipart/form-data"
-        action="{{ url_for('main.pesanan', vehicle_id=vehicle.id, date=pickup_date, duration=duration) }}"
-        data-days="{{ duration }}"
-        data-price="{{ vehicle.price_per_day }}"
-        data-driver="{{ driver_fee }}"
-        data-vehicle="{{ vehicle.vehicle_type }}">
+        <!-- ================= FORM ================= -->
+        <form id="formSewa"
+            class="order-layout"
+            method="POST"
+            enctype="multipart/form-data"
+            action="{{ url_for('main.pesanan', vehicle_id=vehicle.id, date=pickup_date, duration=duration) }}"
+            data-days="{{ duration }}"
+            data-price="{{ vehicle.price_per_day }}"
+            data-driver="{{ driver_fee }}"
+            data-vehicle="{{ vehicle.vehicle_type }}">
 
-        <!-- ========== KOLOM 1 ========== -->
-        <div class="order-col">
+            <!-- ========== KOLOM 1 ========== -->
+            <div class="order-col">
 
-            <!-- 1. Jenis penyewaan -->
-            <div class="order-card">
-                <h3><b class="num">1</b> Jenis Penyewaan</h3>
+                <!-- 1. Jenis penyewaan -->
+                <div class="order-card">
+                    <h3><b class="num">1</b> Jenis Penyewaan</h3>
 
-                <div class="opt-row">
-                    <label class="opt {{ 'is-disabled' if not can_driver else '' }}">
-                        <input type="radio" name="rental_type" value="sopir"
-                               {{ 'checked' if sel_type == 'sopir' else '' }}
-                               {{ 'disabled' if not can_driver else '' }}>
-                        <span class="opt-title">Dengan sopir</span>
-                        <span class="opt-sub">
-                            {% if can_driver %}
-                            +Rp{{ driver_fee|rupiah }} per hari
-                            {% else %}
-                            Tidak tersedia
-                            {% endif %}
-                        </span>
-                    </label>
+                    <div class="opt-row">
+                        <label class="opt {{ 'is-disabled' if not can_driver else '' }}">
+                            <input type="radio" name="rental_type" value="sopir"
+                                {{ 'checked' if sel_type == 'sopir' else '' }}
+                                {{ 'disabled' if not can_driver else '' }}>
+                            <span class="opt-title">Dengan sopir</span>
+                            <span class="opt-sub">
+                                {% if can_driver %}
+                                +Rp{{ driver_fee|rupiah }} per hari
+                                {% else %}
+                                Tidak tersedia
+                                {% endif %}
+                            </span>
+                        </label>
 
-                    <label class="opt">
-                        <input type="radio" name="rental_type" value="lepas_kunci"
-                               {{ 'checked' if sel_type != 'sopir' else '' }}>
-                        <span class="opt-title">Lepas Kunci</span>
-                        <span class="opt-sub">Setir sendiri</span>
-                    </label>
-                </div>
-
-                <!-- Dokumen: hanya untuk lepas kunci -->
-                <div class="doc-box" id="docBox">
-                    <div class="doc-item">
-                        <small>KTP <em class="doc-status" data-for="ktp">belum diunggah</em></small>
-                        <label class="doc-btn">
-                            <input type="file" name="ktp" id="ktp" accept=".jpg,.jpeg,.png,.pdf" hidden>
-                            <span data-default="Unggah KTP">Unggah KTP</span>
+                        <label class="opt">
+                            <input type="radio" name="rental_type" value="lepas_kunci"
+                                {{ 'checked' if sel_type != 'sopir' else '' }}>
+                            <span class="opt-title">Lepas Kunci</span>
+                            <span class="opt-sub">Setir sendiri</span>
                         </label>
                     </div>
-                    <div class="doc-item" id="simItem">
-                        <small>{{ sim_label }} <em class="doc-status" data-for="sim">belum diunggah</em></small>
-                        <label class="doc-btn">
-                            <input type="file" name="sim" id="sim" accept=".jpg,.jpeg,.png,.pdf" hidden>
-                            <span data-default="Unggah {{ sim_label }}">Unggah {{ sim_label }}</span>
+
+                    <!-- Dokumen: hanya untuk lepas kunci -->
+                    <div class="doc-box" id="docBox">
+                        <div class="doc-item">
+                            <small>KTP <em class="doc-status" data-for="ktp">belum diunggah</em></small>
+                            <label class="doc-btn">
+                                <input type="file" name="ktp" id="ktp" accept=".jpg,.jpeg,.png,.pdf" hidden>
+                                <span data-default="Unggah KTP">Unggah KTP</span>
+                            </label>
+                        </div>
+                        <div class="doc-item" id="simItem">
+                            <small>{{ sim_label }} <em class="doc-status" data-for="sim">belum diunggah</em></small>
+                            <label class="doc-btn">
+                                <input type="file" name="sim" id="sim" accept=".jpg,.jpeg,.png,.pdf" hidden>
+                                <span data-default="Unggah {{ sim_label }}">Unggah {{ sim_label }}</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Tujuan pemakaian -->
+                <div class="order-card">
+                    <h3><b class="num">3</b> Tujuan pemakaian</h3>
+
+                    <div class="field-row">
+                        <div class="field">
+                            <label for="purpose">Keperluan</label>
+                            <select id="purpose" name="purpose">
+                                {% for p in purposes %}
+                                <option value="{{ p }}" {{ 'selected' if form.get('purpose') == p else '' }}>{{ p }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="region">Wilayah pemakaian</label>
+                            <select id="region" name="region">
+                                {% for r in regions %}
+                                <option value="{{ r }}" {{ 'selected' if form.get('region') == r else '' }}>{{ r }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="field" id="cityField" hidden>
+                        <label for="destination_city">Kota tujuan</label>
+                        <input type="text" id="destination_city" name="destination_city"
+                            placeholder="Contoh: Balikpapan"
+                            value="{{ form.get('destination_city', '') }}">
+                    </div>
+                </div>
+
+                <!-- 5. Asuransi -->
+                <div class="order-card">
+                    <h3><b class="num">5</b> Asuransi</h3>
+
+                    <div class="opt-row">
+                        {% for key, (label, price) in insurances.items() %}
+                        <label class="opt opt-left">
+                            <input type="radio" name="insurance" value="{{ key }}"
+                                data-price="{{ price }}" data-label="{{ label }}"
+                                {{ 'checked' if sel_ins == key else '' }}>
+                            <span class="opt-title">{{ label }}</span>
+                            <span class="opt-sub">
+                                {% if price == 0 %}Termasuk, Rp0{% else %}+Rp{{ price|rupiah }} per hari{% endif %}
+                            </span>
                         </label>
+                        {% endfor %}
                     </div>
                 </div>
+
             </div>
 
-            <!-- 3. Tujuan pemakaian -->
-            <div class="order-card">
-                <h3><b class="num">3</b> Tujuan pemakaian</h3>
+            <!-- ========== KOLOM 2 ========== -->
+            <div class="order-col">
 
-                <div class="field-row">
-                    <div class="field">
-                        <label for="purpose">Keperluan</label>
-                        <select id="purpose" name="purpose">
-                            {% for p in purposes %}
-                            <option value="{{ p }}" {{ 'selected' if form.get('purpose') == p else '' }}>{{ p }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label for="region">Wilayah pemakaian</label>
-                        <select id="region" name="region">
-                            {% for r in regions %}
-                            <option value="{{ r }}" {{ 'selected' if form.get('region') == r else '' }}>{{ r }}</option>
-                            {% endfor %}
-                        </select>
+                <!-- 2. Aksesoris -->
+                <div class="order-card">
+                    <h3>
+                        <b class="num">2</b> Aksesoris tambahan
+                        <small class="optional">(Opsional)</small>
+                    </h3>
+
+                    <div class="acc-grid">
+                        {% for key, (label, price) in accessories.items() %}
+                        <label class="acc">
+                            <input type="checkbox" name="accessories" value="{{ key }}"
+                                data-price="{{ price }}"
+                                {{ 'checked' if key in sel_acc else '' }}>
+                            <span>
+                                {{ label }}
+                                <em>Rp{{ price|rupiah }}</em>
+                            </span>
+                        </label>
+                        {% endfor %}
                     </div>
                 </div>
 
-                <div class="field" id="cityField" hidden>
-                    <label for="destination_city">Kota tujuan</label>
-                    <input type="text" id="destination_city" name="destination_city"
-                           placeholder="Contoh: Balikpapan"
-                           value="{{ form.get('destination_city', '') }}">
+                <!-- 4. Lokasi -->
+                <div class="order-card">
+                    <h3><b class="num">4</b> Lokasi Pengambilan dan kembali</h3>
+
+                    <div class="field-row">
+                        <div class="field">
+                            <label for="pickup_location">Ambil di</label>
+                            <select id="pickup_location" name="pickup_location">
+                                {% for l in locations %}
+                                <option value="{{ l }}" {{ 'selected' if form.get('pickup_location') == l else '' }}>{{ l }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="return_location">Kembalikan di</label>
+                            <select id="return_location" name="return_location">
+                                {% for l in locations %}
+                                <option value="{{ l }}" {{ 'selected' if form.get('return_location') == l else '' }}>{{ l }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- 6. Permintaan khusus -->
+                <div class="order-card">
+                    <h3>
+                        <b class="num">6</b> Permintaan khusus
+                        <small class="optional">(Opsional)</small>
+                    </h3>
+                    <textarea name="special_request" rows="3"
+                            placeholder="Contoh: mohon mobil sudah bersih saat diambil">{{ form.get('special_request', '') }}</textarea>
+                </div>
+
             </div>
 
-            <!-- 5. Asuransi -->
-            <div class="order-card">
-                <h3><b class="num">5</b> Asuransi</h3>
+            <aside class="order-summary">
+                <div class="order-card">
+                    <h3 class="summary-title">Ringkasan sewa</h3>
 
-                <div class="opt-row">
-                    {% for key, (label, price) in insurances.items() %}
-                    <label class="opt opt-left">
-                        <input type="radio" name="insurance" value="{{ key }}"
-                               data-price="{{ price }}" data-label="{{ label }}"
-                               {{ 'checked' if sel_ins == key else '' }}>
-                        <span class="opt-title">{{ label }}</span>
-                        <span class="opt-sub">
-                            {% if price == 0 %}Termasuk, Rp0{% else %}+Rp{{ price|rupiah }} per hari{% endif %}
-                        </span>
+                    <div class="sum-date"><b>{{ pickup_date|tanggal_id }}</b><span>Ambil</span></div>
+                    <div class="sum-date"><b>{{ end_date|tanggal_id }}</b><span>Kembali</span></div>
+
+                    <div class="sum-list">
+                        <div><span>{{ vehicle.vehicle_type }}, {{ duration }} hari</span><b id="sumVehicle">Rp0</b></div>
+                        <div id="rowDriver" hidden><span>Sopir</span><b id="sumDriver">Rp0</b></div>
+                        <div><span>Aksesoris</span><b id="sumAcc">Rp0</b></div>
+                        <div><span>Asuransi</span><b id="sumIns">Rp0</b></div>
+                    </div>
+
+                    <div class="sum-total">
+                        <span>Total</span>
+                        <b id="sumTotal">Rp0</b>
+                    </div>
+
+                    <label class="terms">
+                        <input type="checkbox" name="agree" id="agree" value="1">
+                        <span>Saya menyetujui syarat dan ketentuan penyewaan.</span>
                     </label>
-                    {% endfor %}
+
+                    <p class="order-hint" id="orderHint" hidden>
+                        Unggah dokumen yang diperlukan dan setujui syarat untuk melanjutkan.
+                    </p>
+
+                    <button type="submit" class="order-submit" id="btnSubmit" disabled>
+                        Lanjutkan Penyewaan
+                    </button>
                 </div>
-            </div>
+            </aside>
 
-        </div>
-
-        <!-- ========== KOLOM 2 ========== -->
-        <div class="order-col">
-
-            <!-- 2. Aksesoris -->
-            <div class="order-card">
-                <h3>
-                    <b class="num">2</b> Aksesoris tambahan
-                    <small class="optional">(Opsional)</small>
-                </h3>
-
-                <div class="acc-grid">
-                    {% for key, (label, price) in accessories.items() %}
-                    <label class="acc">
-                        <input type="checkbox" name="accessories" value="{{ key }}"
-                               data-price="{{ price }}"
-                               {{ 'checked' if key in sel_acc else '' }}>
-                        <span>
-                            {{ label }}
-                            <em>Rp{{ price|rupiah }}</em>
-                        </span>
-                    </label>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- 4. Lokasi -->
-            <div class="order-card">
-                <h3><b class="num">4</b> Lokasi Pengambilan dan kembali</h3>
-
-                <div class="field-row">
-                    <div class="field">
-                        <label for="pickup_location">Ambil di</label>
-                        <select id="pickup_location" name="pickup_location">
-                            {% for l in locations %}
-                            <option value="{{ l }}" {{ 'selected' if form.get('pickup_location') == l else '' }}>{{ l }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label for="return_location">Kembalikan di</label>
-                        <select id="return_location" name="return_location">
-                            {% for l in locations %}
-                            <option value="{{ l }}" {{ 'selected' if form.get('return_location') == l else '' }}>{{ l }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 6. Permintaan khusus -->
-            <div class="order-card">
-                <h3>
-                    <b class="num">6</b> Permintaan khusus
-                    <small class="optional">(Opsional)</small>
-                </h3>
-                <textarea name="special_request" rows="3"
-                          placeholder="Contoh: mohon mobil sudah bersih saat diambil">{{ form.get('special_request', '') }}</textarea>
-            </div>
-
-        </div>
-
-        <aside class="order-summary">
-            <div class="order-card">
-                <h3 class="summary-title">Ringkasan sewa</h3>
-
-                <div class="sum-date"><b>{{ pickup_date|tanggal_id }}</b><span>Ambil</span></div>
-                <div class="sum-date"><b>{{ end_date|tanggal_id }}</b><span>Kembali</span></div>
-
-                <div class="sum-list">
-                    <div><span>{{ vehicle.vehicle_type }}, {{ duration }} hari</span><b id="sumVehicle">Rp0</b></div>
-                    <div id="rowDriver" hidden><span>Sopir</span><b id="sumDriver">Rp0</b></div>
-                    <div><span>Aksesoris</span><b id="sumAcc">Rp0</b></div>
-                    <div><span>Asuransi</span><b id="sumIns">Rp0</b></div>
-                </div>
-
-                <div class="sum-total">
-                    <span>Total</span>
-                    <b id="sumTotal">Rp0</b>
-                </div>
-
-                <label class="terms">
-                    <input type="checkbox" name="agree" id="agree" value="1">
-                    <span>Saya menyetujui syarat dan ketentuan penyewaan.</span>
-                </label>
-
-                <p class="order-hint" id="orderHint" hidden>
-                    Unggah dokumen yang diperlukan dan setujui syarat untuk melanjutkan.
-                </p>
-
-                <button type="submit" class="order-submit" id="btnSubmit" disabled>
-                    Lanjutkan Penyewaan
-                </button>
-            </div>
-        </aside>
-
-    </form>
+        </form>
+    </div>
 </section>
 
 

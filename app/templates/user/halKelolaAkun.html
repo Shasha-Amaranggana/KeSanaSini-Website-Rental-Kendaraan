@@ -5,7 +5,7 @@ Kelola Akun - KeSanaSini
 {% endblock %}
 
 {% block css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/halKelolaAkun.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user/halKelolaAkun.css') }}">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 {% endblock %}
 
@@ -15,48 +15,7 @@ Kelola Akun - KeSanaSini
     <div class="account-layout">
 
         <!-- SIDEBAR -->
-        <aside class="account-sidebar">
-            <div class="sidebar-profile">
-                <div class="profile-avatar">
-                    <i class="fa-regular fa-user"></i>
-                </div>
-                <div class="user-profile-info">
-                    <strong>{{ user.name }}</strong>
-                    <span class="user-email" title="{{ user.email }}">
-                        {{ user.email }}
-                    </span>
-                </div>
-            </div>
-
-            <nav class="sidebar-menu">
-                <a href="{{ url_for('main.kelola_akun') }}" class="sidebar-link active">
-                    <i class="fa-regular fa-user"></i>
-                    <span>Data Diri Saya</span>
-                </a>
-
-                <a href="{{ url_for('main.kelola_pesanan') }}" class="sidebar-link">
-                    <i class="fa-solid fa-receipt"></i>
-                    <span>Pesanan Saya</span>
-                </a>
-
-                <a href="#" class="sidebar-link">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                    <span>Riwayat Pesanan</span>
-                </a>
-
-                <a href="#" class="sidebar-link">
-                    <i class="fa-regular fa-bell"></i>
-                    <span>Notifikasi</span>
-                </a>
-
-                <div class="sidebar-divider"></div>
-
-                <a href="#" class="sidebar-link logout-link">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    <span>Log Out</span>
-                </a>
-            </nav>
-        </aside>
+        {% include 'user/sidebarKelola.html' %}
 
         <!-- KONTEN AKUN -->
         <section class="account-content">

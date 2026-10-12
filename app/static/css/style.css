@@ -80,9 +80,7 @@ body.user-page.orders-page > .footer {
 /* =====================================================
    NAVBAR
 ===================================================== */
-
 .navbar {
-
     width: 100%;
     height: 78px;
 
@@ -105,9 +103,7 @@ body.user-page.orders-page > .footer {
 /* =====================================================
    LOGO
 ===================================================== */
-
 .navbar-logo {
-
     width: 220px;
 
     display: flex;
@@ -396,6 +392,148 @@ body.user-page.orders-page > .footer {
 /* ARROW BERPUTAR */
 .user-menu.open .user-arrow {
     transform: rotate(180deg);
+}
+
+
+
+/* =====================================================
+   SIDEBAR
+===================================================== */
+
+.account-sidebar {
+    background: #fff;
+    border: 1px solid #dedede;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.10);
+}
+
+.sidebar-profile {
+    min-height: 78px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 15px;
+    background: #fff;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.profile-avatar {
+    width: 45px;
+    height: 45px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #fff0e4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ed741d;
+    font-size: 21px;
+}
+
+.user-profile-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+}
+
+.sidebar-profile strong {
+    display: block;
+    overflow: hidden;
+    color: #333;
+    font-size: 15px;
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.sidebar-profile .user-email {
+    display: block;
+    overflow: hidden;
+    color: #666;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.sidebar-menu {
+    padding-top: 15px;
+    padding-bottom: 10px;
+}
+
+.sidebar-link {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 20px;
+    border-radius: 0px;
+    text-decoration: none;
+    color: #333;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 550;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-link i {
+    width: 18px;
+    flex-shrink: 0;
+    text-align: center;
+    color: #e58137;
+    font-size: 16px;
+}
+
+.sidebar-link:hover {
+    background: #f5f5f5;
+}
+
+.sidebar-link.active {
+    background: #ed741d;
+    color: #fff;
+}
+
+.sidebar-link.active i {
+    color: #fff;
+}
+
+.sidebar-divider {
+    height: 1px;
+    margin: 5px 20px;
+    background: #e5e5e5;
+}
+
+.logout-link {
+    margin-top: 4px;
+    color: #333;
+}
+
+@media (max-width: 700px) {
+    .account-sidebar {
+        width: 100%;
+    }
+
+    .sidebar-profile {
+        min-height: 55px;
+    }
+
+    .sidebar-menu {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 5px;
+    }
+
+    .sidebar-link {
+        flex: 1 1 130px;
+        border-radius: 4px;
+    }
+
+    .sidebar-divider {
+        display: none;
+    }
 }
 
 

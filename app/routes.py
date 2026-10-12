@@ -545,6 +545,31 @@ def kelola_pesanan():
 
 
 
+@bp.route('/detail-pesanan/<int:rental_id>')
+def detail_pesanan(rental_id):
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+
+    user = User.query.get(session['user_id'])
+
+    if not user:
+        session.clear()
+        return redirect(url_for('main.login'))
+
+    # Pastikan pesanan milik user yang sedang login
+    rental = Rental.query.filter_by(
+        id=rental_id,
+        user_id=user.id
+    ).first_or_404()
+
+    return render_template(
+        'user/halDetailPesanan.html',
+        user=user,
+        rental=rental
+    )
+
+
+
 # =========================================================
 # HALAMAN LOGIN | REGISTER | LOGOUT
 # =========================================================
