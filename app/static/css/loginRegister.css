@@ -433,6 +433,18 @@ input[type="password"]::-ms-clear {
 }
 
 
+
+
+
+
+
+.forgot-description {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #333;
+    margin-bottom: 25px;
+}
+
 /* =====================================================
     RESPONSIVE
     

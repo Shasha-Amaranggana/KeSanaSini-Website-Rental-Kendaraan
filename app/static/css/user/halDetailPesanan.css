@@ -281,6 +281,23 @@
     font-size: 11px;
 }
 
+.timeline-cancelled {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 18px;
+    border-radius: 8px;
+    background: #fff0f0;
+    color: #dc3545;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.timeline-cancelled i {
+    font-size: 22px;
+}
+
 /* Garis pemisah timeline dan informasi sewa */
 .detail-section-divider {
     height: 1px;
@@ -354,6 +371,25 @@
     color: #e87519;
 }
 
+.btn-pembayaran {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 12px 20px;
+    background-color: #E87524;
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.btn-pembayaran:hover {
+    background-color: #CF5F15;
+}
 
 
 /* =====================================================

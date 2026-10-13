@@ -53,45 +53,44 @@ Detail Pesanan - KeSanaSini
                 <!-- TIMELINE STATUS -->
                 <!-- =================================================================================== -->
                 <div class="timeline-section">
-                    <div class="timeline-steps">
-
-                        <div class="timeline-step completed">
-                            <div class="timeline-icon">
-                                <i class="fa-solid fa-file-lines"></i>
-                            </div>
-                            <span>Pesanan Dibuat</span>
-                            <small>{{ rental.start_date | tanggal_id }}</small>
+                    {% if rental.status == rental.STATUS_BATAL %}
+                        <div class="timeline-cancelled">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                            Pesanan dibatalkan
                         </div>
+                    {% else %}
+                        <div class="timeline-steps">
 
-                        <div class="timeline-step">
-                            <div class="timeline-icon">
-                                <i class="fa-solid fa-wallet"></i>
-                            </div>
-                            <span>Pembayaran</span>
+                            {% set steps = [
+                                ('fa-file-lines', 'Pesanan Dibuat'),
+                                ('fa-wallet', 'Pembayaran'),
+                                ('fa-car-side', 'Pengambilan'),
+                                ('fa-key', 'Sedang Disewa'),
+                                ('fa-circle-check', 'Selesai')
+                            ] %}
+
+                            {% for icon, label in steps %}
+                                <div class="timeline-step
+                                    {% if loop.index0 < current_step %}completed
+                                    {% elif loop.index0 == current_step %}current
+                                    {% endif %}">
+
+                                    <div class="timeline-icon">
+                                        <i class="fa-solid {{ icon }}"></i>
+                                    </div>
+
+                                    <span>{{ label }}</span>
+
+                                    {% if loop.first %}
+                                        <small>{{ rental.created_at | tanggal_id }}</small>
+                                    {% elif loop.last and current_step == 4 %}
+                                        <small>{{ rental.end_date | tanggal_id }}</small>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+
                         </div>
-
-                        <div class="timeline-step">
-                            <div class="timeline-icon">
-                                <i class="fa-solid fa-car-side"></i>
-                            </div>
-                            <span>Pengambilan</span>
-                        </div>
-
-                        <div class="timeline-step">
-                            <div class="timeline-icon">
-                                <i class="fa-solid fa-key"></i>
-                            </div>
-                            <span>Sedang Disewa</span>
-                        </div>
-
-                        <div class="timeline-step">
-                            <div class="timeline-icon">
-                                <i class="fa-solid fa-circle-check"></i>
-                            </div>
-                            <span>Selesai</span>
-                        </div>
-
-                    </div>
+                    {% endif %}
                 </div>
 
                 <div class="detail-section-divider"></div>
@@ -165,14 +164,21 @@ Detail Pesanan - KeSanaSini
                         <h3>Informasi Pembayaran</h3>
 
                         <p>
-                            <span>Metode pembayaran</span>
-                            <strong>{{ rental.payment_method or 'Belum dipilih' }}</strong>
+                            <span>Status pembayaran</span>
+                            <strong>{{ rental.payment_status or 'Belum Lunas' }}</strong>
                         </p>
 
-                        <p>
-                            <span>Status pembayaran</span>
-                            <strong>{{ rental.payment_status or '-' }}</strong>
-                        </p>
+                        {% if rental.payment_status != 'Lunas'
+                        and rental.status == rental.STATUS_MENUNGGU_BAYAR %}
+
+                            <a href="{{ url_for('main.pembayaran', rental_id=rental.id) }}"
+                            class="btn-pembayaran">
+                                <i class="fa-solid fa-wallet"></i>
+                                Lakukan Pembayaran
+                            </a>
+
+                        {% endif %}
+
                     </div>
 
                 </div>

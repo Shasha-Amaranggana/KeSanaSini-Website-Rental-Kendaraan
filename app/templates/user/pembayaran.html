@@ -26,7 +26,6 @@
       <section class="pay-card qr-card">
         <h2>Scan untuk membayar</h2>
         <img class="qr" src="{{ qr_url or url_for('static', filename='images/qris.png') }}" alt="QR code pembayaran QRIS">
-        <img class="qris-logo" src="{{ url_for('static', filename='images/qris-logo.png') }}" alt="QRIS">
         <button type="button" class="btn-cek" id="btnKonfirmasiBayar">Konfirmasi Pembayaran</button>
       </section>
     </div>
