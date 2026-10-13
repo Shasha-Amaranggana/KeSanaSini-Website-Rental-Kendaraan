@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.datastructures import MultiDict
 from functools import wraps
 from app import db
+from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 import os
 
 bp = Blueprint('main', __name__)
@@ -404,7 +405,6 @@ def pesanan():
     return redirect(url_for('main.pembayaran', rental_id=rental.id))
 
 @bp.route('/pembayaran/<int:rental_id>')
-@bp.route('/pembayaran/<int:rental_id>')
 def pembayaran(rental_id):
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
@@ -432,13 +432,43 @@ def status_pembayaran(rental_id):
     return jsonify(paid=(rental.payment_status == 'Lunas'))
 
 
+
 @bp.route('/pembayaran/<int:rental_id>/sukses')
 def pembayaran_sukses(rental_id):
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
+
     user = User.query.get(session['user_id'])
-    rental = Rental.query.filter_by(id=rental_id, user_id=user.id).first_or_404()
-    return render_template('user/pembayaran_sukses.html', rental=rental, user=user)
+    if not user:
+        session.clear()
+        return redirect(url_for('main.login'))
+
+    rental = Rental.query.filter_by(
+        id=rental_id,
+        user_id=user.id
+    ).first_or_404()
+
+    # Pastikan pesanan belum dibatalkan
+    # dan masih menunggu pembayaran.
+    if rental.status == Rental.STATUS_MENUNGGU_BAYAR:
+        deadline = rental.created_at + timedelta(hours=24)
+
+        if datetime.now() > deadline:
+            rental.status = Rental.STATUS_BATAL
+            db.session.commit()
+
+            flash('Waktu pembayaran habis, pesanan dibatalkan.')
+            return redirect(url_for('main.index'))
+
+        rental.status = Rental.STATUS_MENUNGGU_KONFIRMASI
+        db.session.commit()
+
+    return render_template(
+        'user/pembayaran_sukses.html',
+        rental=rental,
+        user=user
+    )
+
 
 
 
@@ -605,18 +635,30 @@ def detail_pesanan(rental_id):
         session.clear()
         return redirect(url_for('main.login'))
 
-    # Pastikan pesanan milik user yang sedang login
     rental = Rental.query.filter_by(
         id=rental_id,
         user_id=user.id
     ).first_or_404()
 
+    # Tahap timeline untuk setiap status penyewaan
+    status_steps = {
+        Rental.STATUS_MENUNGGU_BAYAR: 0,
+        Rental.STATUS_MENUNGGU_KONFIRMASI: 1,
+        Rental.STATUS_PENGAMBILAN: 2,
+        Rental.STATUS_DIPAKAI: 3,
+        Rental.STATUS_PENGEMBALIAN: 4,
+        Rental.STATUS_SELESAI: 4,
+        Rental.STATUS_BATAL: -1,
+    }
+
+    current_step = status_steps.get(rental.status, 0)
+
     return render_template(
         'user/halDetailPesanan.html',
         user=user,
-        rental=rental
+        rental=rental,
+        current_step=current_step
     )
-
 
 @bp.route('/riwayat-pesanan')
 def riwayat_pesanan():
@@ -759,6 +801,104 @@ def login():
             return redirect(url_for('main.login'))
             
     return render_template('loginRegister.html', mode='login')
+
+
+@bp.route('/lupa-password', methods=['GET', 'POST'])
+def lupa_password():
+    if request.method == 'POST':
+        email = (request.form.get('email') or '').strip()
+
+        user = User.query.filter(
+            db.func.lower(User.email) == email.lower()
+        ).first()
+
+        # Pesan dibuat sama agar tidak membocorkan
+        # apakah sebuah email terdaftar.
+        flash(
+            'Jika email terdaftar, tautan reset akan dibuat.',
+            'info'
+        )
+
+        if user:
+            serializer = URLSafeTimedSerializer(
+                current_app.config['SECRET_KEY'],
+                salt='kesanasini-password-reset'
+            )
+
+            token = serializer.dumps({
+                'user_id': user.id,
+                'password_hash': user.password_hash
+            })
+
+            reset_url = url_for(
+                'main.reset_password',
+                token=token,
+                _external=True
+            )
+
+            # Hanya untuk pengujian lokal.
+            current_app.logger.warning(
+                '[DEV ONLY] Tautan reset password: %s',
+                reset_url
+            )
+
+        return redirect(url_for('main.lupa_password'))
+
+    return render_template(
+    'loginRegister.html',
+    mode='forgot_password'
+)
+
+
+@bp.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    serializer = URLSafeTimedSerializer(
+        current_app.config['SECRET_KEY'],
+        salt='kesanasini-password-reset'
+    )
+
+    try:
+        data = serializer.loads(token, max_age=900)
+    except SignatureExpired:
+        flash('Tautan reset sudah kedaluwarsa. Silakan minta tautan baru.', 'error')
+        return redirect(url_for('main.lupa_password'))
+    except BadSignature:
+        flash('Tautan reset tidak valid.', 'error')
+        return redirect(url_for('main.lupa_password'))
+
+    user = db.session.get(User, data.get('user_id'))
+
+    # Token tidak berlaku lagi jika password sudah berubah.
+    if not user or user.password_hash != data.get('password_hash'):
+        flash('Tautan reset tidak valid atau sudah digunakan.', 'error')
+        return redirect(url_for('main.lupa_password'))
+
+    if request.method == 'POST':
+        password = request.form.get('password') or ''
+        confirm_password = request.form.get('confirm_password') or ''
+
+        if len(password) < 8 or not any(c.isalpha() for c in password) \
+                or not any(c.isdigit() for c in password):
+            flash(
+                'Password minimal 8 karakter dan harus mengandung huruf serta angka.',
+                'error'
+            )
+        elif password != confirm_password:
+            flash('Konfirmasi password tidak cocok.', 'error')
+        elif user.check_password(password):
+            flash('Gunakan password yang berbeda dari password lama.', 'error')
+        else:
+            user.set_password(password)
+            db.session.commit()
+
+            flash('Password berhasil diubah. Silakan login.', 'success')
+            return redirect(url_for('main.login'))
+
+    return render_template(
+    'loginRegister.html',
+    mode='reset_password',
+    token=token
+)
 
 
 # =========================================================
@@ -1089,19 +1229,34 @@ def admin_penyewaan_edit(id):
                 new_status=new_status
             ))
         
+
         if new_status in Rental.ALL_STATUS:
             rental.status = new_status
-            
-            # TRIGGER TRACKING: Mulai lacak jika baru saja diubah menjadi "Sedang Dipakai"
-            if new_status == Rental.STATUS_DIPAKAI and old_status != Rental.STATUS_DIPAKAI:
-                # Koordinat Default (Misal: Tengah Kota Samarinda)
+
+            # Saat admin memverifikasi pesanan,
+            # tandai pembayaran sebagai lunas.
+            if new_status == Rental.STATUS_PENGAMBILAN:
+                rental.payment_status = 'Lunas'
+
+            # TRIGGER TRACKING: Mulai lacak jika baru saja
+            # diubah menjadi kendaraan sedang dipakai.
+            if (
+                new_status == Rental.STATUS_DIPAKAI
+                and old_status != Rental.STATUS_DIPAKAI
+            ):
                 rental.vehicle.current_lat = -0.502106
                 rental.vehicle.current_lng = 117.153709
-            
-            # Matikan tracking jika sudah selesai / batal / kembali
-            elif new_status in [Rental.STATUS_SELESAI, Rental.STATUS_BATAL, Rental.STATUS_PENGEMBALIAN]:
+
+            # Matikan tracking jika sudah selesai, batal,
+            # atau dalam proses pengembalian.
+            elif new_status in [
+                Rental.STATUS_SELESAI,
+                Rental.STATUS_BATAL,
+                Rental.STATUS_PENGEMBALIAN
+            ]:
                 rental.vehicle.current_lat = None
                 rental.vehicle.current_lng = None
+
 
         if rental.with_driver and driver_id:
             if driver_id == 'none':
@@ -1602,12 +1757,14 @@ def register():
 
     return render_template('loginRegister.html', mode='register')
 
-@bp.route('/logout')
+@bp.route('/logout', methods=['GET', 'POST'])
 def logout():
+    session.clear()
     session.pop('user_id', None)
     session.pop('user_name', None)
     session.pop('user_email', None)
     session.pop('user_role', None)
+    flash('Kamu berhasil logout.', 'success')
     return redirect(url_for('main.login'))
 
 

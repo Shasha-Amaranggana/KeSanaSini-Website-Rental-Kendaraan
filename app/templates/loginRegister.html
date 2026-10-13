@@ -7,8 +7,12 @@
     <title>
         {% if mode == 'login' %}
             Login - KeSanaSini
-        {% else %}
+        {% elif mode == 'register' %}
             Register - KeSanaSini
+        {% elif mode == 'forgot_password' %}
+            Lupa Password - KeSanaSini
+        {% else %}
+            Reset Password - KeSanaSini
         {% endif %}
     </title>
 
@@ -66,104 +70,104 @@
                 {% endwith %}
 
 
-            <!-- =================================================
-                 FORM LOGIN
-            ================================================== -->
+                <!-- =================================================
+                    FORM LOGIN
+                ================================================== -->
 
-            <form
-                action="{{ url_for('main.login') }}"
-                method="POST"
-            >
+                <form
+                    action="{{ url_for('main.login') }}"
+                    method="POST"
+                >
 
-                <!-- EMAIL -->
-                <div class="input-group">
-                    <i class="fa-regular fa-envelope"></i>
+                    <!-- EMAIL -->
+                    <div class="input-group">
+                        <i class="fa-regular fa-envelope"></i>
 
-                    <input
-                        type="email"
-                        name="email"
-                        class="form-input"
-                        placeholder="E-Mail"
-                        required>
+                        <input
+                            type="email"
+                            name="email"
+                            class="form-input"
+                            placeholder="E-Mail"
+                            required>
 
+                    </div>
+
+
+                    <div class="input-group">
+                        <i class="fa-solid fa-lock"></i>
+
+                        <input
+                            type="password"
+                            name="password"
+                            id="password"
+                            class="form-input"
+                            placeholder="Password"
+                            required>
+
+                        <i
+                            class="fa-regular fa-eye password-toggle"
+                            id="password-toggle"
+                            title="Lihat password">
+                        </i>
+                    </div>
+
+
+                    <!-- LUPA PASSWORD -->
+                    <a
+                        href="{{ url_for('main.lupa_password') }}"
+                        class="forgot-pass">
+                        Lupa password anda?
+                    </a>
+
+
+                    <!-- LOGIN -->
+                    <button
+                        type="submit"
+                        class="btn-auth">
+                        LOGIN
+                    </button>
+
+                </form>
+
+
+                <!-- =================================================
+                    DIVIDER
+                ================================================== -->
+
+                <div class="divider">
+                    atau
                 </div>
 
 
-                <div class="input-group">
-                    <i class="fa-solid fa-lock"></i>
+                <!-- =================================================
+                    GOOGLE
+                ================================================== -->
 
-                    <input
-                        type="password"
-                        name="password"
-                        id="password"
-                        class="form-input"
-                        placeholder="Password"
-                        required>
-
+                <button class="btn-google">
                     <i
-                        class="fa-regular fa-eye password-toggle"
-                        id="password-toggle"
-                        title="Lihat password">
-                    </i>
-                </div>
-
-
-                <!-- LUPA PASSWORD -->
-                <a
-                    href="#"
-                    class="forgot-pass">
-                    Lupa password anda?
-                </a>
-
-
-                <!-- LOGIN -->
-                <button
-                    type="submit"
-                    class="btn-auth">
-                    LOGIN
+                        class="fa-brands fa-google"
+                        style="color: #DB4437; font-size: 18px;"
+                    ></i>
+                    GOOGLE
                 </button>
 
-            </form>
 
-
-            <!-- =================================================
-                 DIVIDER
-            ================================================== -->
-
-            <div class="divider">
-                atau
-            </div>
-
-
-            <!-- =================================================
-                 GOOGLE
-            ================================================== -->
-
-            <button class="btn-google">
-                <i
-                    class="fa-brands fa-google"
-                    style="color: #DB4437; font-size: 18px;"
-                ></i>
-                GOOGLE
-            </button>
-
-
-            <!-- =================================================
-                 REGISTER
-            ================================================== -->
-            <div class="switch-text">
-                Belum punya akun?
-                <a href="{{ url_for('main.register') }}">
-                    Daftarkan diri anda!
-                </a>
-            </div>
+                <!-- =================================================
+                    REGISTER
+                ================================================== -->
+                <div class="switch-text">
+                    Belum punya akun?
+                    <a href="{{ url_for('main.register') }}">
+                        Daftarkan diri anda!
+                    </a>
+                </div>
 
 
 
             <!-- =========================
                  REGISTER
             ========================== -->
-            {% else %}
+            {% elif mode == 'register' %}
 
                 <h1>DAFTARKAN DIRI ANDA</h1>
 
@@ -329,61 +333,191 @@
                     </a>
                 </div>
 
+
+
+            {% elif mode == 'forgot_password' %}
+
+                <!-- TAMPILAN LUPA PASSWORD -->
+                <h1>LUPA PASSWORD</h1>
+
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <div class="flash-msg">
+                            {{ messages[0] }}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <p class="forgot-description">
+                    Masukkan email yang terdaftar untuk mengatur ulang password akun Anda.
+                </p>
+
+                <form
+                    action="{{ url_for('main.lupa_password') }}"
+                    method="POST"
+                >
+                    <div class="input-group">
+                        <i class="fa-regular fa-envelope"></i>
+
+                        <input
+                            type="email"
+                            name="email"
+                            class="form-input"
+                            placeholder="E-Mail"
+                            required
+                        >
+                    </div>
+
+                    <button type="submit" class="btn-auth">
+                        KIRIM
+                    </button>
+                </form>
+
+                <div class="switch-text">
+                    Ingat password Anda?
+                    <a href="{{ url_for('main.login') }}">
+                        Login kembali
+                    </a>
+                </div>
+
+
+            {% elif mode == 'reset_password' %}
+
+                <h1>RESET PASSWORD</h1>
+
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <div class="flash-msg">
+                            {{ messages[0] }}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <p class="forgot-description">
+                    Buat password baru untuk akun KeSanaSini Anda.
+                </p>
+
+                <form
+                    action="{{ url_for('main.reset_password', token=token) }}"
+                    method="POST"
+                >
+
+                    <!-- PASSWORD BARU -->
+                    <div class="input-group">
+                        <i class="fa-solid fa-lock"></i>
+
+                        <input
+                            type="password"
+                            name="password"
+                            id="password"
+                            class="form-input"
+                            placeholder="Password Baru"
+                            minlength="8"
+                            pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,}"
+                            title="Password minimal 8 karakter dan harus mengandung huruf dan angka."
+                            required
+                        >
+
+                        <i
+                            class="fa-regular fa-eye password-toggle"
+                            id="password-toggle"
+                            title="Lihat password">
+                        </i>
+                    </div>
+
+                    <!-- KONFIRMASI PASSWORD -->
+                    <div class="input-group">
+                        <i class="fa-solid fa-lock"></i>
+
+                        <input
+                            type="password"
+                            name="confirm_password"
+                            id="confirm_password"
+                            class="form-input"
+                            placeholder="Konfirmasi Password Baru"
+                            minlength="8"
+                            title="Konfirmasi password harus sama dengan password."
+                            required
+                        >
+
+                        <i
+                            class="fa-regular fa-eye password-toggle"
+                            id="confirm-password-toggle"
+                            title="Lihat password">
+                        </i>
+                    </div>
+
+                    <!-- SIMPAN -->
+                    <button type="submit" class="btn-auth">
+                        SIMPAN
+                    </button>
+
+                </form>
+
             {% endif %}
+
 
         </div>
 
     </div>
 
+
 <script>
     const password = document.getElementById('password');
     const confirmPassword = document.getElementById('confirm_password');
 
+    // VALIDASI KONFIRMASI PASSWORD
     function checkPassword() {
-        if (confirmPassword.value !== password.value) {
-            confirmPassword.setCustomValidity(
-                'Konfirmasi password harus sama dengan password.'
-            );
-        } else {
-            confirmPassword.setCustomValidity('');
-        }
+        if (!password || !confirmPassword) return;
+
+        confirmPassword.setCustomValidity(
+            confirmPassword.value !== password.value
+                ? 'Konfirmasi password harus sama dengan password.'
+                : ''
+        );
     }
 
-    password.addEventListener('input', checkPassword);
-    confirmPassword.addEventListener('input', checkPassword);
+    if (password && confirmPassword) {
+        password.addEventListener('input', checkPassword);
+        confirmPassword.addEventListener('input', checkPassword);
+    }
+
+    // IKON MATA: TAHAN UNTUK MELIHAT PASSWORD
+    function setupPasswordToggle(toggleId, input) {
+        const toggle = document.getElementById(toggleId);
+
+        if (!toggle || !input) return;
+
+        function showPassword() {
+            input.type = 'text';
+        }
+
+        function hidePassword() {
+            input.type = 'password';
+        }
+
+        toggle.addEventListener('mousedown', function (event) {
+            event.preventDefault();
+            showPassword();
+        });
+
+        toggle.addEventListener('mouseup', hidePassword);
+        toggle.addEventListener('mouseleave', hidePassword);
+
+        // Dukungan layar sentuh
+        toggle.addEventListener('touchstart', function (event) {
+            event.preventDefault();
+            showPassword();
+        });
+
+        toggle.addEventListener('touchend', hidePassword);
+        toggle.addEventListener('touchcancel', hidePassword);
+    }
+
+    setupPasswordToggle('password-toggle', password);
+    setupPasswordToggle('confirm-password-toggle', confirmPassword);
 </script>
 
-<script>
-    const passwordToggle = document.getElementById('password-toggle');
-    const confirmPasswordToggle = document.getElementById('confirm-password-toggle');
-
-    // PASSWORD
-    passwordToggle.addEventListener('mousedown', function () {
-        password.type = 'text';
-    });
-
-    passwordToggle.addEventListener('mouseup', function () {
-        password.type = 'password';
-    });
-
-    passwordToggle.addEventListener('mouseleave', function () {
-        password.type = 'password';
-    });
-
-
-    // KONFIRMASI PASSWORD
-    confirmPasswordToggle.addEventListener('mousedown', function () {
-        confirmPassword.type = 'text';
-    });
-
-    confirmPasswordToggle.addEventListener('mouseup', function () {
-        confirmPassword.type = 'password';
-    });
-
-    confirmPasswordToggle.addEventListener('mouseleave', function () {
-        confirmPassword.type = 'password';
-    });
-</script>
 
 </body>
 </html>
