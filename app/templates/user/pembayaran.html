@@ -27,7 +27,7 @@
         <h2>Scan untuk membayar</h2>
         <img class="qr" src="{{ qr_url or url_for('static', filename='images/qris.png') }}" alt="QR code pembayaran QRIS">
         <img class="qris-logo" src="{{ url_for('static', filename='images/qris-logo.png') }}" alt="QRIS">
-        <a class="btn-cek" href="{{ url_for('main.pembayaran_sukses', rental_id=rental.id) }}">Cek Status Pembayaran</a>
+        <button type="button" class="btn-cek" id="btnKonfirmasiBayar">Konfirmasi Pembayaran</button>
       </section>
     </div>
   </div>
@@ -51,6 +51,16 @@
   </aside>
 </main>
 
+<!-- Pop-up konfirmasi pembayaran -->
+<dialog class="confirm-modal" id="confirmModal" aria-labelledby="confirmTitle">
+  <h3 id="confirmTitle">Konfirmasi Pembayaran</h3>
+  <p>Apakah Anda yakin sudah melakukan pembayaran?</p>
+  <div class="confirm-actions">
+    <button type="button" class="btn-line" id="btnBatal">Batalkan</button>
+    <a class="btn-fill" href="{{ url_for('main.pembayaran_sukses', rental_id=rental.id) }}">Iya</a>
+  </div>
+</dialog>
+
 <script>
   // Hitung mundur
   const cd = document.getElementById('countdown');
@@ -62,5 +72,11 @@
     if (s === 0) { clearInterval(timerId); location.reload(); }
   }
   const timerId = setInterval(tick, 1000); tick();
+
+  // Pop-up konfirmasi pembayaran
+  const modal = document.getElementById('confirmModal');
+  document.getElementById('btnKonfirmasiBayar').addEventListener('click', () => modal.showModal());
+  document.getElementById('btnBatal').addEventListener('click', () => modal.close());
+  modal.addEventListener('click', e => { if (e.target === modal) modal.close(); });
 </script>
 {% endblock %}

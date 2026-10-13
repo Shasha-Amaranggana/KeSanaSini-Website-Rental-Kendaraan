@@ -29,7 +29,17 @@ body.pay-page{font-family:'Poppins',sans-serif;color:var(--ink);min-height:100vh
 
 .btn-cek{display:block;margin:16px auto 0;width:190px;padding:10px 0;border-radius:6px;background:var(--o);color:#fff;
   font-size:11px;font-weight:600;text-decoration:none;text-align:center}
+.btn-cek{border:0;cursor:pointer;font-family:'Poppins',sans-serif}
 .btn-cek:hover{background:var(--o-dark)}
+
+/* Pop-up konfirmasi */
+.confirm-modal{border:0;border-radius:10px;padding:28px 30px 24px;width:min(360px,90vw);text-align:center;
+  box-shadow:0 8px 30px rgba(0,0,0,.25);margin:auto;font-family:'Poppins',sans-serif;color:var(--ink)}
+.confirm-modal::backdrop{background:rgba(0,0,0,.45)}
+.confirm-modal h3{font-size:16px;font-weight:700;margin-bottom:8px}
+.confirm-modal p{font-size:12px;color:#555}
+.confirm-actions{display:flex;justify-content:center;gap:14px;margin-top:22px}
+.confirm-actions .btn-fill,.confirm-actions .btn-line{width:120px;padding:9px 0;font-size:11px;cursor:pointer;font-family:'Poppins',sans-serif}
 
 /* Sisi kanan */
 .pay-side{flex:0 0 200px;padding-top:12px}
