@@ -57,8 +57,8 @@
                 <td style="font-weight: 600;">#{{ r.booking_code }}</td>
                 <td>{{ r.user.name }}</td>
                 <td>{{ r.vehicle.full_name }}</td>
-                <td>{{ r.start_date|tanggal_id }}</td>
-                <td>{{ r.end_date|tanggal_id }}</td>
+                <td>{{ r.start_date|tanggal_id }}<br><small style="color:#777;">{{ r.pickup_time }}</small></td>
+                <td>{{ r.end_date|tanggal_id }}<br><small style="color:#777;">{{ r.return_time }}</small></td>
                 <td class="center">
                     <span class="badge 
                         {% if 'Menunggu' in r.status %}badge-Menunggu

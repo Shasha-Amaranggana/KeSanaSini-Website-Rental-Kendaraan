@@ -234,12 +234,15 @@ def run_seed():
             veh.current_lat = -0.502106 + (idx * 0.001)  # Sebarkan titik di Samarinda
             veh.current_lng = 117.153709 + (idx * 0.001)
             
+        jam = ['08:00', '09:30', '10:00', '13:00', '15:30', '19:00'][idx % 6]
         rentals.append(Rental(
             booking_code=f"RMB{1000 + idx}",
             user_id=cust.id,
             vehicle_id=veh.id,
             start_date=start,
             end_date=end,
+            pickup_time=jam,
+            return_time=jam,
             status=status,
             payment_method=p_method,
             payment_status=p_status,

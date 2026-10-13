@@ -42,8 +42,8 @@ def create_app():
             db.session.query(Driver).first()
         except Exception as e:
             print("\n==================================================================")
-            print("🔧 [AUTO-FIX] Mendeteksi perubahan kode database dari teman kelompok!")
-            print("🔧 [AUTO-FIX] Menyelaraskan dan mengisi ulang database secara otomatis...")
+            print("[AUTO-FIX] Mendeteksi perubahan kode database dari teman kelompok!")
+            print("[AUTO-FIX] Menyelaraskan dan mengisi ulang database secara otomatis...")
             print("==================================================================")
             
             # Kita bersihkan session yang error

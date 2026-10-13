@@ -24,7 +24,7 @@ KeSanaSini - Form Sewa
             <div>
                 <a class="order-back"
                 href="{{ url_for('main.detail_kendaraan', vehicle_id=vehicle.id,
-                                    date=pickup_date, duration=duration) }}">
+                                    date=pickup_date, time=pickup_time, duration=duration) }}">
                     <i class="fa-solid fa-arrow-left-long"></i> Kembali ke detail kendaraan
                 </a>
                 <h1 class="order-title"><span>FORM</span> SEWA</h1>
@@ -56,7 +56,7 @@ KeSanaSini - Form Sewa
             class="order-layout"
             method="POST"
             enctype="multipart/form-data"
-            action="{{ url_for('main.pesanan', vehicle_id=vehicle.id, date=pickup_date, duration=duration) }}"
+            action="{{ url_for('main.pesanan', vehicle_id=vehicle.id, date=pickup_date, time=pickup_time, duration=duration) }}"
             data-days="{{ duration }}"
             data-price="{{ vehicle.price_per_day }}"
             data-driver="{{ driver_fee }}"
@@ -228,8 +228,8 @@ KeSanaSini - Form Sewa
                 <div class="order-card">
                     <h3 class="summary-title">Ringkasan sewa</h3>
 
-                    <div class="sum-date"><b>{{ pickup_date|tanggal_id }}</b><span>Ambil</span></div>
-                    <div class="sum-date"><b>{{ end_date|tanggal_id }}</b><span>Kembali</span></div>
+                    <div class="sum-date"><b>{{ pickup_date|tanggal_id }}, {{ pickup_time }}</b><span>Ambil</span></div>
+                    <div class="sum-date"><b>{{ end_date|tanggal_id }}, {{ return_time }}</b><span>Kembali</span></div>
 
                     <div class="sum-list">
                         <div><span>{{ vehicle.vehicle_type }}, {{ duration }} hari</span><b id="sumVehicle">Rp0</b></div>

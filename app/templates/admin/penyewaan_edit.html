@@ -135,10 +135,10 @@
         <div class="card-detail">
             <div class="card-title">Tanggal Perjalanan</div>
             <div class="info-label">Tanggal Sewa</div>
-            <div class="info-val">{{ rental.start_date|tanggal_id }}</div>
+            <div class="info-val">{{ rental.start_date|tanggal_id }}, {{ rental.pickup_time }}</div>
             
             <div class="info-label">Tanggal Kembali</div>
-            <div class="info-val">{{ rental.end_date|tanggal_id }}</div>
+            <div class="info-val">{{ rental.end_date|tanggal_id }}, {{ rental.return_time }}</div>
             
             <div class="info-label">Durasi</div>
             <div class="info-val" style="margin-bottom:0;">{{ rental.duration_days }} Hari</div>

@@ -309,6 +309,14 @@ def pesanan():
 
     end_date = pickup_date + timedelta(days=duration)
 
+    # Jam pengambilan dari halaman pencarian (format HH:MM). Jam kembali = jam ambil.
+    pickup_time = request.args.get('time') or '10:00'
+    try:
+        pickup_time = datetime.strptime(pickup_time, '%H:%M').strftime('%H:%M')
+    except ValueError:
+        pickup_time = '10:00'
+    return_time = pickup_time
+
     def render_form(form):
         return render_template(
             'user/formsewaUser.html',
@@ -316,6 +324,8 @@ def pesanan():
             vehicle=vehicle,
             pickup_date=pickup_date,
             end_date=end_date,
+            pickup_time=pickup_time,
+            return_time=return_time,
             duration=duration,
             can_driver=can_driver,
             driver_fee=Rental.DRIVER_FEE,
@@ -383,6 +393,8 @@ def pesanan():
         vehicle_id=vehicle.id,
         start_date=pickup_date,
         end_date=end_date,
+        pickup_time=pickup_time,
+        return_time=return_time,
         status=Rental.STATUS_MENUNGGU_BAYAR,
         with_driver=with_driver,
         accessories=','.join(accessories),

@@ -245,6 +245,10 @@ class Rental(db.Model):
 
     start_date = db.Column(db.Date, nullable=False)
     end_date = db.Column(db.Date, nullable=False)
+    # Jam pengambilan & pengembalian (format "HH:MM"), dipisah dari tanggal
+    # supaya perhitungan durasi & cek bentrok berbasis tanggal tetap aman.
+    pickup_time = db.Column(db.String(5), nullable=False, default='10:00')
+    return_time = db.Column(db.String(5), nullable=False, default='10:00')
     status = db.Column(db.String(50), nullable=False, default=STATUS_MENUNGGU_BAYAR)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
 

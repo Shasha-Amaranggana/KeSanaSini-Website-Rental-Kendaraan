@@ -102,8 +102,8 @@ KeSanaSini - Detail Kendaraan
                 <p class="detail-price">Rp{{ "{:,.0f}".format(vehicle.price_per_day).replace(',', '.') }}</p>
                 <p class="detail-small">per hari, belum termasuk bbm</p>
 
-                <div class="detail-row"><span>Tanggal ambil</span><b>{{ pickup_date|tanggal_id }}</b></div>
-                <div class="detail-row"><span>Tanggal pengembalian</span><b>{{ end_date|tanggal_id }}</b></div>
+                <div class="detail-row"><span>Tanggal ambil</span><b>{{ pickup_date|tanggal_id }}, {{ pickup_time }}</b></div>
+                <div class="detail-row"><span>Tanggal pengembalian</span><b>{{ end_date|tanggal_id }}, {{ pickup_time }}</b></div>
                 <div class="detail-row"><span>Durasi</span><b>{{ duration }} hari</b></div>
 
                 <div class="detail-total">
@@ -114,7 +114,7 @@ KeSanaSini - Detail Kendaraan
                 {% if tersedia %}
                 <a class="detail-button"
                    href="{{ url_for('main.pesanan', vehicle_id=vehicle.id,
-                                    date=pickup_date, duration=duration) }}">
+                                    date=pickup_date, time=pickup_time, duration=duration) }}">
                     Pilih Kendaraan
                 </a>
                 {% else %}

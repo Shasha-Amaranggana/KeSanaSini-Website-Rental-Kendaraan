@@ -102,12 +102,12 @@ Detail Pesanan - KeSanaSini
                     <div class="order-detail-info">
                         <p>
                             <i class="fa-regular fa-calendar"></i>
-                            Mulai: {{ rental.start_date | tanggal_id }}
+                            Mulai: {{ rental.start_date | tanggal_id }}, {{ rental.pickup_time }}
                         </p>
 
                         <p>
                             <i class="fa-regular fa-calendar-check"></i>
-                            Pengembalian: {{ rental.end_date | tanggal_id }}
+                            Pengembalian: {{ rental.end_date | tanggal_id }}, {{ rental.return_time }}
                         </p>
 
                         <p>
