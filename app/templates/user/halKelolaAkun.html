@@ -21,306 +21,372 @@ Kelola Akun - KeSanaSini
         <section class="account-content">
             <h1>Pengaturan Akun</h1>
 
-            <form method="POST" action="{{ url_for('main.kelola_akun') }}" enctype="multipart/form-data"
-                  class="account-form">
+            <!-- NAVBAR TAB AKUN -->
+            <div class="account-tabs" role="tablist" aria-label="Pengaturan akun">
+                <button
+                    type="button"
+                    class="account-tab active"
+                    id="tab-info"
+                    role="tab"
+                    aria-selected="true"
+                    aria-controls="panel-info"
+                    onclick="switchAccountTab('info')">
+                    <i class="fa-regular fa-user"></i>
+                    Informasi Akun
+                </button>
 
-                <!-- DATA DIRI -->
-                <section class="account-card">
-                    <h2 class="card-heading">Data Diri Pribadi</h2>
+                <button
+                    type="button"
+                    class="account-tab"
+                    id="tab-password"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="panel-password"
+                    onclick="switchAccountTab('password')">
+                    <i class="fa-solid fa-lock"></i>
+                    Atur Password
+                </button>
+            </div>
 
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label for="full-name">Nama Lengkap</label>
-                            <input type="text" id="full-name"
-                                   name="name" value="{{ user.name or '' }}"
-                                   placeholder="Nama Pengguna">
-                        </div>
+            <!-- FORM DATA DIRI -->
+            <div id="panel-info" class="account-tab-panel"
+                role="tabpanel" aria-labelledby="tab-info">
 
-                        <div class="form-row personal-row">
-                            <div class="form-group birth-group">
-                                <label>Tanggal Lahir</label>
+                <form method="POST"
+                    action="{{ url_for('main.kelola_akun') }}"
+                    enctype="multipart/form-data"
+                    class="account-form">
 
-                                <div class="birth-inputs">
-                                    <select name="birth_day" aria-label="Tanggal">
-                                        <option value="">Tanggal</option>
-                                        {% for day in range(1, 32) %}
-                                        <option value="{{ day }}"
-                                            {% if user.birth_date and user.birth_date.day == day %}
-                                                selected
-                                            {% endif %}>
-                                            {{ day }}
+                    <!-- DATA DIRI -->
+                    <section class="account-card">
+                        <h2 class="card-heading">Data Diri Pribadi</h2>
+
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="full-name">Nama Lengkap</label>
+                                <input type="text" id="full-name"
+                                    name="name" value="{{ user.name or '' }}"
+                                    placeholder="Nama Pengguna">
+                            </div>
+
+                            <div class="form-row personal-row">
+                                <div class="form-group birth-group">
+                                    <label>Tanggal Lahir</label>
+
+                                    <div class="birth-inputs">
+                                        <select name="birth_day" aria-label="Tanggal">
+                                            <option value="">Tanggal</option>
+                                            {% for day in range(1, 32) %}
+                                            <option value="{{ day }}"
+                                                {% if user.birth_date and user.birth_date.day == day %}
+                                                    selected
+                                                {% endif %}>
+                                                {{ day }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+
+                                        <select name="birth_month" aria-label="Bulan">
+                                            <option value="">Bulan</option>
+                                            {% set months = [
+                                                'Januari', 'Februari', 'Maret', 'April',
+                                                'Mei', 'Juni', 'Juli', 'Agustus',
+                                                'September', 'Oktober', 'November', 'Desember'
+                                            ] %}
+
+                                            {% for month in months %}
+                                            <option value="{{ loop.index }}"
+                                                {% if user.birth_date and user.birth_date.month == loop.index %}
+                                                    selected
+                                                {% endif %}>
+                                                {{ month }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+
+                                        <select name="birth_year" aria-label="Tahun">
+                                            <option value="">Tahun</option>
+                                            {% for year in range(2026, 1949, -1) %}
+                                            <option value="{{ year }}"
+                                                {% if user.birth_date and user.birth_date.year == year %}
+                                                    selected
+                                                {% endif %}>
+                                                {{ year }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group gender-group">
+                                    <label for="gender">Jenis Kelamin</label>
+
+                                    <select id="gender" name="gender">
+                                        <option value="Perempuan"
+                                            {% if user.gender == 'Perempuan' %}selected{% endif %}>
+                                            Perempuan
                                         </option>
-                                        {% endfor %}
-                                    </select>
 
-                                    <select name="birth_month" aria-label="Bulan">
-                                        <option value="">Bulan</option>
-                                        {% set months = [
-                                            'Januari', 'Februari', 'Maret', 'April',
-                                            'Mei', 'Juni', 'Juli', 'Agustus',
-                                            'September', 'Oktober', 'November', 'Desember'
-                                        ] %}
-
-                                        {% for month in months %}
-                                        <option value="{{ loop.index }}"
-                                            {% if user.birth_date and user.birth_date.month == loop.index %}
-                                                selected
-                                            {% endif %}>
-                                            {{ month }}
+                                        <option value="Laki-laki"
+                                            {% if user.gender == 'Laki-laki' %}selected{% endif %}>
+                                            Laki-laki
                                         </option>
-                                        {% endfor %}
-                                    </select>
-
-                                    <select name="birth_year" aria-label="Tahun">
-                                        <option value="">Tahun</option>
-                                        {% for year in range(2026, 1949, -1) %}
-                                        <option value="{{ year }}"
-                                            {% if user.birth_date and user.birth_date.year == year %}
-                                                selected
-                                            {% endif %}>
-                                            {{ year }}
-                                        </option>
-                                        {% endfor %}
                                     </select>
                                 </div>
                             </div>
 
-                            <div class="form-group gender-group">
-                                <label for="gender">Jenis Kelamin</label>
+                            <div class="document-row">
+                                <div class="form-group document-group">
+                                    <label for="ktp">Foto Kartu Tanda Penduduk</label>
 
-                                <select id="gender" name="gender">
-                                    <option value="Perempuan"
-                                        {% if user.gender == 'Perempuan' %}selected{% endif %}>
-                                        Perempuan
-                                    </option>
+                                    <label class="upload-box" for="ktp">
+                                        <i class="fa-regular fa-address-card"></i>
+                                        <span id="ktp-status"
+                                            class="upload-status {% if not user.ktp_file %}file-missing{% else %}file-uploaded{% endif %}">
+                                            {% if user.ktp_file %}
+                                                KTP sudah diunggah
+                                            {% else %}
+                                                KTP belum diunggah
+                                            {% endif %}
+                                        </span>
+                                    </label>
 
-                                    <option value="Laki-laki"
-                                        {% if user.gender == 'Laki-laki' %}selected{% endif %}>
-                                        Laki-laki
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
+                                    <input type="file" id="ktp" name="ktp"
+                                        accept="image/*,.pdf" hidden>
 
-                        <div class="document-row">
-                            <div class="form-group document-group">
-                                <label for="ktp">Foto Kartu Tanda Penduduk</label>
-
-                                <label class="upload-box" for="ktp">
-                                    <i class="fa-regular fa-address-card"></i>
-                                    <span id="ktp-status"
-                                        class="upload-status {% if not user.ktp_file %}file-missing{% else %}file-uploaded{% endif %}">
+                                    <div id="ktp-preview" class="document-preview">
                                         {% if user.ktp_file %}
-                                            KTP sudah diunggah
-                                        {% else %}
-                                            KTP belum diunggah
+                                            {% set ext = user.ktp_file.rsplit('.', 1)[-1].lower() %}
+                                            {% if ext in ['jpg', 'jpeg', 'png', 'webp'] %}
+                                                <img
+                                                    src="{{ url_for('static', filename='uploads/dokumen_akun/' ~ user.ktp_file) }}"
+                                                    alt="Pratinjau KTP"
+                                                    onclick="window.open(this.src, '_blank')"
+                                                >
+                                            {% elif ext == 'pdf' %}
+                                                <a href="{{ url_for('static', filename='uploads/dokumen_akun/' ~ user.ktp_file) }}"
+                                                target="_blank">Lihat dokumen KTP (PDF)</a>
+                                            {% endif %}
                                         {% endif %}
-                                    </span>
-                                </label>
-
-                                <input type="file" id="ktp" name="ktp"
-                                       accept="image/*,.pdf" hidden>
-
-                                <div id="ktp-preview" class="document-preview">
-                                    {% if user.ktp_file %}
-                                        {% set ext = user.ktp_file.rsplit('.', 1)[-1].lower() %}
-                                        {% if ext in ['jpg', 'jpeg', 'png', 'webp'] %}
-                                            <img
-                                                src="{{ url_for('static', filename='uploads/dokumen_akun/' ~ user.ktp_file) }}"
-                                                alt="Pratinjau KTP"
-                                                onclick="window.open(this.src, '_blank')"
-                                            >
-                                        {% elif ext == 'pdf' %}
-                                            <a href="{{ url_for('static', filename='uploads/dokumen_akun/' ~ user.ktp_file) }}"
-                                            target="_blank">Lihat dokumen KTP (PDF)</a>
-                                        {% endif %}
-                                    {% endif %}
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="form-group document-group">
-                                <label for="sim">Foto Surat Izin Mengemudi</label>
+                                <div class="form-group document-group">
+                                    <label for="sim">Foto Surat Izin Mengemudi</label>
 
-                                <label class="upload-box" for="sim">
-                                    <i class="fa-regular fa-address-card"></i>
-                                    <span id="sim-status"
-                                        class="upload-status {% if not user.sim_file %}file-missing{% else %}file-uploaded{% endif %}">
+                                    <label class="upload-box" for="sim">
+                                        <i class="fa-regular fa-address-card"></i>
+                                        <span id="sim-status"
+                                            class="upload-status {% if not user.sim_file %}file-missing{% else %}file-uploaded{% endif %}">
+                                            {% if user.sim_file %}
+                                                SIM sudah diunggah
+                                            {% else %}
+                                                SIM belum diunggah
+                                            {% endif %}
+                                        </span>
+                                    </label>
+
+                                    <input type="file" id="sim" name="sim"
+                                        accept="image/*,.pdf" hidden>
+
+                                    <div id="sim-preview" class="document-preview">
                                         {% if user.sim_file %}
-                                            SIM sudah diunggah
-                                        {% else %}
-                                            SIM belum diunggah
+                                            {% set ext = user.sim_file.rsplit('.', 1)[-1].lower() %}
+                                            {% if ext in ['jpg', 'jpeg', 'png', 'webp'] %}
+                                                <img
+                                                    src="{{ url_for('static', filename='uploads/dokumen_akun/' ~ user.sim_file) }}"
+                                                    alt="Pratinjau SIM"
+                                                    onclick="window.open(this.src, '_blank')"
+                                                >
+                                            {% elif ext == 'pdf' %}
+                                                <a href="{{ url_for('static', filename='uploads/dokumen_akun/' ~ user.sim_file) }}"
+                                                target="_blank">Lihat dokumen SIM (PDF)</a>
+                                            {% endif %}
                                         {% endif %}
-                                    </span>
-                                </label>
+                                    </div>
 
-                                <input type="file" id="sim" name="sim"
-                                       accept="image/*,.pdf" hidden>
+                                </div>
+                            </div>
 
-                                <div id="sim-preview" class="document-preview">
-                                    {% if user.sim_file %}
-                                        {% set ext = user.sim_file.rsplit('.', 1)[-1].lower() %}
-                                        {% if ext in ['jpg', 'jpeg', 'png', 'webp'] %}
-                                            <img
-                                                src="{{ url_for('static', filename='uploads/dokumen_akun/' ~ user.sim_file) }}"
-                                                alt="Pratinjau SIM"
-                                                onclick="window.open(this.src, '_blank')"
-                                            >
-                                        {% elif ext == 'pdf' %}
-                                            <a href="{{ url_for('static', filename='uploads/dokumen_akun/' ~ user.sim_file) }}"
-                                            target="_blank">Lihat dokumen SIM (PDF)</a>
-                                        {% endif %}
+                            {% if not user.ktp_path or not user.sim_path %}
+                                <div class="document-warning">
+                                    <i class="fa-solid fa-circle-exclamation"></i>
+                                    <strong>Dokumen belum lengkap.</strong>
+
+                                    Anda belum dapat melakukan sewa lepas kunci.
+                                    Silakan unggah
+                                    {% if not user.ktp_path and not user.sim_path %}
+                                        KTP dan SIM
+                                    {% elif not user.ktp_path %}
+                                        KTP
+                                    {% else %}
+                                        SIM
                                     {% endif %}
+                                    terlebih dahulu.
+                                </div>
+                            {% endif %}
+
+                            <div class="save-row">
+                                <button type="submit" class="save-button">
+                                    SIMPAN
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- DATA LAINNYA -->
+                    <section class="account-card additional-card">
+                        <h2 class="card-heading">Data Lainnya</h2>
+
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="email">E-Mail</label>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    value="{{ user.email or '' }}"
+                                    readonly
+                                >
+                            </div>
+
+                            <div class="form-row contact-row">
+                                <div class="form-group">
+                                    <label for="phone">No Telepon</label>
+                                    <input
+                                        type="tel"
+                                        id="phone"
+                                        name="phone"
+                                        value="{{ user.phone or '' }}"
+                                        placeholder="08xxxxxxxxxx"
+                                    >
                                 </div>
 
-                            </div>
-                        </div>
-
-                        {% if not user.ktp_path or not user.sim_path %}
-                            <div class="document-warning">
-                                <i class="fa-solid fa-circle-exclamation"></i>
-                                <strong>Dokumen belum lengkap.</strong>
-
-                                Anda belum dapat melakukan sewa lepas kunci.
-                                Silakan unggah
-                                {% if not user.ktp_path and not user.sim_path %}
-                                    KTP dan SIM
-                                {% elif not user.ktp_path %}
-                                    KTP
-                                {% else %}
-                                    SIM
-                                {% endif %}
-                                terlebih dahulu.
-                            </div>
-                        {% endif %}
-
-                        <div class="save-row">
-                            <button type="submit" class="save-button">
-                                SIMPAN
-                            </button>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- DATA LAINNYA -->
-                <section class="account-card additional-card">
-                    <h2 class="card-heading">Data Lainnya</h2>
-
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label for="email">E-Mail</label>
-                            <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                value="{{ user.email or '' }}"
-                                readonly
-                            >
-                        </div>
-
-                        <div class="form-row contact-row">
-                            <div class="form-group">
-                                <label for="phone">No Telepon</label>
-                                <input
-                                    type="tel"
-                                    id="phone"
-                                    name="phone"
-                                    value="{{ user.phone or '' }}"
-                                    placeholder="08xxxxxxxxxx"
-                                >
+                                <div class="form-group">
+                                    <label for="emergency-phone">No Darurat</label>
+                                    <input
+                                        type="tel"
+                                        id="emergency-phone"
+                                        name="emergency_phone"
+                                        value="{{ user.emergency_phone or '' }}"
+                                        placeholder="08xxxxxxxxxx"
+                                    >
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <label for="emergency-phone">No Darurat</label>
-                                <input
-                                    type="tel"
-                                    id="emergency-phone"
-                                    name="emergency_phone"
-                                    value="{{ user.emergency_phone or '' }}"
-                                    placeholder="08xxxxxxxxxx"
-                                >
-                            </div>
                         </div>
+                    </section>
 
-                    </div>
-                </section>
+                </form>
 
-            </form>
+            </div>
 
             <!-- FORM GANTI PASSWORD -->
-            <form method="POST"
-                action="{{ url_for('main.ganti_password') }}"
-                class="account-form password-form">
+            <div id="panel-password" class="account-tab-panel"
+                role="tabpanel" aria-labelledby="tab-password" hidden>
 
-                <section class="account-card password-card">
-                    <h2 class="card-heading">Ganti Password</h2>
+                <form method="POST"
+                    action="{{ url_for('main.ganti_password') }}"
+                    class="account-form password-form"
+                    autocomplete="off">
 
-                    <div class="card-body">
+                    <section class="account-card password-card">
+                        <h2 class="card-heading">Ganti Password</h2>
 
-                        <p class="password-description">
-                            Pastikan password baru Anda mudah diingat dan tidak
-                            digunakan pada akun lain.
-                        </p>
+                        <div class="card-body">
 
-                        <!-- PASSWORD LAMA -->
-                        <div class="form-group">
-                            <label for="current-password">Password Lama</label>
+                            <p class="password-description">
+                                Pastikan password baru Anda mudah diingat dan tidak
+                                digunakan pada akun lain.
+                            </p>
 
-                            <input
-                                type="password"
-                                id="current-password"
-                                name="current_password"
-                                placeholder="Masukkan password lama"
-                                autocomplete="current-password"
-                                required
-                            >
+                            <!-- PASSWORD LAMA -->
+                            <div class="form-group password-group">
+                                <label for="current-password">Password Lama</label>
+
+                                <div class="password-input-wrapper">
+
+                                    <input
+                                        type="password"
+                                        id="current-password"
+                                        name="current_password"
+                                        class="form-input"
+                                        placeholder="Masukkan password lama"
+                                        autocomplete="off"
+                                        required
+                                    >
+
+                                    <i
+                                        class="fa-regular fa-eye password-toggle"
+                                        data-target="current-password"
+                                        title="Tahan untuk melihat password"></i>
+                                    </i>
+                                </div>
+                            </div>
+
+                            <!-- PASSWORD BARU -->
+                            <div class="form-group">
+                                <label for="new-password">Password Baru</label>
+
+                                <div class="password-input-wrapper">
+                                    <input
+                                        type="password"
+                                        id="new-password"
+                                        name="new_password"
+                                        class="form-input"
+                                        placeholder="Masukkan password baru"
+                                        autocomplete="new-password"
+                                        minlength="8"
+                                        pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,}"
+                                        title="Password minimal 8 karakter dan harus mengandung huruf dan angka."
+                                        required>
+
+                                    <i
+                                        class="fa-regular fa-eye password-toggle"
+                                        data-target="new-password"
+                                        title="Tahan untuk melihat password">
+                                    </i>
+
+                                <small class="password-hint">
+                                    Minimal 8 karakter dan harus mengandung huruf
+                                    serta angka.
+                                </small>
+                            </div>
+
+                            <!-- KONFIRMASI PASSWORD BARU -->
+                            <div class="form-group">
+                                <label for="confirm-password">Konfirmasi Password Baru</label>
+
+                                <div class="password-input-wrapper">
+                                    <input
+                                        type="password"
+                                        id="confirm-password"
+                                        name="confirm_password"
+                                        class="form-input"
+                                        placeholder="Masukkan ulang password baru"
+                                        autocomplete="new-password"
+                                        title="Konfirmasi password harus sama dengan password baru."
+                                        required>
+
+
+                                    <i
+                                        class="fa-regular fa-eye password-toggle"
+                                        data-target="confirm-password"
+                                        title="Tahan untuk melihat password">
+                                    </i>
+                            </div>
+
+                            <div class="save-row">
+                                <button type="submit" class="save-button">
+                                    SIMPAN PASSWORD
+                                </button>
+                            </div>
+
                         </div>
+                    </section>
+                </form>
 
-                        <!-- PASSWORD BARU -->
-                        <div class="form-group">
-                            <label for="new-password">Password Baru</label>
-
-                            <input
-                                type="password"
-                                id="new-password"
-                                name="new_password"
-                                placeholder="Masukkan password baru"
-                                autocomplete="new-password"
-                                minlength="8"
-                                required
-                            >
-
-                            <small class="password-hint">
-                                Minimal 8 karakter dan harus mengandung huruf
-                                serta angka.
-                            </small>
-                        </div>
-
-                        <!-- KONFIRMASI PASSWORD BARU -->
-                        <div class="form-group">
-                            <label for="confirm-password">
-                                Konfirmasi Password Baru
-                            </label>
-
-                            <input
-                                type="password"
-                                id="confirm-password"
-                                name="confirm_password"
-                                placeholder="Masukkan ulang password baru"
-                                autocomplete="new-password"
-                                minlength="8"
-                                required
-                            >
-                        </div>
-
-                        <div class="save-row">
-                            <button type="submit" class="save-button">
-                                SIMPAN PASSWORD
-                            </button>
-                        </div>
-
-                    </div>
-                </section>
-            </form>
+            </div>
 
                         
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -390,6 +456,109 @@ function setupDocumentPreview(inputId, statusId, previewId, label) {
 
 setupDocumentPreview('ktp', 'ktp-status', 'ktp-preview', 'KTP');
 setupDocumentPreview('sim', 'sim-status', 'sim-preview', 'SIM');
+
+
+function switchAccountTab(tab) {
+    const isInfo = tab === 'info';
+
+    const infoTab = document.getElementById('tab-info');
+    const passwordTab = document.getElementById('tab-password');
+
+    const infoPanel = document.getElementById('panel-info');
+    const passwordPanel = document.getElementById('panel-password');
+
+    infoPanel.hidden = !isInfo;
+    passwordPanel.hidden = isInfo;
+
+    infoTab.classList.toggle('active', isInfo);
+    passwordTab.classList.toggle('active', !isInfo);
+
+    infoTab.setAttribute('aria-selected', String(isInfo));
+    passwordTab.setAttribute('aria-selected', String(!isInfo));
+}
+
+
+document.querySelectorAll('.password-toggle[data-target]').forEach((eye) => {
+    const input = document.getElementById(eye.dataset.target);
+
+    if (!input) return;
+
+    function showPassword(event) {
+        event.preventDefault();
+        input.type = 'text';
+        eye.classList.replace('fa-eye', 'fa-eye-slash');
+    }
+
+    function hidePassword() {
+        input.type = 'password';
+        eye.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+
+    // Tahan klik mouse untuk melihat password
+    eye.addEventListener('mousedown', showPassword);
+
+    // Sembunyikan saat tombol mouse dilepas
+    document.addEventListener('mouseup', hidePassword);
+
+    // Dukungan layar sentuh
+    eye.addEventListener('touchstart', showPassword, {
+        passive: false
+    });
+
+    document.addEventListener('touchend', hidePassword);
+    document.addEventListener('touchcancel', hidePassword);
+
+    // Sembunyikan saat fokus berpindah
+    eye.addEventListener('blur', hidePassword);
+});
+
+
+const passwordForm = document.querySelector('.password-form');
+const newPassword = document.getElementById('new-password');
+const confirmPassword = document.getElementById('confirm-password');
+
+function checkNewPassword() {
+    newPassword.setCustomValidity('');
+
+    if (
+        newPassword.value.length > 0 &&
+        !/(?=.*[A-Za-z])(?=.*[0-9]).{8,}/.test(newPassword.value)
+    ) {
+        newPassword.setCustomValidity(
+            'Password minimal 8 karakter dan harus mengandung huruf dan angka.'
+        );
+    }
+
+    checkConfirmPassword();
+}
+
+function checkConfirmPassword() {
+    confirmPassword.setCustomValidity('');
+
+    if (
+        confirmPassword.value.length > 0 &&
+        confirmPassword.value !== newPassword.value
+    ) {
+        confirmPassword.setCustomValidity(
+            'Konfirmasi password harus sama dengan password baru.'
+        );
+    }
+}
+
+newPassword.addEventListener('input', checkNewPassword);
+confirmPassword.addEventListener('input', checkConfirmPassword);
+
+passwordForm.addEventListener('submit', function (event) {
+    checkNewPassword();
+    checkConfirmPassword();
+
+    if (!passwordForm.checkValidity()) {
+        event.preventDefault();
+        passwordForm.reportValidity();
+    }
+});
+
+
 </script>
 
 {% endblock %}
