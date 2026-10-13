@@ -254,8 +254,9 @@
     line-height: 1.6;
 }
 
+
 /* =====================================================
-   SIMPAN
+   TOMBOL SIMPAN
 ===================================================== */
 
 .save-row {
@@ -264,20 +265,30 @@
     margin-top: 10px;
 }
 
-.save-button {
+/* Tombol SIMPAN data diri */
+#panel-info .save-button {
     width: 130px;
+}
+
+/* Tombol SIMPAN PASSWORD */
+#panel-password .save-button {
+    width: 220px;
+}
+
+.save-button {
     height: 38px;
     padding: 0 15px;
     border: none;
     border-radius: 9px;
     background: #ffbd27;
     color: #111;
-    font-family: poppins, sans-serif;
+    font-family: 'Poppins', sans-serif;
     font-size: 16px;
     font-weight: 800;
     cursor: pointer;
     margin-top: 15px;
-    transition: transform 0.2s ease, background-color 0.2s ease,
+    transition: transform 0.2s ease,
+                background-color 0.2s ease,
                 box-shadow 0.2s ease;
 }
 
@@ -290,6 +301,13 @@
 .save-button:active {
     transform: translateY(-1px);
 }
+
+@media (max-width: 420px) {
+    #panel-password .save-button {
+        width: 100%;
+    }
+}
+
 
 /* =====================================================
    DATA LAINNYA
@@ -365,6 +383,129 @@
     color: #18743b;
 }
 
+.password-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-input-wrapper input.form-input {
+    width: 100%;
+    height: 37px;
+    padding: 5px 42px 5px 15px;
+    box-sizing: border-box;
+}
+
+.password-input-wrapper > .fa-lock {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #757575;
+    font-size: 18px;
+    z-index: 2;
+}
+
+.password-input-wrapper > .password-toggle {
+    position: absolute;
+    right: 14px;
+    top: 18.5px;
+    transform: translateY(-50%);
+    color: #757575;
+    font-size: 17px;
+    cursor: pointer;
+    z-index: 3;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+}
+
+.password-input-wrapper > .password-toggle:hover {
+    color: #333;
+}
+
+.password-input-wrapper input::-ms-reveal,
+.password-input-wrapper input::-ms-clear {
+    display: none;
+}
+
+/* =====================================================
+   TAB PENGATURAN AKUN
+===================================================== */
+
+.account-tabs {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    margin: -8px 0 22px;
+    border-bottom: 1px solid rgba(100, 75, 50, 0.2);
+}
+
+.account-tab {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 12px 3px;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
+    background: transparent;
+    color: #6d6257;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.account-tab i {
+    font-size: 15px;
+}
+
+.account-tab:hover {
+    color: #e87528;
+}
+
+.account-tab.active {
+    color: #d96520;
+    border-bottom-color: #e87528;
+    font-weight: 700;
+}
+
+/* Panel tab */
+
+.account-tab-panel[hidden] {
+    display: none !important;
+}
+
+.account-tab-panel {
+    min-width: 0;
+    animation: tabFadeIn 0.2s ease;
+}
+
+@keyframes tabFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 420px) {
+    .account-tabs {
+        gap: 18px;
+    }
+
+    .account-tab {
+        gap: 6px;
+        font-size: 12px;
+    }
+}
 
 
 /* =====================================================
