@@ -686,6 +686,57 @@ def riwayat_pesanan():
     )
 
 
+def buat_pengingat_pengembalian(user_id):
+    """Buat pengingat pengembalian untuk penyewaan yang jatuh tempo hari ini."""
+    hari_ini = date.today()
+    judul = 'Waktunya Mengembalikan Kendaraan'
+
+    status_aktif = [
+        Rental.STATUS_PENGAMBILAN,
+        Rental.STATUS_DIPAKAI,
+        Rental.STATUS_PENGEMBALIAN,
+    ]
+
+    rentals = Rental.query.filter(
+        Rental.user_id == user_id,
+        Rental.end_date == hari_ini,
+        Rental.status.in_(status_aktif),
+    ).all()
+
+    jumlah_baru = 0
+
+    for rental in rentals:
+        # Cegah pengingat ganda untuk penyewaan yang sama.
+        sudah_ada = Notification.query.filter_by(
+            user_id=user_id,
+            rental_id=rental.id,
+            title=judul,
+        ).first()
+
+        if sudah_ada:
+            continue
+
+        notification = Notification(
+            user_id=user_id,
+            rental_id=rental.id,
+            title=judul,
+            message=(
+                f'Masa sewa kendaraan untuk pesanan '
+                f'{rental.booking_code} berakhir hari ini. '
+                f'Silakan kembalikan kendaraan sesuai jadwal '
+                f'pengembalian yang telah ditentukan.'
+            ),
+            old_status=None,
+            new_status=rental.status,
+        )
+
+        db.session.add(notification)
+        jumlah_baru += 1
+
+    if jumlah_baru:
+        db.session.commit()
+
+
 @bp.route('/notifikasi')
 def notifikasi():
     if 'user_id' not in session:
@@ -696,7 +747,9 @@ def notifikasi():
     if not user:
         session.clear()
         return redirect(url_for('main.login'))
-
+    
+    buat_pengingat_pengembalian(user.id)
+    
     notifications = (
         Notification.query
         .filter_by(user_id=user.id)
