@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Pembayaran Berhasil{% endblock %}
+{% block body_class %}pay-page{% endblock %}
+{% block css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/user/pembayaran.css') }}">{% endblock %}
+
+{% block content %}
+<main class="pay">
+  <section class="pay-card success-card">
+    <div class="check-wrap" aria-hidden="true">
+      <i class="c c1"></i><i class="c c2"></i><i class="c c3"></i><i class="c c4"></i>
+      <i class="c c5"></i><i class="c c6"></i><i class="c c7"></i><i class="c c8"></i>
+      <span class="check"><i class="fa-solid fa-check"></i></span>
+    </div>
+    <h1>PEMBAYARAN BERHASIL!</h1>
+    <p>Penyewaan kendaraan Anda telah dikonfirmasi.</p>
+    <div class="success-actions">
+      <a class="btn-fill" href="{{ url_for('main.detail_pesanan', rental_id=rental.id) }}">Lihat Status Pesanan</a>
+      <a class="btn-line" href="{{ url_for('main.index') }}">Kembali ke Menu Utama</a>
+    </div>
+  </section>
+</main>
+{% endblock %}
