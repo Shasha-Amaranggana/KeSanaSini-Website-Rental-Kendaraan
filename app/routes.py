@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
+from flask import jsonify, Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 from app.models import (
     User, Vehicle, Rental, Review, Driver, Notification)
 from sqlalchemy import or_
@@ -356,7 +356,11 @@ def pesanan():
     # Cek ulang ketersediaan (bisa saja sudah dipesan orang lain)
     bentrok = Rental.query.filter(
         Rental.vehicle_id == vehicle.id,
-        Rental.status.in_([Rental.STATUS_MENUNGGU, Rental.STATUS_BERJALAN]),
+        Rental.status.in_([
+            Rental.STATUS_MENUNGGU_BAYAR, Rental.STATUS_MENUNGGU_KONFIRMASI,
+            Rental.STATUS_PENGAMBILAN, Rental.STATUS_DIPAKAI,
+            Rental.STATUS_PENGEMBALIAN,
+        ]),
         Rental.start_date <= end_date,
         Rental.end_date >= pickup_date
     ).first()
@@ -378,7 +382,7 @@ def pesanan():
         vehicle_id=vehicle.id,
         start_date=pickup_date,
         end_date=end_date,
-        status=Rental.STATUS_MENUNGGU,
+        status=Rental.STATUS_MENUNGGU_BAYAR,
         with_driver=with_driver,
         accessories=','.join(accessories),
         insurance=insurance,
@@ -397,8 +401,44 @@ def pesanan():
     db.session.add(rental)
     db.session.commit()
 
-    flash(f'Pesanan {booking_code} berhasil dibuat. Menunggu konfirmasi admin.')
-    return redirect(url_for('main.index'))   
+    return redirect(url_for('main.pembayaran', rental_id=rental.id))
+
+@bp.route('/pembayaran/<int:rental_id>')
+@bp.route('/pembayaran/<int:rental_id>')
+def pembayaran(rental_id):
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    user = User.query.get(session['user_id'])
+    rental = Rental.query.filter_by(id=rental_id, user_id=user.id).first_or_404()
+
+    if rental.payment_status == 'Lunas':
+        return redirect(url_for('main.pembayaran_sukses', rental_id=rental.id))
+
+    deadline = rental.created_at + timedelta(hours=24)
+    if rental.status == Rental.STATUS_BATAL or datetime.now() > deadline:
+        if rental.status == Rental.STATUS_MENUNGGU_BAYAR:
+            rental.status = Rental.STATUS_BATAL
+            db.session.commit()
+        flash('Waktu pembayaran habis, pesanan dibatalkan.')
+        return redirect(url_for('main.index'))
+
+    return render_template('user/pembayaran.html', rental=rental, user=user,
+                           total=rental.total_price, deadline=deadline)
+
+
+@bp.route('/pembayaran/<int:rental_id>/status')
+def status_pembayaran(rental_id):
+    rental = Rental.query.get_or_404(rental_id)
+    return jsonify(paid=(rental.payment_status == 'Lunas'))
+
+
+@bp.route('/pembayaran/<int:rental_id>/sukses')
+def pembayaran_sukses(rental_id):
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+    user = User.query.get(session['user_id'])
+    rental = Rental.query.filter_by(id=rental_id, user_id=user.id).first_or_404()
+    return render_template('user/pembayaran_sukses.html', rental=rental, user=user)
 
 
 
