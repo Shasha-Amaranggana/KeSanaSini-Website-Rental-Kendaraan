@@ -11,12 +11,21 @@ Detail Pesanan - KeSanaSini
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 {% endblock %}
 
+
+<!-- =================================================================================== -->
+<!-- KONTEN UTAMA DETAIL PESANAN -->
+<!-- =================================================================================== -->
 {% block content %}
 <main class="account-page">
     <div class="account-layout">
 
+        <!-- BAGIAN KIRI - AKSES SIDEBAR DI SIDEBAR HTML CSS -->
+        <!-- =================================================================================== -->
         {% include 'user/sidebarKelola.html' %}
 
+        
+        <!-- BAGIAN KANAN - ISI UTAMA DETAIL PESANAN -->
+        <!-- =================================================================================== -->
         <section class="account-content">
             <h1>Detail Pesanan</h1>
 
@@ -29,6 +38,7 @@ Detail Pesanan - KeSanaSini
             <article class="order-detail-combined">
 
                 <!-- HEADER -->
+                <!-- =================================================================================== -->
                 <div class="combined-header">
                     <div class="combined-vehicle">
                         <h2>{{ rental.vehicle.brand }} {{ rental.vehicle.model }}</h2>
@@ -41,6 +51,7 @@ Detail Pesanan - KeSanaSini
                 </div>
 
                 <!-- TIMELINE STATUS -->
+                <!-- =================================================================================== -->
                 <div class="timeline-section">
                     <div class="timeline-steps">
 
@@ -86,6 +97,7 @@ Detail Pesanan - KeSanaSini
                 <div class="detail-section-divider"></div>
 
                 <!-- INFORMASI SEWA -->
+                <!-- =================================================================================== -->
                 <div class="order-detail-body">
 
                     <div class="order-detail-info">
@@ -111,6 +123,7 @@ Detail Pesanan - KeSanaSini
                     </div>
 
                     <!-- RINCIAN BIAYA -->
+                    <!-- =================================================================================== -->
                     <div class="order-detail-pricing">
                         <h3>Rincian Biaya</h3>
 

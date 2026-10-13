@@ -345,8 +345,14 @@ KeSanaSini - Menu Utama
 
 
             {% for vehicle in vehicles %}
+            <a href="{{ url_for(
+                'main.detail_kendaraan',
+                vehicle_id=vehicle.id,
+                date=current_date,
+                time=current_time,
+                duration=1
+            ) }}" class="vehicle-card">
 
-            <div class="vehicle-card">
 
 
                 <!-- NAMA -->
@@ -435,7 +441,7 @@ KeSanaSini - Menu Utama
                 </div>
 
 
-            </div>
+            </a>
 
             {% endfor %}
 

@@ -72,8 +72,9 @@
     gap: 17px;
 }
 
+
 /* =====================================================
-   CARD
+   CARD - DETAIL PESANAN
 ===================================================== */
 .account-card {
     overflow: hidden;
@@ -109,19 +110,22 @@
 }
 
 .back-to-orders {
-    margin-bottom: 20px;
-    padding: 10px 16px;
-    border: 1px solid #ddd;
-    border-radius: 7px;
-    background: #fff;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 10px;
+    font-size: 16px;
+    font-weight: 500;
     color: #444;
-    font: inherit;
     cursor: pointer;
 }
 
 .back-to-orders:hover {
     color: #e87519;
     border-color: #e87519;
+}
+
+.back-to-orders i {
+    margin-right: 5px;
 }
 
 .order-detail-pricing {
@@ -155,7 +159,6 @@
     color: #e87519;
 }
 
-/* Pastikan elemen dengan atribut hidden benar-benar disembunyikan */
 .order-tabs[hidden],
 .order-search[hidden],
 .order-list[hidden],
@@ -167,7 +170,6 @@
 /* =====================================================
    CARD DETAIL PESANAN GABUNGAN
 ===================================================== */
-
 .order-detail-combined {
     width: 100%;
     overflow: hidden;
@@ -358,46 +360,6 @@
     color: #e87519;
 }
 
-/* Tampilan layar kecil */
-@media (max-width: 700px) {
-    .combined-header {
-        align-items: flex-start;
-        flex-direction: column;
-        padding: 18px;
-    }
-
-    .timeline-section {
-        padding: 10px 5px 20px;
-    }
-
-    .timeline-steps {
-        padding: 15px 0;
-    }
-
-    .timeline-step {
-        gap: 7px;
-        font-size: 10px;
-    }
-
-    .timeline-icon {
-        width: 38px;
-        height: 38px;
-        border-width: 3px;
-        font-size: 15px;
-    }
-
-    .timeline-step:not(:last-child)::after {
-        top: 17px;
-        left: calc(50% + 19px);
-        width: calc(100% - 38px);
-        height: 3px;
-    }
-
-    .order-detail-body {
-        padding: 18px;
-    }
-}
-
 
 
 /* =====================================================
@@ -449,5 +411,42 @@
         align-items: flex-start;
         padding-top: 10px;
         border-top: 1px dashed #e7e1da;
+    }
+
+    .combined-header {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 18px;
+    }
+
+    .timeline-section {
+        padding: 10px 5px 20px;
+    }
+
+    .timeline-steps {
+        padding: 15px 0;
+    }
+
+    .timeline-step {
+        gap: 7px;
+        font-size: 10px;
+    }
+
+    .timeline-icon {
+        width: 38px;
+        height: 38px;
+        border-width: 3px;
+        font-size: 15px;
+    }
+
+    .timeline-step:not(:last-child)::after {
+        top: 17px;
+        left: calc(50% + 19px);
+        width: calc(100% - 38px);
+        height: 3px;
+    }
+
+    .order-detail-body {
+        padding: 18px;
     }
 }

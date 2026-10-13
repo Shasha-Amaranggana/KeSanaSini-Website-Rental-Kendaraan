@@ -66,24 +66,48 @@ def index():
 # =========================================================
 @bp.route('/hasil-pencarian')
 def hasil_pencarian():
-
     # Ambil data dari form pencarian
-    pickup_date = request.args.get('date')
+    pickup_date_str = request.args.get('date')
     pickup_time = request.args.get('time')
-    duration = request.args.get('duration', type=int)
+    duration = request.args.get('duration', 1, type=int) or 1
 
     min_price = request.args.get('min_price', type=float)
     max_price = request.args.get('max_price', type=float)
-
     vehicle_type = request.args.get('vehicle_type', 'mobil')
 
-    query = Vehicle.query
+    # Validasi durasi
+    duration = max(1, min(duration, 7))
 
+    # Tentukan tanggal pengambilan
+    try:
+        start_date = datetime.strptime(
+            pickup_date_str, '%Y-%m-%d'
+        ).date()
+    except (ValueError, TypeError):
+        start_date = date.today()
+        pickup_date_str = start_date.strftime('%Y-%m-%d')
+
+    # Tentukan tanggal pengembalian
+    end_date = start_date + timedelta(days=duration)
+
+    # Format tanggal untuk ditampilkan
+    pickup_date = start_date.strftime('%d %B %Y')
+    return_date = end_date.strftime('%d %B %Y')
+    pickup_time = pickup_time or datetime.now().strftime('%H:%M')
+    return_time = pickup_time
+
+    # Query kendaraan
+    query = Vehicle.query.filter(
+        Vehicle.is_active.is_(True)
+    )
+
+    # Filter jenis kendaraan
     if vehicle_type:
         query = query.filter(
             Vehicle.vehicle_type.ilike(vehicle_type)
         )
 
+    # Filter harga per hari
     if min_price is not None:
         query = query.filter(
             Vehicle.price_per_day >= min_price
@@ -94,50 +118,34 @@ def hasil_pencarian():
             Vehicle.price_per_day <= max_price
         )
 
+    # Status yang tidak lagi memblokir kendaraan:
+    # selesai dan batal.
+    status_selesai = [
+        Rental.STATUS_SELESAI,
+        Rental.STATUS_BATAL
+    ]
+
+    # Cari kendaraan yang memiliki penyewaan bentrok.
+    kendaraan_dipesan = (
+        db.session.query(Rental.vehicle_id)
+        .filter(
+            ~Rental.status.in_(status_selesai),
+            Rental.start_date <= end_date,
+            Rental.end_date >= start_date
+        )
+        .distinct()
+        .subquery()
+    )
+
+    # Tampilkan kendaraan yang TIDAK memiliki
+    # penyewaan bentrok pada tanggal yang dipilih.
+    query = query.filter(
+        ~Vehicle.id.in_(kendaraan_dipesan)
+    )
+
     vehicles = query.all()
 
-    # Kalau tanggal belum dikirim
-    if not pickup_date:
-        pickup_date = datetime.now().strftime('%d %B %Y')
-
-    else:
-        try:
-            pickup_date = datetime.strptime(
-                pickup_date,
-                '%Y-%m-%d'
-            ).strftime('%d %B %Y')
-
-        except ValueError:
-            pass
-
-    # Kalau waktu belum dikirim
-    if not pickup_time:
-        pickup_time = datetime.now().strftime('%H:%M')
-
-    # Hitung tanggal pengembalian
-    if duration:
-        try:
-            start_date = datetime.strptime(
-                request.args.get('date'),
-                '%Y-%m-%d'
-            )
-
-            return_datetime = start_date + timedelta(days=duration)
-
-            return_date = return_datetime.strftime(
-                '%d %B %Y'
-            )
-
-        except (ValueError, TypeError):
-            return_date = pickup_date
-
-    else:
-        return_date = pickup_date
-
-    return_time = pickup_time
-
     user = None
-
     if 'user_id' in session:
         user = User.query.get(session['user_id'])
 
@@ -154,6 +162,7 @@ def hasil_pencarian():
         max_price=max_price,
         vehicle_type=vehicle_type
     )
+
 
 @bp.route('/detail-kendaraan/<int:vehicle_id>')
 def detail_kendaraan(vehicle_id):
