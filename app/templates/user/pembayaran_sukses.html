@@ -14,7 +14,7 @@
     <h1>PEMBAYARAN BERHASIL!</h1>
     <p>Penyewaan kendaraan Anda telah dikonfirmasi.</p>
     <div class="success-actions">
-      <a class="btn-fill" href="{{ url_for('main.detail_pesanan', id=rental.id) }}">Lihat Status Pesanan</a>
+      <a class="btn-fill" href="{{ url_for('main.detail_pesanan', rental_id=rental.id) }}">Lihat Status Pesanan</a>
       <a class="btn-line" href="{{ url_for('main.index') }}">Kembali ke Menu Utama</a>
     </div>
   </section>

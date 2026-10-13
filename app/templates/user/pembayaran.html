@@ -27,6 +27,7 @@
         <h2>Scan untuk membayar</h2>
         <img class="qr" src="{{ qr_url or url_for('static', filename='images/qris.png') }}" alt="QR code pembayaran QRIS">
         <img class="qris-logo" src="{{ url_for('static', filename='images/qris-logo.png') }}" alt="QRIS">
+        <a class="btn-cek" href="{{ url_for('main.pembayaran_sukses', rental_id=rental.id) }}">Cek Status Pembayaran</a>
       </section>
     </div>
   </div>
@@ -58,17 +59,8 @@
   function tick() {
     const s = Math.max(0, Math.floor((expires - Date.now()) / 1000));
     cd.textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s % 3600 / 60))}:${pad(s % 60)}`;
-    if (s === 0) { clearInterval(timerId); clearInterval(pollId); location.reload(); }
+    if (s === 0) { clearInterval(timerId); location.reload(); }
   }
   const timerId = setInterval(tick, 1000); tick();
-
-  // Cek status pembayaran tiap 5 detik; pindah ke halaman sukses setelah admin verifikasi
-  const pollId = setInterval(async () => {
-    try {
-      const res = await fetch("{{ url_for('main.status_pembayaran', rental_id=rental.id) }}");
-      const data = await res.json();
-      if (data.paid) location.href = "{{ url_for('main.pembayaran_sukses', rental_id=rental.id) }}";
-    } catch (e) { /* abaikan, coba lagi di putaran berikutnya */ }
-  }, 5000);
 </script>
 {% endblock %}
