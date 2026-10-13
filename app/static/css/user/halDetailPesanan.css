@@ -128,14 +128,6 @@
     margin-right: 5px;
 }
 
-.order-detail-pricing {
-    padding: 22px;
-}
-
-.order-detail-pricing h3 {
-    margin: 18px 0 12px;
-    color: #303847;
-}
 
 .order-detail-pricing p {
     display: flex;
@@ -344,10 +336,12 @@
 
 .order-detail-pricing p span {
     color: #666666;
+    font-size: 13px;
 }
 
 .order-detail-pricing p strong {
     text-align: right;
+    font-size: 15px;
 }
 
 .order-detail-pricing .detail-total {

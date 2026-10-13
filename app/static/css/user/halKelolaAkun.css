@@ -305,6 +305,68 @@
     padding-bottom: 15px;
 }
 
+
+
+/* =====================================================
+   GANTI PASSWORD
+===================================================== */
+
+.password-form {
+    margin-top: 16px;
+}
+
+.password-description {
+    margin-bottom: 18px;
+    color: #777;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.password-form .form-group {
+    margin-bottom: 16px;
+}
+
+.password-hint {
+    margin-top: 2px;
+    color: #888;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.password-card .save-row {
+    margin-top: 8px;
+}
+
+.password-card .save-button {
+    width: 190px;
+}
+
+@media (max-width: 420px) {
+    .password-card .save-button {
+        width: 100%;
+    }
+}
+
+
+.flash-message {
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.flash-message.error {
+    background: #fdeaea;
+    color: #b42318;
+}
+
+.flash-message.success {
+    background: #e8f7ed;
+    color: #18743b;
+}
+
+
+
 /* =====================================================
    RESPONSIVE
 ===================================================== */

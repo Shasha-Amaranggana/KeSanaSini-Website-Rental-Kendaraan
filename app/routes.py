@@ -635,6 +635,62 @@ def notifikasi():
     )
 
 
+@bp.route('/ganti-password', methods=['POST'])
+def ganti_password():
+    # Pastikan user sudah login
+    if 'user_id' not in session:
+        flash('Silakan login terlebih dahulu.', 'error')
+        return redirect(url_for('main.login'))
+
+    user = db.session.get(User, session['user_id'])
+
+    if not user:
+        session.clear()
+        flash('Akun tidak ditemukan. Silakan login kembali.', 'error')
+        return redirect(url_for('main.login'))
+
+    # Ambil data dari form
+    password_lama = request.form.get('current_password', '')
+    password_baru = request.form.get('new_password', '')
+    konfirmasi_password = request.form.get('confirm_password', '')
+
+    # 1. Periksa password lama
+    if not user.check_password(password_lama):
+        flash('Password lama yang Anda masukkan salah.', 'error')
+        return redirect(url_for('main.kelola_akun'))
+
+    # 2. Validasi password baru
+    if (
+        len(password_baru) < 8
+        or not any(char.isalpha() for char in password_baru)
+        or not any(char.isdigit() for char in password_baru)
+    ):
+        flash(
+            'Password baru minimal 8 karakter dan harus mengandung '
+            'huruf serta angka.',
+            'error'
+        )
+        return redirect(url_for('main.kelola_akun'))
+
+    # 3. Periksa konfirmasi password
+    if password_baru != konfirmasi_password:
+        flash('Konfirmasi password baru tidak cocok.', 'error')
+        return redirect(url_for('main.kelola_akun'))
+
+    # 4. Password baru harus berbeda dari password lama
+    if user.check_password(password_baru):
+        flash('Password baru harus berbeda dari password lama.', 'error')
+        return redirect(url_for('main.kelola_akun'))
+
+    # 5. Simpan password baru dalam bentuk hash
+    user.set_password(password_baru)
+    db.session.commit()
+
+    flash('Password berhasil diperbarui.', 'success')
+    return redirect(url_for('main.kelola_akun'))
+
+
+
 
 # =========================================================
 # HALAMAN LOGIN | REGISTER | LOGOUT
