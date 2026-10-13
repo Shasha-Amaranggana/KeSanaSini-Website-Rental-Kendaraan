@@ -432,6 +432,10 @@
     transition:
         transform 0.25s ease,
         box-shadow 0.25s ease;
+
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
 }
 
 

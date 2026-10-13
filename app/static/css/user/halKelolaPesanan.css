@@ -202,7 +202,7 @@
 
 .order-vehicle-name h3 {
     color: #484848;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
 }
 
@@ -233,8 +233,9 @@
 }
 
 .order-vehicle-image {
-    width: 125px;
-    height: 85px;
+    width: 150px;
+    height: 90px;
+    margin: 10px;
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -301,6 +302,12 @@
     gap: 12px;
     padding: 12px 16px;
     border-top: 1px solid #e7e1da;
+}
+
+.order-date-range {
+    color: #888888;
+    font-size: 14px;
+    font-weight: 500;
 }
 
 .order-card-footer > span {

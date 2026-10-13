@@ -11,15 +11,21 @@ Kelola Pesanan - KeSanaSini
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 {% endblock %}
 
-{% block content %}
 
+<!-- =================================================================================== -->
+<!-- KONTEN UTAMA PESANAN -->
+<!-- =================================================================================== -->
+{% block content %}
 <main class="account-page">
     <div class="account-layout">
 
-        <!-- SIDEBAR -->
+        <!-- BAGIAN KIRI - AKSES SIDEBAR DI SIDEBAR HTML CSS -->
+        <!-- =================================================================================== -->
         {% include 'user/sidebarKelola.html' %}
 
-        <!-- KONTEN PESANAN -->
+        
+        <!-- BAGIAN KANAN - ISI UTAMA PESANAN -->
+        <!-- =================================================================================== -->
         <section class="account-content">
             <h1>
                 {% if halaman == 'riwayat' %}
@@ -30,6 +36,7 @@ Kelola Pesanan - KeSanaSini
             </h1>
 
             <!-- NAVBAR STATUS PESANAN -->
+            <!-- =================================================================================== -->
             {% if halaman != 'riwayat' %}
                 <nav class="order-tabs" id="order-tabs">
                     <a href="#semua"
@@ -65,6 +72,7 @@ Kelola Pesanan - KeSanaSini
             {% endif %}
 
             <!-- PENCARIAN PESANAN -->
+            <!-- =================================================================================== -->
             <div class="order-search" id="order-search-container">
                 <i class="fa-solid fa-magnifying-glass"></i>
 
@@ -77,6 +85,7 @@ Kelola Pesanan - KeSanaSini
             </div>
 
             <!-- DAFTAR CARD PESANAN -->
+            <!-- =================================================================================== -->
             <div class="order-list" id="order-list">
 
                 {% for rental in pesanan %}
@@ -227,6 +236,7 @@ Kelola Pesanan - KeSanaSini
             </div>
 
             <!-- PANEL DETAIL PESANAN -->
+            <!-- =================================================================================== -->
             <div class="order-detail-panel" id="order-detail-panel" hidden>
                 <button type="button" class="back-to-orders" id="back-to-orders">
                     <i class="fa-solid fa-arrow-left"></i>
@@ -244,6 +254,9 @@ Kelola Pesanan - KeSanaSini
 
 
 
+<!-- =================================================================================== -->
+<!-- SCRIPT UTAMA PESANAN -->
+<!-- =================================================================================== -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const tabs = document.querySelectorAll('.order-tab');
@@ -316,7 +329,6 @@ document.addEventListener('DOMContentLoaded', function () {
     filterOrders();
 });
 </script>
-
 
 
 {% endblock %}
