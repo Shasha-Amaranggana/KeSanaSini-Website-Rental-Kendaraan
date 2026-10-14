@@ -46,7 +46,12 @@ a { color: inherit; text-decoration: none; }
     border-right: 1px solid var(--line);
     flex-shrink: 0;
 }
-.topbar-logo img { height: 55px; object-fit: contain; }
+.topbar-logo img {
+    height: 48px;
+    max-width: 205px;
+    width: auto;
+    object-fit: contain;
+}
 
 .topbar-search {
     margin-left: 34px;
