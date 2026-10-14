@@ -262,3 +262,20 @@
         padding: 35px 15px;
     }
 }
+
+/* KATEGORI WARNA NOTIFIKASI */
+.notification-icon.tone-warning {
+    background: #FEF3C7;
+    color: #D97706;
+}
+.notification-card.unread.tone-warning {
+    border-left-color: #D97706;
+}
+.notification-icon.tone-danger {
+    background: #FEE2E2;
+    color: #DC2626;
+}
+.notification-card.unread.tone-danger {
+    border-left-color: #DC2626;
+}
+

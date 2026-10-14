@@ -124,6 +124,18 @@ Detail Pesanan - KeSanaSini
                     <!-- RINCIAN BIAYA -->
                     <!-- =================================================================================== -->
                     <div class="order-detail-pricing">
+                        {% if rental.is_overdue %}
+                        <div style="margin-bottom:15px; padding:10px 14px; background:#FEE2E2; border-left:4px solid #DC2626; border-radius:6px; color:#991B1B; font-size:12px; line-height:1.5;">
+                            <strong><i class="fa-solid fa-triangle-exclamation"></i> Keterlambatan:</strong>
+                            Masa sewa telah melewati batas waktu pengembalian. Dikenakan denda keterlambatan berjalan sebesar <strong>Rp{{ "{:,.0f}".format(rental.active_fine).replace(",", ".") }}</strong> ({{ rental.late_days }} hari).
+                        </div>
+                        {% elif rental.is_due_soon %}
+                        <div style="margin-bottom:15px; padding:10px 14px; background:#FEF3C7; border-left:4px solid #D97706; border-radius:6px; color:#92400E; font-size:12px; line-height:1.5;">
+                            <strong><i class="fa-solid fa-clock"></i> Pengingat:</strong>
+                            Masa sewa tersisa <strong>{{ rental.remaining_label }}</strong>. Batas pengembalian: {{ rental.end_date | tanggal_id }}, {{ rental.return_time }}.
+                        </div>
+                        {% endif %}
+
                         <h3>Rincian Biaya</h3>
 
                         <p>
@@ -154,12 +166,28 @@ Detail Pesanan - KeSanaSini
                             </strong>
                         </p>
 
+                        {% if rental.has_fine %}
+                        <p style="color:#B91C1C; font-weight:600;">
+                            <span>Denda keterlambatan ({{ rental.late_days }} hari)</span>
+                            <strong>
+                                +Rp{{ "{:,.0f}".format(rental.active_fine).replace(",", ".") }}
+                            </strong>
+                        </p>
+
+                        <p class="detail-total" style="color:#B91C1C;">
+                            <span>Total tagihan akhir</span>
+                            <strong>
+                                Rp{{ "{:,.0f}".format(rental.final_total_price).replace(",", ".") }}
+                            </strong>
+                        </p>
+                        {% else %}
                         <p class="detail-total">
                             <span>Total pesanan</span>
                             <strong>
                                 Rp{{ "{:,.0f}".format(rental.total_price or 0).replace(",", ".") }}
                             </strong>
                         </p>
+                        {% endif %}
 
                         <h3>Informasi Pembayaran</h3>
 

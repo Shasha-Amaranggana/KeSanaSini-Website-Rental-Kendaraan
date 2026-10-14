@@ -28,10 +28,10 @@ notifications-page
                 {% if notifications %}
                     {% for notification in notifications %}
                     <article class="notification-card
-                        {% if not notification.is_read %}unread{% endif %}">
+                        {% if not notification.is_read %}unread{% endif %} {{ notification.tone }}">
 
-                        <div class="notification-icon">
-                            <i class="fa-solid fa-bell"></i>
+                        <div class="notification-icon {{ notification.tone }}">
+                            <i class="{{ notification.icon }}"></i>
                         </div>
 
                         <div class="notification-content">
@@ -40,6 +40,11 @@ notifications-page
 
                                 {% if not notification.is_read %}
                                     <span class="notification-badge">Baru</span>
+                                {% endif %}
+                                {% if notification.category == 'overdue' or notification.category == 'fine' %}
+                                    <span class="notification-badge" style="background:#FEE2E2; color:#B91C1C;">Denda</span>
+                                {% elif notification.category == 'reminder' %}
+                                    <span class="notification-badge" style="background:#FEF3C7; color:#92400E;">Pengingat</span>
                                 {% endif %}
                             </div>
 

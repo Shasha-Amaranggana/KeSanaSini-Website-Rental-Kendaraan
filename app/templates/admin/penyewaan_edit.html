@@ -94,10 +94,21 @@
                 <span>Rp {{ rental.insurance_cost|rupiah }}</span>
             </div>
             
+            {% if rental.has_fine %}
+            <div class="flex-between" style="color: #DC2626; font-weight: 600; margin-top: 6px;">
+                <span>Denda Keterlambatan ({{ rental.late_days }} hari)</span>
+                <span>+Rp {{ rental.active_fine|rupiah }}</span>
+            </div>
+            <div class="flex-between total-row" style="color: #DC2626; font-size: 15px; border-top: 2px solid #DC2626;">
+                <span>Total Tagihan Akhir</span>
+                <span>Rp {{ rental.final_total_price|rupiah }}</span>
+            </div>
+            {% else %}
             <div class="flex-between total-row">
                 <span>Total</span>
                 <span>Rp {{ rental.total_price|rupiah }}</span>
             </div>
+            {% endif %}
 
             <div style="display: flex; justify-content: space-between; margin-top: 20px; align-items: flex-end;">
                 <div>
@@ -139,8 +150,18 @@
             
             <div class="info-label">Tanggal Kembali</div>
             <div class="info-val">{{ rental.end_date|tanggal_id }}, {{ rental.return_time }}</div>
+
+            {% if rental.is_overdue %}
+            <div style="margin-top: 10px; padding: 6px 10px; background: #FEE2E2; border: 1px solid #FCA5A5; color: #B91C1C; border-radius: 4px; font-size: 12px; font-weight: 700;">
+                <i class="fa-solid fa-triangle-exclamation"></i> TERLAMBAT {{ rental.late_days }} HARI
+            </div>
+            {% elif rental.is_due_soon %}
+            <div style="margin-top: 10px; padding: 6px 10px; background: #FEF3C7; border: 1px solid #FCD34D; color: #92400E; border-radius: 4px; font-size: 12px; font-weight: 600;">
+                <i class="fa-solid fa-clock"></i> Sisa waktu: {{ rental.remaining_label }}
+            </div>
+            {% endif %}
             
-            <div class="info-label">Durasi</div>
+            <div class="info-label" style="margin-top: 12px;">Durasi</div>
             <div class="info-val" style="margin-bottom:0;">{{ rental.duration_days }} Hari</div>
         </div>
     </div>
@@ -166,6 +187,15 @@
                         {% endfor %}
                     </select>
                 </div>
+
+                {% if rental.has_fine %}
+                <div style="margin-bottom: 20px; padding: 10px; background: #FEF2F2; border: 1px solid #FECACA; border-radius: 4px;">
+                    <label style="font-size: 13px; font-weight: 600; color: #991B1B; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" name="fine_paid" value="1" {% if rental.fine_paid %}checked{% endif %}>
+                        Denda Rp {{ rental.active_fine|rupiah }} Sudah Dilunasi
+                    </label>
+                </div>
+                {% endif %}
 
                 {% if rental.with_driver %}
                 <div style="margin-bottom: 30px;">

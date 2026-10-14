@@ -33,13 +33,14 @@ def create_app():
         # --- SISTEM AUTO-HEAL (PERBAIKAN OTOMATIS) ---
         # Mencegah error "no such column" ketika teman kelompok melakukan push
         try:
-            from .models import User, Vehicle, Rental, Review, Driver
+            from .models import User, Vehicle, Rental, Review, Driver, Notification
             # Lakukan query palsu untuk memaksa SQLAlchemy mencocokkan skema dengan .db lokal
             db.session.query(User).first()
             db.session.query(Vehicle).first()
             db.session.query(Rental).first()
             db.session.query(Review).first()
             db.session.query(Driver).first()
+            db.session.query(Notification).first()
         except Exception as e:
             print("\n==================================================================")
             print("[AUTO-FIX] Mendeteksi perubahan kode database dari teman kelompok!")

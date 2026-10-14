@@ -1,6 +1,7 @@
 from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
+import math
 
 
 # =========================================================
@@ -268,10 +269,23 @@ class Rental(db.Model):
     ktp_file = db.Column(db.String(255), nullable=True)
     sim_file = db.Column(db.String(255), nullable=True)
 
+    # ---- Denda keterlambatan ----
+    # Selama kendaraan masih dipakai, denda dihitung LIVE (berjalan).
+    # Saat kendaraan dikembalikan, nilainya DIKUNCI ke kolom di bawah ini
+    # supaya tidak terus bertambah setelah mobil masuk garasi.
+    fine_days = db.Column(db.Integer, nullable=False, default=0)
+    fine_amount = db.Column(db.Integer, nullable=False, default=0)
+    fine_paid = db.Column(db.Boolean, nullable=False, default=False)
+
     # Relasi antar objek (OOP)
     user = db.relationship('User', backref=db.backref('rentals', lazy=True))
     vehicle = db.relationship('Vehicle', backref=db.backref('rentals', lazy=True))
     driver = db.relationship('Driver', backref=db.backref('rentals', lazy=True))
+
+    # ---- Aturan bisnis pengingat & denda ----
+    REMINDER_DAYS = 3                 # pengingat mulai H-3 sebelum batas kembali
+    FINE_ADMIN_FEE = 50000            # denda administrasi per hari keterlambatan
+    TRACKING_START = (-0.502106, 117.153709)   # titik awal tracking (Samarinda)
 
     @property
     def duration_days(self):
@@ -302,6 +316,130 @@ class Rental(db.Model):
     def total_price(self):
         # Perbaikan kalkulasi total harga sesuai desain yang lengkap
         return self.vehicle_cost + self.driver_cost + self.accessories_cost + self.insurance_cost
+
+    # ---------------------------------------------------------
+    # BATAS WAKTU PENGEMBALIAN
+    # ---------------------------------------------------------
+    @property
+    def return_deadline(self):
+        """Tanggal + jam pengembalian digabung menjadi satu datetime."""
+        try:
+            jam = datetime.strptime(self.return_time or '10:00', '%H:%M').time()
+        except ValueError:
+            jam = datetime.strptime('10:00', '%H:%M').time()
+        return datetime.combine(self.end_date, jam)
+
+    @property
+    def is_in_use(self):
+        return self.status == self.STATUS_DIPAKAI
+
+    @property
+    def time_remaining(self):
+        """Sisa waktu menuju batas kembali (negatif = sudah lewat)."""
+        return self.return_deadline - datetime.now()
+
+    @property
+    def is_overdue(self):
+        """Terlambat = kendaraan masih dipakai tetapi batas waktu sudah lewat."""
+        return self.is_in_use and self.time_remaining.total_seconds() < 0
+
+    @property
+    def is_due_soon(self):
+        """Masuk jendela pengingat H-3 (dan belum terlambat)."""
+        sisa = self.time_remaining.total_seconds()
+        return self.is_in_use and 0 <= sisa <= self.REMINDER_DAYS * 86400
+
+    @property
+    def remaining_label(self):
+        """Teks sisa waktu yang mudah dibaca, contoh: '2 hari 5 jam'."""
+        sisa = max(0, int(self.time_remaining.total_seconds()))
+        hari, sisa = divmod(sisa, 86400)
+        jam = sisa // 3600
+        if hari and jam:
+            return f'{hari} hari {jam} jam'
+        if hari:
+            return f'{hari} hari'
+        return f'{jam} jam' if jam else 'kurang dari 1 jam'
+
+    # ---------------------------------------------------------
+    # DENDA KETERLAMBATAN
+    # ---------------------------------------------------------
+    @property
+    def fine_per_day(self):
+        """Denda per hari = tarif sewa harian kendaraan + biaya administrasi."""
+        return self.vehicle.price_per_day + self.FINE_ADMIN_FEE
+
+    def _late_days_at(self, moment):
+        """Jumlah hari terlambat pada waktu tertentu (telat 1 jam = 1 hari)."""
+        telat = (moment - self.return_deadline).total_seconds()
+        return math.ceil(telat / 86400) if telat > 0 else 0
+
+    @property
+    def late_days(self):
+        """Hari terlambat: live saat masih dipakai, nilai terkunci setelah kembali."""
+        if self.is_in_use:
+            return self._late_days_at(datetime.now())
+        return self.fine_days or 0
+
+    @property
+    def active_fine(self):
+        """Denda yang berlaku saat ini (live atau terkunci)."""
+        if self.is_in_use:
+            return self.late_days * self.fine_per_day
+        return self.fine_amount or 0
+
+    @property
+    def has_fine(self):
+        return self.active_fine > 0
+
+    @property
+    def final_total_price(self):
+        """Total tagihan = biaya sewa + denda keterlambatan."""
+        return self.total_price + self.active_fine
+
+    def lock_fine(self):
+        """Bekukan denda saat kendaraan dikembalikan."""
+        self.fine_days = self._late_days_at(datetime.now())
+        self.fine_amount = self.fine_days * self.fine_per_day
+        if self.fine_amount == 0:
+            self.fine_paid = False
+
+    # ---------------------------------------------------------
+    # TRANSISI STATUS (satu pintu untuk semua halaman admin)
+    # ---------------------------------------------------------
+    def change_status(self, new_status):
+        """
+        Ubah status penyewaan beserta efek sampingnya:
+          - Pengambilan            -> pembayaran dianggap lunas
+          - Sedang Dipakai         -> tracking GPS menyala, denda kembali live
+          - Pengembalian / Selesai -> tracking mati, denda dikunci
+          - Batal                  -> tracking mati, denda dihapus
+        Mengembalikan status lama (None jika tidak ada perubahan).
+        """
+        if new_status not in self.ALL_STATUS or new_status == self.status:
+            return None
+
+        old_status = self.status
+
+        if new_status == self.STATUS_PENGAMBILAN:
+            self.payment_status = 'Lunas'
+
+        if new_status == self.STATUS_DIPAKAI:
+            self.vehicle.current_lat, self.vehicle.current_lng = self.TRACKING_START
+            self.fine_days, self.fine_amount, self.fine_paid = 0, 0, False
+        elif old_status == self.STATUS_DIPAKAI:
+            # Kendaraan keluar dari status dipakai: matikan tracking.
+            # (Hanya di sini, supaya perubahan status pesanan LAIN untuk mobil
+            #  yang sama tidak ikut mematikan tracking yang sedang berjalan.)
+            self.vehicle.current_lat = None
+            self.vehicle.current_lng = None
+            if new_status == self.STATUS_BATAL:
+                self.fine_days, self.fine_amount, self.fine_paid = 0, 0, False
+            else:
+                self.lock_fine()
+
+        self.status = new_status
+        return old_status
 
 
 # =========================================================
@@ -350,6 +488,13 @@ class Notification(db.Model):
         default=datetime.now
     )
 
+    # Jenis notifikasi (dipakai untuk ikon/warna & mencegah notifikasi ganda)
+    CATEGORY_STATUS = 'status'        # perubahan status oleh admin
+    CATEGORY_REMINDER = 'reminder'    # pengingat H-3 pengembalian
+    CATEGORY_OVERDUE = 'overdue'      # peringatan terlambat + denda berjalan
+    CATEGORY_FINE = 'fine'            # denda final saat kendaraan dikembalikan
+    category = db.Column(db.String(20), nullable=False, default=CATEGORY_STATUS)
+
     user = db.relationship(
         'User',
         backref=db.backref('notifications', lazy=True)
@@ -359,6 +504,80 @@ class Notification(db.Model):
         'Rental',
         backref=db.backref('notifications', lazy=True)
     )
+
+    # ---- Tampilan per kategori (ikon Font Awesome + kelas warna) ----
+    _STYLE = {
+        CATEGORY_STATUS:   ('fa-solid fa-bell', 'tone-info'),
+        CATEGORY_REMINDER: ('fa-solid fa-clock', 'tone-warning'),
+        CATEGORY_OVERDUE:  ('fa-solid fa-triangle-exclamation', 'tone-danger'),
+        CATEGORY_FINE:     ('fa-solid fa-file-invoice-dollar', 'tone-danger'),
+    }
+
+    @property
+    def icon(self):
+        return self._STYLE.get(self.category, self._STYLE[self.CATEGORY_STATUS])[0]
+
+    @property
+    def tone(self):
+        return self._STYLE.get(self.category, self._STYLE[self.CATEGORY_STATUS])[1]
+
+    # ---- Factory method: satu tempat untuk membuat setiap jenis notifikasi ----
+    @staticmethod
+    def _rp(n):
+        return 'Rp{:,.0f}'.format(n).replace(',', '.')
+
+    @classmethod
+    def status_changed(cls, rental, old_status):
+        return cls(
+            user_id=rental.user_id, rental_id=rental.id,
+            category=cls.CATEGORY_STATUS,
+            title='Status Pesanan Diperbarui',
+            message=(f'Status pesanan {rental.booking_code} berubah dari '
+                     f'"{old_status}" menjadi "{rental.status}".'),
+            old_status=old_status, new_status=rental.status,
+        )
+
+    @classmethod
+    def return_reminder(cls, rental):
+        batas = rental.return_deadline.strftime('%d-%m-%Y pukul %H:%M')
+        return cls(
+            user_id=rental.user_id, rental_id=rental.id,
+            category=cls.CATEGORY_REMINDER,
+            title='Pengingat Pengembalian Kendaraan',
+            message=(f'Masa sewa {rental.vehicle.full_name} '
+                     f'({rental.vehicle.vehicle_number}) untuk pesanan '
+                     f'{rental.booking_code} tersisa {rental.remaining_label}. '
+                     f'Batas pengembalian: {batas}. Keterlambatan dikenakan denda '
+                     f'{cls._rp(rental.fine_per_day)} per hari.'),
+            old_status=rental.status, new_status=rental.status,
+        )
+
+    @classmethod
+    def overdue_warning(cls, rental):
+        batas = rental.return_deadline.strftime('%d-%m-%Y pukul %H:%M')
+        return cls(
+            user_id=rental.user_id, rental_id=rental.id,
+            category=cls.CATEGORY_OVERDUE,
+            title='Peringatan: Pengembalian Terlambat',
+            message=(f'Pesanan {rental.booking_code} melewati batas pengembalian '
+                     f'({batas}). Anda terlambat {rental.late_days} hari dengan '
+                     f'denda berjalan {cls._rp(rental.active_fine)}. Segera '
+                     f'kembalikan kendaraan agar denda tidak bertambah.'),
+            old_status=rental.status, new_status=rental.status,
+        )
+
+    @classmethod
+    def fine_issued(cls, rental):
+        return cls(
+            user_id=rental.user_id, rental_id=rental.id,
+            category=cls.CATEGORY_FINE,
+            title='Tagihan Denda Keterlambatan',
+            message=(f'Kendaraan pesanan {rental.booking_code} dikembalikan '
+                     f'terlambat {rental.fine_days} hari. Total denda: '
+                     f'{cls._rp(rental.fine_amount)}. Silakan selesaikan '
+                     f'pembayaran denda kepada admin.'),
+            old_status=rental.status, new_status=rental.status,
+        )
 
 
 

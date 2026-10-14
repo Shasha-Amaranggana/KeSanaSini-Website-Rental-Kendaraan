@@ -229,27 +229,10 @@ def semua_ulasan(vehicle_id):
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
 
-    user = User.query.get(session['user_id'])
     vehicle = Vehicle.query.get_or_404(vehicle_id)
-
-    # Filter bintang: ?star=5 (kosong = semua)
     star = request.args.get('star', type=int)
 
-    query = Review.query.filter_by(vehicle_id=vehicle.id)
-    if star in (1, 2, 3, 4, 5):
-        query = query.filter_by(rating=star)
-    else:
-        star = None
-
-    reviews = query.order_by(Review.created_at.desc()).all()
-
-    return render_template(
-        'ulasanKendaraanUser.html',
-        user=user,
-        vehicle=vehicle,
-        reviews=reviews,
-        star=star
-    )
+    return redirect(url_for('main.detail_kendaraan', vehicle_id=vehicle.id, ulasan=1, star=star))
 
 PURPOSES = ['Liburan', 'Dinas / Bisnis', 'Acara keluarga', 'Pernikahan', 'Lainnya']
 REGIONS = ['Dalam kota', 'Luar kota']
@@ -622,6 +605,8 @@ def kelola_pesanan():
         session.clear()
         return redirect(url_for('main.login'))
 
+    periksa_pengingat_dan_denda(user.id)
+
     pesanan = (
         Rental.query
         .filter_by(user_id=user.id)
@@ -646,6 +631,8 @@ def detail_pesanan(rental_id):
     if not user:
         session.clear()
         return redirect(url_for('main.login'))
+
+    periksa_pengingat_dan_denda(user.id)
 
     rental = Rental.query.filter_by(
         id=rental_id,
@@ -698,52 +685,47 @@ def riwayat_pesanan():
     )
 
 
-def buat_pengingat_pengembalian(user_id):
-    """Buat pengingat pengembalian untuk penyewaan yang jatuh tempo hari ini."""
-    hari_ini = date.today()
-    judul = 'Waktunya Mengembalikan Kendaraan'
-
-    status_aktif = [
-        Rental.STATUS_PENGAMBILAN,
-        Rental.STATUS_DIPAKAI,
-        Rental.STATUS_PENGEMBALIAN,
-    ]
-
-    rentals = Rental.query.filter(
-        Rental.user_id == user_id,
-        Rental.end_date == hari_ini,
-        Rental.status.in_(status_aktif),
+def periksa_pengingat_dan_denda(user_id):
+    """
+    Sistem Pengingat H-3 & Peringatan Denda Keterlambatan Otomatis (OOP Service).
+      1. Jika kendaraan sedang dipakai dan sisa waktu <= 3 hari -> Buat Notifikasi H-3 (1x).
+      2. Jika kendaraan melewati batas waktu -> Buat Notifikasi Denda (maks 1x per hari).
+    """
+    rentals = Rental.query.filter_by(
+        user_id=user_id,
+        status=Rental.STATUS_DIPAKAI
     ).all()
 
+    now = datetime.now()
+    today_start = datetime(now.year, now.month, now.day)
     jumlah_baru = 0
 
     for rental in rentals:
-        # Cegah pengingat ganda untuk penyewaan yang sama.
-        sudah_ada = Notification.query.filter_by(
-            user_id=user_id,
-            rental_id=rental.id,
-            title=judul,
-        ).first()
+        # KASUS A: Terlambat (Overdue)
+        if rental.is_overdue:
+            # Cek apakah hari ini sudah pernah dikirimkan peringatan denda
+            sudah_ada = Notification.query.filter(
+                Notification.user_id == user_id,
+                Notification.rental_id == rental.id,
+                Notification.category == Notification.CATEGORY_OVERDUE,
+                Notification.created_at >= today_start
+            ).first()
 
-        if sudah_ada:
-            continue
+            if not sudah_ada:
+                db.session.add(Notification.overdue_warning(rental))
+                jumlah_baru += 1
 
-        notification = Notification(
-            user_id=user_id,
-            rental_id=rental.id,
-            title=judul,
-            message=(
-                f'Masa sewa kendaraan untuk pesanan '
-                f'{rental.booking_code} berakhir hari ini. '
-                f'Silakan kembalikan kendaraan sesuai jadwal '
-                f'pengembalian yang telah ditentukan.'
-            ),
-            old_status=None,
-            new_status=rental.status,
-        )
+        # KASUS B: Masuk Jendela Pengingat H-3
+        elif rental.is_due_soon:
+            sudah_ada = Notification.query.filter_by(
+                user_id=user_id,
+                rental_id=rental.id,
+                category=Notification.CATEGORY_REMINDER
+            ).first()
 
-        db.session.add(notification)
-        jumlah_baru += 1
+            if not sudah_ada:
+                db.session.add(Notification.return_reminder(rental))
+                jumlah_baru += 1
 
     if jumlah_baru:
         db.session.commit()
@@ -760,7 +742,7 @@ def notifikasi():
         session.clear()
         return redirect(url_for('main.login'))
     
-    buat_pengingat_pengembalian(user.id)
+    periksa_pengingat_dan_denda(user.id)
     
     notifications = (
         Notification.query
@@ -1059,61 +1041,17 @@ def admin_update_rental_status(rental_id):
             request.referrer or url_for('main.admin_dashboard')
         )
 
-    old_status = rental.status
-    status_berubah = old_status != new_status
-    pembayaran_berubah = False
+    old_status = rental.change_status(new_status)
 
-    # Perbarui status pesanan jika memang berubah.
-    if status_berubah:
-        rental.status = new_status
+    if old_status:
+        db.session.add(Notification.status_changed(rental, old_status))
 
-        notification = Notification(
-            user_id=rental.user_id,
-            rental_id=rental.id,
-            title='Status Pesanan Diperbarui',
-            message=(
-                f'Status pesanan {rental.booking_code} '
-                f'berubah dari "{old_status}" '
-                f'menjadi "{new_status}".'
-            ),
-            old_status=old_status,
-            new_status=new_status
-        )
+        # Terbitkan notifikasi denda jika kendaraan dikembalikan terlambat
+        if rental.fine_amount > 0 and new_status in [Rental.STATUS_PENGEMBALIAN, Rental.STATUS_SELESAI]:
+            db.session.add(Notification.fine_issued(rental))
 
-        db.session.add(notification)
-
-    # Pembayaran dinyatakan lunas ketika admin
-    # mengonfirmasi pesanan ke tahap pengambilan.
-    if (
-        new_status == Rental.STATUS_PENGAMBILAN
-        and rental.payment_status != 'Lunas'
-    ):
-        rental.payment_status = 'Lunas'
-        pembayaran_berubah = True
-
-    # Perbarui tracking kendaraan sesuai status baru.
-    if new_status == Rental.STATUS_DIPAKAI:
-        rental.vehicle.current_lat = -0.502106
-        rental.vehicle.current_lng = 117.153709
-
-    elif new_status in [
-        Rental.STATUS_SELESAI,
-        Rental.STATUS_BATAL,
-        Rental.STATUS_PENGEMBALIAN
-    ]:
-        rental.vehicle.current_lat = None
-        rental.vehicle.current_lng = None
-
-    if status_berubah or pembayaran_berubah:
         db.session.commit()
-
-        if status_berubah:
-            flash(
-                f'Status {rental.booking_code} '
-                f'diubah menjadi "{new_status}".'
-            )
-        elif pembayaran_berubah:
-            flash('Status pembayaran berhasil diperbarui menjadi Lunas.')
+        flash(f'Status {rental.booking_code} diubah menjadi "{new_status}".')
     else:
         flash('Status pesanan tidak mengalami perubahan.')
 
@@ -1305,63 +1243,35 @@ def admin_penyewaan_edit(id):
     if request.method == 'POST':
         # Proses Tolak
         if 'btn_tolak' in request.form:
-            rental.status = Rental.STATUS_BATAL
+            old_status = rental.change_status(Rental.STATUS_BATAL)
+            if old_status:
+                db.session.add(Notification.status_changed(rental, old_status))
             db.session.commit()
             flash('Penyewaan berhasil ditolak/dibatalkan.')
             return redirect(url_for('main.admin_penyewaan'))
             
         # Proses Simpan
-        old_status = rental.status
         new_status = request.form.get('status')
         driver_id = request.form.get('driver_id')
 
-        if new_status in Rental.ALL_STATUS and new_status != old_status:
-            db.session.add(Notification(
-                user_id=rental.user_id,
-                rental_id=rental.id,
-                title='Status Pesanan Diperbarui',
-                message=(
-                    f'Status pesanan {rental.booking_code} '
-                    f'berubah dari "{old_status}" menjadi "{new_status}".'
-                ),
-                old_status=old_status,
-                new_status=new_status
-            ))
-        
+        old_status = rental.change_status(new_status)
 
-        if new_status in Rental.ALL_STATUS:
-            rental.status = new_status
+        if old_status:
+            db.session.add(Notification.status_changed(rental, old_status))
 
-            # Saat admin memverifikasi pesanan,
-            # tandai pembayaran sebagai lunas.
-            if new_status == Rental.STATUS_PENGAMBILAN:
-                rental.payment_status = 'Lunas'
-
-            # TRIGGER TRACKING: Mulai lacak jika baru saja
-            # diubah menjadi kendaraan sedang dipakai.
-            if (
-                new_status == Rental.STATUS_DIPAKAI
-                and old_status != Rental.STATUS_DIPAKAI
-            ):
-                rental.vehicle.current_lat = -0.502106
-                rental.vehicle.current_lng = 117.153709
-
-            # Matikan tracking jika sudah selesai, batal,
-            # atau dalam proses pengembalian.
-            elif new_status in [
-                Rental.STATUS_SELESAI,
-                Rental.STATUS_BATAL,
-                Rental.STATUS_PENGEMBALIAN
-            ]:
-                rental.vehicle.current_lat = None
-                rental.vehicle.current_lng = None
-
+            # Terbitkan notifikasi denda jika kendaraan dikembalikan terlambat
+            if rental.fine_amount > 0 and new_status in [Rental.STATUS_PENGEMBALIAN, Rental.STATUS_SELESAI]:
+                db.session.add(Notification.fine_issued(rental))
 
         if rental.with_driver and driver_id:
             if driver_id == 'none':
                 rental.driver_id = None
             else:
                 rental.driver_id = int(driver_id)
+
+        # Opsi pelunasan denda oleh admin
+        if 'fine_paid' in request.form:
+            rental.fine_paid = (request.form.get('fine_paid') == '1')
                 
         db.session.commit()
         flash('Data penyewaan berhasil diperbarui.')
