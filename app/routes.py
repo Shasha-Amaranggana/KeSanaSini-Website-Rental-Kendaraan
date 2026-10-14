@@ -1859,6 +1859,7 @@ def api_live_tracking():
                 'booking_code': r.booking_code,
                 'customer_name': r.user.name,
                 'vehicle_name': f"{v.brand} {v.model} ({v.vehicle_number})",
+                'vehicle_type': v.vehicle_type,
                 'driver_name': r.driver.name if r.with_driver and r.driver else "Tanpa Sopir",
                 'lat': v.current_lat,
                 'lng': v.current_lng

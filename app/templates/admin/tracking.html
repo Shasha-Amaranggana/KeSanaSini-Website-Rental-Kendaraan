@@ -22,6 +22,62 @@
         background: transparent;
         box-shadow: none;
     }
+
+    /* Hilangkan background bawaan Leaflet divIcon */
+    .leaflet-div-icon {
+        background: transparent !important;
+        border: none !important;
+    }
+
+    /* Marker Khusus Kendaraan (Mobil vs Motor) */
+    .vehicle-marker {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        color: #ffffff;
+        font-size: 20px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+        border: 2.5px solid #ffffff;
+        cursor: pointer;
+        transition: transform .2s ease;
+    }
+    .vehicle-marker:hover {
+        transform: scale(1.15);
+    }
+    
+    /* Varian Mobil: Oranye khas KeSanaSini */
+    .vehicle-marker.marker-mobil {
+        background: linear-gradient(135deg, #FF9A4D 0%, #F07F2A 100%);
+    }
+    
+    /* Varian Motor: Biru / Teal Premium agar kontras */
+    .vehicle-marker.marker-motor {
+        background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+    }
+
+    /* Efek Gelombang Denyut Radar (Live Tracking Pulse) */
+    .marker-pulse {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        pointer-events: none;
+    }
+    .marker-mobil .marker-pulse {
+        border: 2px solid #F07F2A;
+    }
+    .marker-motor .marker-pulse {
+        border: 2px solid #3B82F6;
+    }
+    @keyframes pulse-ring {
+        0% { transform: scale(0.9); opacity: 0.9; }
+        70%, 100% { transform: scale(1.8); opacity: 0; }
+    }
 </style>
 
 <div class="panel panel-tracking">
@@ -38,13 +94,28 @@
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    // Custom Icon Berbentuk Mobil Kecil
-    var carIcon = L.icon({
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/3201/3201824.png', // Ikon mobil gratis
-        iconSize: [38, 38], // ukuran ikon
-        iconAnchor: [19, 19], // titik tengah
-        popupAnchor: [0, -15] // titik munculnya popup
-    });
+    // 2. Pabrik Icon Prototype Kendaraan (Mobil vs Motor)
+    function createVehicleIcon(type) {
+        var isMotor = (type || '').toLowerCase().includes('motor');
+        var markerClass = isMotor ? 'marker-motor' : 'marker-mobil';
+        var faIcon = isMotor ? 'fa-motorcycle' : 'fa-car-side';
+
+        return L.divIcon({
+            className: 'custom-vehicle-div-icon',
+            html: `
+                <div class="vehicle-marker ${markerClass}">
+                    <div class="marker-pulse"></div>
+                    <i class="fa-solid ${faIcon}"></i>
+                </div>
+            `,
+            iconSize: [44, 44],
+            iconAnchor: [22, 22],
+            popupAnchor: [0, -20]
+        });
+    }
+
+    var carIcon = createVehicleIcon('Mobil');
+    var motorIcon = createVehicleIcon('Motor');
 
     // Simpan semua marker yang sedang tampil agar bisa di-update
     var markers = {};
@@ -53,7 +124,7 @@
     var focusVehicleId = {{ focus_vehicle or 'null' }};
     var hasFocused = false;
 
-    // 2. Fungsi untuk mengambil data dari Backend secara Live
+    // 3. Fungsi untuk mengambil data dari Backend secara Live
     function fetchLiveTracking() {
         fetch('{{ url_for("main.api_live_tracking") }}')
             .then(response => response.json())
@@ -71,22 +142,41 @@
                 // Update atau Tambah marker baru
                 data.forEach(v => {
                     var latlng = [v.lat, v.lng];
+                    var isMotor = (v.vehicle_type || '').toLowerCase().includes('motor');
+                    var activeIcon = isMotor ? motorIcon : carIcon;
                     
+                    var badgeBg = isMotor ? '#DBEAFE' : '#FFEDD5';
+                    var badgeColor = isMotor ? '#1E40AF' : '#C2410C';
+                    var badgeIcon = isMotor ? 'fa-motorcycle' : 'fa-car-side';
+                    var badgeText = isMotor ? 'Motor' : 'Mobil';
+
                     var popupHtml = `
-                        <div style="font-family: Poppins, sans-serif;">
-                            <strong style="font-size:14px; color:#1E1E1E;">${v.vehicle_name}</strong><br>
-                            <span style="font-size:12px; color:#5B5B5B;">Penyewa: ${v.customer_name}</span><br>
-                            <span style="font-size:12px; color:#5B5B5B;">Sopir: ${v.driver_name}</span>
+                        <div style="font-family: 'Poppins', sans-serif; min-width: 190px;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                                <span style="font-size:11px; font-weight:700; text-transform:uppercase; padding:3px 8px; border-radius:12px; background:${badgeBg}; color:${badgeColor}; display:inline-flex; align-items:center; gap:4px;">
+                                    <i class="fa-solid ${badgeIcon}"></i> ${badgeText}
+                                </span>
+                                <span style="font-size:11px; color:#10B981; font-weight:600; display:inline-flex; align-items:center; gap:4px;">
+                                    <i class="fa-solid fa-circle" style="font-size:6px;"></i> Sedang Dipakai
+                                </span>
+                            </div>
+                            <strong style="font-size:14px; color:#1E1E1E; display:block; margin-bottom:6px;">${v.vehicle_name}</strong>
+                            <div style="font-size:12px; color:#5B5B5B; line-height:1.6;">
+                                <div><i class="fa-solid fa-user" style="width:14px; color:#888;"></i> Penyewa: <strong>${v.customer_name}</strong></div>
+                                <div><i class="fa-solid fa-id-badge" style="width:14px; color:#888;"></i> Sopir: ${v.driver_name}</div>
+                                <div><i class="fa-solid fa-receipt" style="width:14px; color:#888;"></i> Pesanan: ${v.booking_code}</div>
+                            </div>
                         </div>
                     `;
 
                     if (markers[v.vehicle_id]) {
-                        // Jika marker sudah ada, geser posisinya (animasi mulus)
+                        // Jika marker sudah ada, geser posisinya (animasi mulus) dan sesuaikan icon
                         markers[v.vehicle_id].setLatLng(latlng);
+                        markers[v.vehicle_id].setIcon(activeIcon);
                         markers[v.vehicle_id].setPopupContent(popupHtml);
                     } else {
                         // Jika marker baru, tambahkan ke peta
-                        markers[v.vehicle_id] = L.marker(latlng, {icon: carIcon})
+                        markers[v.vehicle_id] = L.marker(latlng, {icon: activeIcon})
                             .addTo(map)
                             .bindPopup(popupHtml);
                     }
@@ -102,10 +192,10 @@
             .catch(err => console.error("Tracking Error:", err));
     }
 
-    // 3. Jalankan pemanggilan data pertama kali
+    // 4. Jalankan pemanggilan data pertama kali
     fetchLiveTracking();
 
-    // 4. Atur agar fungsi berjalan otomatis setiap 2.5 detik (Sihir Live Demo)
+    // 5. Atur agar fungsi berjalan otomatis setiap 2.5 detik (Sihir Live Demo)
     setInterval(fetchLiveTracking, 2500);
 
 </script>
