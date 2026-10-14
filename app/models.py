@@ -6,6 +6,14 @@ import math
 
 # =========================================================
 # USER MODEL (Class User)
+# ---------------------------------------------------------
+# [OOP - PEWARISAN / INHERITANCE]:
+#   Kelas User mewarisi 'db.Model' dari SQLAlchemy ORM untuk
+#   mendapatkan kemampuan pemetaan basis data relasional.
+# [OOP - POLIMORFISME / POLYMORPHISM]:
+#   '__mapper_args__ = {"polymorphic_on": role}' mengaktifkan Single-Table
+#   Inheritance sehingga class turunan (Customer, Admin, SuperAdmin)
+#   dapat diinstansiasi secara polimorfik sesuai nilai kolom 'role'.
 # =========================================================
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -27,9 +35,11 @@ class User(db.Model):
     profile_photo = db.Column(db.String(255), nullable=True)
     ktp_number = db.Column(db.String(20), nullable=True)
     sim_number = db.Column(db.String(20), nullable=True)
-    # Kolom role menjadi penentu kelas: Customer / Admin / SuperAdmin
+    # [OOP - POLIMORFISME]: Kolom role menjadi diskriminator penentu kelas polimorfik
     __mapper_args__ = {'polymorphic_on': role}               
 
+    # [OOP - ENKAPSULASI / ENCAPSULATION]:
+    # Mengenkapsulasi hashing & verifikasi password sehingga keamanan terpusat di objek.
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
@@ -39,6 +49,13 @@ class User(db.Model):
 
 # =========================================================
 # KENDARAAN MODEL (Class Vehicle)
+# ---------------------------------------------------------
+# [OOP - PEWARISAN / INHERITANCE]:
+#   Mewarisi 'db.Model' dari SQLAlchemy untuk pemetaan tabel kendaraan.
+# [OOP - ENKAPSULASI / ENCAPSULATION]:
+#   Membungkus atribut data kendaraan dan menyembunyikan komputasi internal
+#   melalui @property (contoh: full_name, facility_list, avg_rating,
+#   serta kalkulasi status ketersediaan sewa di current_status).
 # =========================================================
 class Vehicle(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -135,6 +152,13 @@ class Vehicle(db.Model):
 
 # =========================================================
 # DRIVER MODEL (Sopir)
+# ---------------------------------------------------------
+# [OOP - PEWARISAN / INHERITANCE]:
+#   Mewarisi 'db.Model' dari SQLAlchemy untuk tabel sopir/driver.
+# [OOP - ENKAPSULASI / ENCAPSULATION]:
+#   Membungkus data dan komputasi dinamis sopir melalui getter (@property)
+#   seperti format kode (code -> SP001), status tugas live (status_label),
+#   perhitungan jumlah order, dan agregasi rating performa sopir.
 # =========================================================
 class Driver(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -205,6 +229,17 @@ class Driver(db.Model):
 
 # =========================================================
 # RENTAL MODEL (Data Penyewaan)
+# ---------------------------------------------------------
+# [OOP - PEWARISAN / INHERITANCE]:
+#   Mewarisi 'db.Model' dari SQLAlchemy untuk tabel transaksi penyewaan.
+# [OOP - ASOSIASI & RELASI OBJEK / OBJECT RELATIONSHIPS]:
+#   Menghubungkan entitas Rental dengan objek User, Vehicle, dan Driver
+#   melalui db.relationship, memungkinkan navigasi antar-objek secara langsung.
+# [OOP - ENKAPSULASI / ENCAPSULATION]:
+#   1. Mengenkapsulasi kalkulasi biaya total (durasi, unit, sopir, aksesoris, asuransi).
+#   2. Mengenkapsulasi logika batas waktu, pengingat H-3, dan denda keterlambatan.
+#   3. State Machine (change_status) mengenkapsulasi transisi status dan efek sampingnya
+#      (koordinat live GPS tracking, penguncian denda, status pembayaran).
 # =========================================================
 class Rental(db.Model):
     # Alur Status Penyewaan Baru
@@ -277,7 +312,9 @@ class Rental(db.Model):
     fine_amount = db.Column(db.Integer, nullable=False, default=0)
     fine_paid = db.Column(db.Boolean, nullable=False, default=False)
 
-    # Relasi antar objek (OOP)
+    # [OOP - ASOSIASI / OBJECT RELATIONSHIP]:
+    # Menghubungkan objek Rental dengan objek User, Vehicle, dan Driver
+    # sehingga data terkait dapat diakses secara relasional (e.g., rental.vehicle.price_per_day).
     user = db.relationship('User', backref=db.backref('rentals', lazy=True))
     vehicle = db.relationship('Vehicle', backref=db.backref('rentals', lazy=True))
     driver = db.relationship('Driver', backref=db.backref('rentals', lazy=True))
@@ -287,6 +324,11 @@ class Rental(db.Model):
     FINE_ADMIN_FEE = 50000            # denda administrasi per hari keterlambatan
     TRACKING_START = (-0.502106, 117.153709)   # titik awal tracking (Samarinda)
 
+    # ---------------------------------------------------------
+    # [OOP - ENKAPSULASI: KALKULASI FINANSIAL & DURASI]
+    # Mengenkapsulasi rumus perhitungan tarif sewa, driver, asuransi,
+    # dan aksesoris agar logika tidak tercecer di file route/template.
+    # ---------------------------------------------------------
     @property
     def duration_days(self):
         return max(1, (self.end_date - self.start_date).days)
@@ -318,7 +360,9 @@ class Rental(db.Model):
         return self.vehicle_cost + self.driver_cost + self.accessories_cost + self.insurance_cost
 
     # ---------------------------------------------------------
-    # BATAS WAKTU PENGEMBALIAN
+    # [OOP - ENKAPSULASI: LOGIKA WAKTU & DEADLINE PENGEMBALIAN]
+    # Membungkus komputasi deadline (tanggal + jam), selisih waktu sewa,
+    # pengingat H-3 (is_due_soon), dan status keterlambatan (is_overdue).
     # ---------------------------------------------------------
     @property
     def return_deadline(self):
@@ -362,7 +406,9 @@ class Rental(db.Model):
         return f'{jam} jam' if jam else 'kurang dari 1 jam'
 
     # ---------------------------------------------------------
-    # DENDA KETERLAMBATAN
+    # [OOP - ENKAPSULASI: LOGIKA PERHITUNGAN DENDA KETERLAMBATAN]
+    # Membungkus perhitungan denda per hari, hari terlambat live/terkunci,
+    # akumulasi denda, serta metode lock_fine() saat kendaraan dikembalikan.
     # ---------------------------------------------------------
     @property
     def fine_per_day(self):
@@ -405,7 +451,9 @@ class Rental(db.Model):
             self.fine_paid = False
 
     # ---------------------------------------------------------
-    # TRANSISI STATUS (satu pintu untuk semua halaman admin)
+    # [OOP - ENKAPSULASI: STATE TRANSITION & DATA INTEGRITY]
+    # Menjamin transisi status hanya lewat satu pintu dengan efek samping
+    # konsisten (aktivasi GPS, penguncian denda, pembaruan status pembayaran).
     # ---------------------------------------------------------
     def change_status(self, new_status):
         """
@@ -444,6 +492,10 @@ class Rental(db.Model):
 
 # =========================================================
 # REVIEW MODEL (Ulasan Pengguna)
+# ---------------------------------------------------------
+# [OOP - PEWARISAN & ASOSIASI]:
+#   Mewarisi 'db.Model'. Menjadi entitas asosiatif yang menghubungkan
+#   objek User (pemberi ulasan) dan Vehicle (kendaraan yang diulas).
 # =========================================================
 class Review(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -459,6 +511,17 @@ class Review(db.Model):
 
 # =========================================================
 # NOTIFICATION MODEL (Notifikasi Pengguna)
+# ---------------------------------------------------------
+# [OOP - PEWARISAN / INHERITANCE]:
+#   Mewarisi 'db.Model' dari SQLAlchemy untuk tabel notifikasi pengguna.
+# [OOP - ENKAPSULASI / ENCAPSULATION]:
+#   Membungkus metadata tampilan notifikasi (ikon Font Awesome & kelas CSS tone)
+#   secara terisolasi di dalam kelas melalui dictionary _STYLE dan getter property.
+# [OOP - ABSTRAKSI & FACTORY METHOD PATTERN]:
+#   Menyediakan kumpulan classmethod (@classmethod: status_changed, return_reminder,
+#   overdue_warning, fine_issued) sebagai pabrik pembuatan objek notifikasi.
+#   Pemanggil (caller) tidak perlu menyusun judul, pesan, dan kategori manual,
+#   cukup mengoper objek Rental.
 # =========================================================
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -513,15 +576,21 @@ class Notification(db.Model):
         CATEGORY_FINE:     ('fa-solid fa-file-invoice-dollar', 'tone-danger'),
     }
 
+    # [OOP - ENKAPSULASI (Property)]: Menentukan ikon visual berdasarkan kategori
     @property
     def icon(self):
         return self._STYLE.get(self.category, self._STYLE[self.CATEGORY_STATUS])[0]
 
+    # [OOP - ENKAPSULASI (Property)]: Menentukan tone warna badge berdasarkan kategori
     @property
     def tone(self):
         return self._STYLE.get(self.category, self._STYLE[self.CATEGORY_STATUS])[1]
 
-    # ---- Factory method: satu tempat untuk membuat setiap jenis notifikasi ----
+    # ---------------------------------------------------------
+    # [OOP - ABSTRAKSI & FACTORY PATTERN]
+    # Classmethod berikut bertindak sebagai Factory Method untuk
+    # menghasilkan instance Notification dengan format pesan terstandar.
+    # ---------------------------------------------------------
     @staticmethod
     def _rp(n):
         return 'Rp{:,.0f}'.format(n).replace(',', '.')
@@ -582,18 +651,40 @@ class Notification(db.Model):
 
 
 # =========================================================
-# MODEL TURUNAN USER  (Kelola Pelanggan & Kelola Admin)
+# MODEL TURUNAN USER (Kelola Pelanggan & Kelola Admin)
 #
-#   User (induk)
-#    |-- Customer          role = 'user'
-#    |-- Admin             role = 'admin'
-#         |-- SuperAdmin   role = 'superadmin'
+#   [OOP - DIAGRAM HIERARKI PEWARISAN (INHERITANCE)]:
 #
-# Tidak ada tabel baru: semuanya tetap di tabel `user`,
-# kolom `role` yang menentukan kelas objeknya.
+#              db.Model
+#                 |
+#                User <-----+
+#               /    \      |  ProfileMixin (Abstraksi / Mixin)
+#              /      \     +--------+
+#             v        v             |
+#         Customer    Admin <--------+
+#                       |
+#                       v
+#                   SuperAdmin
+#
+# ---------------------------------------------------------
+# [OOP - PEWARISAN (INHERITANCE) & MULTIPLE INHERITANCE]:
+#   - Customer mewarisi User & ProfileMixin (Multiple Inheritance).
+#   - Admin mewarisi User & ProfileMixin (Multiple Inheritance).
+#   - SuperAdmin mewarisi Admin (Pewarisan Bertingkat / Multilevel Inheritance).
+#
+# [OOP - POLIMORFISME / POLYMORPHISM]:
+#   Menerapkan Single-Table Polymorphism (SQLAlchemy ORM).
+#   Semua kelas turunan disimpan di tabel 'user', namun saat di-query:
+#   - Objek otomatis di-instansiasi sebagai Customer, Admin, atau SuperAdmin.
+#   - Property '.code' bersifat polimorfik: menghasilkan 'PLG001', 'ADM001', atau 'SA001'.
+#   - Attribute 'is_super_admin' bernilai False untuk Admin dan True untuk SuperAdmin.
 # =========================================================
 class ProfileMixin:
-    """Perilaku bersama untuk semua jenis pengguna (foto profil & dokumen)."""
+    """
+    [OOP - ABSTRAKSI & MIXIN]:
+    Kelas bantuan abstrak penyedia perilaku bersama (foto profil & dokumen akun)
+    untuk diwariskan ke Customer dan Admin tanpa membuat tabel terpisah di database.
+    """
 
     @property
     def avatar_path(self):
@@ -629,15 +720,21 @@ class ProfileMixin:
 
 
 class Customer(ProfileMixin, User):
-    """Pelanggan / penyewa kendaraan."""
+    """
+    [OOP - MULTIPLE INHERITANCE & POLIMORFISME]:
+    Mewarisi sifat ProfileMixin & User.
+    Menggunakan polymorphic_identity = 'user'.
+    """
     ROLE = 'user'
     CODE_PREFIX = 'PLG'
     __mapper_args__ = {'polymorphic_identity': ROLE}
 
+    # [OOP - POLIMORFISME]: Format kode ID khusus pelanggan (contoh: PLG001)
     @property
     def code(self):
-        return f"{self.CODE_PREFIX}{self.id:03d}"      # contoh: PLG001
+        return f"{self.CODE_PREFIX}{self.id:03d}"
 
+    # [OOP - ENKAPSULASI]: Mengenkapsulasi query histori penyewaan milik customer ini
     @property
     def rental_history(self):
         return (Rental.query
@@ -647,19 +744,28 @@ class Customer(ProfileMixin, User):
 
 
 class Admin(ProfileMixin, User):
-    """Admin biasa."""
+    """
+    [OOP - MULTIPLE INHERITANCE & POLIMORFISME]:
+    Mewarisi sifat ProfileMixin & User.
+    Menggunakan polymorphic_identity = 'admin'.
+    """
     ROLE = 'admin'
     CODE_PREFIX = 'ADM'
     is_super_admin = False
     __mapper_args__ = {'polymorphic_identity': ROLE}
 
+    # [OOP - POLIMORFISME]: Format kode ID khusus admin (contoh: ADM001)
     @property
     def code(self):
-        return f"{self.CODE_PREFIX}{self.id:03d}"      # contoh: ADM002
+        return f"{self.CODE_PREFIX}{self.id:03d}"
 
 
 class SuperAdmin(Admin):
-    """Super Admin = Admin + hak mengelola akun admin lain."""
+    """
+    [OOP - PEWARISAN BERTINGKAT / MULTILEVEL INHERITANCE & POLIMORFISME]:
+    Mewarisi class Admin -> User.
+    Meng-override atribut is_super_admin menjadi True dan prefix menjadi 'SA'.
+    """
     ROLE = 'superadmin'
     CODE_PREFIX = 'SA'
     is_super_admin = True

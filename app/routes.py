@@ -685,6 +685,15 @@ def riwayat_pesanan():
     )
 
 
+# ---------------------------------------------------------
+# [OOP - SERVICE FUNCTION & INTERAKSI ANTAR-OBJEK]
+# Fungsi layanan ini memanfaatkan prinsip OOP:
+# 1. Enkapsulasi: Mengakses property objek 'rental.is_overdue' dan
+#    'rental.is_due_soon' tanpa perlu kalkulasi manual detik/jam di sini.
+# 2. Abstraksi & Factory Pattern: Menggunakan method kelas Notification
+#    (Notification.overdue_warning & Notification.return_reminder) untuk
+#    membuat objek notifikasi tanpa menyusun string pesan secara manual.
+# ---------------------------------------------------------
 def periksa_pengingat_dan_denda(user_id):
     """
     Sistem Pengingat H-3 & Peringatan Denda Keterlambatan Otomatis (OOP Service).
@@ -701,7 +710,7 @@ def periksa_pengingat_dan_denda(user_id):
     jumlah_baru = 0
 
     for rental in rentals:
-        # KASUS A: Terlambat (Overdue)
+        # [OOP - ENKAPSULASI]: rental.is_overdue mengevaluasi keterlambatan secara otomatis
         if rental.is_overdue:
             # Cek apakah hari ini sudah pernah dikirimkan peringatan denda
             sudah_ada = Notification.query.filter(
@@ -712,10 +721,11 @@ def periksa_pengingat_dan_denda(user_id):
             ).first()
 
             if not sudah_ada:
+                # [OOP - FACTORY PATTERN]: Memanggil factory method untuk instansiasi notifikasi
                 db.session.add(Notification.overdue_warning(rental))
                 jumlah_baru += 1
 
-        # KASUS B: Masuk Jendela Pengingat H-3
+        # [OOP - ENKAPSULASI]: rental.is_due_soon mengevaluasi jendela pengingat H-3
         elif rental.is_due_soon:
             sudah_ada = Notification.query.filter_by(
                 user_id=user_id,
@@ -724,6 +734,7 @@ def periksa_pengingat_dan_denda(user_id):
             ).first()
 
             if not sudah_ada:
+                # [OOP - FACTORY PATTERN]: Memanggil factory method untuk instansiasi pengingat H-3
                 db.session.add(Notification.return_reminder(rental))
                 jumlah_baru += 1
 
@@ -1319,6 +1330,11 @@ def superadmin_required(view_func):
     return wrapper
 
 
+# ---------------------------------------------------------
+# [OOP - ABSTRAKSI & ENKAPSULASI: GUARD / INTERCEPTOR PATTERN]
+# Mengenkapsulasi aturan validasi status akun aktif/nonaktif pada level
+# middleware/request interceptor tanpa mengotori setiap fungsi view.
+# ---------------------------------------------------------
 class AccountStatusGuard:
     """
     Menegakkan status akun (aktif / nonaktif) di SETIAP request:
@@ -1355,6 +1371,9 @@ admin_bp.before_app_request(AccountStatusGuard.check)
 
 
 # ---------- SERVICE (logika bisnis, berbasis class) ----------
+
+# [OOP - PEWARISAN / INHERITANCE: CUSTOM EXCEPTION]
+# Mewarisi kelas Exception bawaan Python untuk menangani kegagalan validasi form.
 class ValidationError(Exception):
     """Dilempar saat input form tidak valid. `messages` berisi daftar pesan."""
     def __init__(self, messages):
@@ -1362,6 +1381,9 @@ class ValidationError(Exception):
         self.messages = messages
 
 
+# [OOP - ABSTRAKSI: TEMPLATE DESIGN PATTERN & BASE SERVICE]
+# Kelas abstrak layanan yang menyediakan operasi standar (search, paginate, find,
+# get_or_404, set_active). Atribut 'model' diisi secara dinamis oleh kelas turunan.
 class BaseUserService:
     """Logika umum: daftar -> cari -> pilih -> ubah status."""
     model = None            # diisi oleh kelas turunan
@@ -1403,13 +1425,19 @@ class BaseUserService:
         return user
 
 
+# [OOP - PEWARISAN / INHERITANCE]:
+# Mewarisi BaseUserService dan mengarahkan 'model' ke class Customer.
 class CustomerService(BaseUserService):
     model = Customer
 
+    # Menambahkan method spesifik untuk riwayat sewa pelanggan
     def rental_history(self, customer):
         return customer.rental_history
 
 
+# [OOP - PEWARISAN & ENKAPSULASI LOGIKA BISNIS]:
+# Mewarisi BaseUserService dan mengarahkan 'model' ke class Admin,
+# sekaligus mengenkapsulasi validasi pendaftaran dan upload foto admin.
 class AdminService(BaseUserService):
     model = Admin
 
@@ -1490,6 +1518,11 @@ class AdminService(BaseUserService):
 
 
 # ---------- CONTROLLER ADMIN: halaman Pelanggan (admin_bp) ----------
+
+# [OOP - PEWARISAN & CLASS-BASED VIEWS (MethodView)]:
+# Mewarisi MethodView dari Flask untuk menstrukturkan handler HTTP (GET)
+# ke dalam method objek.
+# [OOP - ASOSIASI / KOMPOSISI]: Menggunakan objek CustomerService() untuk delegasi bisnis logic.
 class PelangganListView(MethodView):
     """Daftar pelanggan + (jika dipilih) detail, dokumen, dan riwayat penyewaan."""
     decorators = [admin_required]
@@ -1511,6 +1544,7 @@ class PelangganListView(MethodView):
         )
 
 
+# [OOP - PEWARISAN (MethodView)]: Menangani HTTP POST status pelanggan
 class PelangganStatusView(MethodView):
     """Simpan perubahan status akun pelanggan (aktif / nonaktif)."""
     decorators = [admin_required]
@@ -1537,6 +1571,9 @@ admin_bp.add_url_rule('/<int:user_id>/status',
 
 
 # ---------- CONTROLLER SUPER ADMIN: halaman Admin (superadmin_bp) ----------
+
+# [OOP - PEWARISAN & KOMPOSISI (MethodView + AdminService)]:
+# Menangani halaman daftar admin dengan delegasi query ke AdminService()
 class AdminListView(MethodView):
     """Daftar admin + detail admin yang dipilih."""
     decorators = [superadmin_required]
@@ -1556,6 +1593,7 @@ class AdminListView(MethodView):
         )
 
 
+# [OOP - PEWARISAN (MethodView)]: Menangani mutasi status admin via HTTP POST
 class AdminStatusView(MethodView):
     """Simpan perubahan status akun admin (aktif / nonaktif)."""
     decorators = [superadmin_required]
@@ -1575,6 +1613,7 @@ class AdminStatusView(MethodView):
         ))
 
 
+# [OOP - PEWARISAN (MethodView)]: Form Tambah Admin dengan method GET dan POST terpisah
 class AdminCreateView(MethodView):
     """Form Tambah Admin Baru."""
     decorators = [superadmin_required]
