@@ -1046,6 +1046,7 @@ def admin_dashboard():
 
 
 
+
 @bp.route('/admin/penyewaan/<int:rental_id>/status', methods=['POST'])
 @admin_required
 def admin_update_rental_status(rental_id):
@@ -1054,34 +1055,67 @@ def admin_update_rental_status(rental_id):
 
     if new_status not in Rental.ALL_STATUS:
         flash('Status tidak valid.')
-    else:
-        old_status = rental.status
+        return redirect(
+            request.referrer or url_for('main.admin_dashboard')
+        )
 
-        # Simpan notifikasi hanya jika status benar-benar berubah
-        if old_status != new_status:
-            rental.status = new_status
+    old_status = rental.status
+    status_berubah = old_status != new_status
+    pembayaran_berubah = False
 
-            notification = Notification(
-                user_id=rental.user_id,
-                rental_id=rental.id,
-                title='Status Pesanan Diperbarui',
-                message=(
-                    f'Status pesanan {rental.booking_code} '
-                    f'berubah dari "{old_status}" '
-                    f'menjadi "{new_status}".'
-                ),
-                old_status=old_status,
-                new_status=new_status
-            )
+    # Perbarui status pesanan jika memang berubah.
+    if status_berubah:
+        rental.status = new_status
 
-            db.session.add(notification)
-            db.session.commit()
+        notification = Notification(
+            user_id=rental.user_id,
+            rental_id=rental.id,
+            title='Status Pesanan Diperbarui',
+            message=(
+                f'Status pesanan {rental.booking_code} '
+                f'berubah dari "{old_status}" '
+                f'menjadi "{new_status}".'
+            ),
+            old_status=old_status,
+            new_status=new_status
+        )
 
+        db.session.add(notification)
+
+    # Pembayaran dinyatakan lunas ketika admin
+    # mengonfirmasi pesanan ke tahap pengambilan.
+    if (
+        new_status == Rental.STATUS_PENGAMBILAN
+        and rental.payment_status != 'Lunas'
+    ):
+        rental.payment_status = 'Lunas'
+        pembayaran_berubah = True
+
+    # Perbarui tracking kendaraan sesuai status baru.
+    if new_status == Rental.STATUS_DIPAKAI:
+        rental.vehicle.current_lat = -0.502106
+        rental.vehicle.current_lng = 117.153709
+
+    elif new_status in [
+        Rental.STATUS_SELESAI,
+        Rental.STATUS_BATAL,
+        Rental.STATUS_PENGEMBALIAN
+    ]:
+        rental.vehicle.current_lat = None
+        rental.vehicle.current_lng = None
+
+    if status_berubah or pembayaran_berubah:
+        db.session.commit()
+
+        if status_berubah:
             flash(
-                f'Status {rental.booking_code} diubah menjadi "{new_status}".'
+                f'Status {rental.booking_code} '
+                f'diubah menjadi "{new_status}".'
             )
-        else:
-            flash('Status pesanan tidak mengalami perubahan.')
+        elif pembayaran_berubah:
+            flash('Status pembayaran berhasil diperbarui menjadi Lunas.')
+    else:
+        flash('Status pesanan tidak mengalami perubahan.')
 
     return redirect(
         request.referrer or url_for('main.admin_dashboard')
