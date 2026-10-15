@@ -498,7 +498,10 @@
    VEHICLE INFO
 ===================================================== */
 .vehicle-info {
-    padding: 0 10px;
+    height: 51px;
+    box-sizing: border-box;
+    padding: 4px 10px 3px;
+    background-color: #edeae8f2;
 }
 
 .vehicle-detail {
@@ -526,6 +529,7 @@
     color: #ef751e;
     font-size: 15px;
     font-weight: 600;
+    line-height: 1.2;
 }
 
 
