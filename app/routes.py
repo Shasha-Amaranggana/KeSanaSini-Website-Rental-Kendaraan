@@ -20,6 +20,37 @@ bp = Blueprint('main', __name__)
 BULAN_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli',
             'Agustus', 'September', 'Oktober', 'November', 'Desember']
 
+MINIMUM_JAM_SEBELUM_PENGAMBILAN = 25
+
+
+def waktu_minimum_pengambilan():
+    """Waktu paling awal kendaraan boleh diambil."""
+    return datetime.now() + timedelta(
+        hours=MINIMUM_JAM_SEBELUM_PENGAMBILAN
+    )
+
+
+def bulatkan_ke_menit_berikutnya(waktu):
+    """Bulatkan ke menit berikutnya untuk input tanggal dan jam."""
+    if waktu.second or waktu.microsecond:
+        waktu = waktu.replace(
+            second=0,
+            microsecond=0
+        ) + timedelta(minutes=1)
+
+    return waktu.replace(second=0, microsecond=0)
+
+
+def parse_waktu_pengambilan(tanggal, jam):
+    """Gabungkan tanggal dan jam pilihan menjadi satu datetime."""
+    try:
+        return datetime.strptime(
+            f'{tanggal} {jam}',
+            '%Y-%m-%d %H:%M'
+        )
+    except (TypeError, ValueError):
+        return None
+
 @bp.app_template_filter('rupiah')
 def rupiah(value):
     """15000 -> 15.000"""
@@ -53,7 +84,7 @@ def index():
 
     vehicles = Vehicle.query.all()
 
-    now = datetime.now()
+    now = bulatkan_ke_menit_berikutnya(waktu_minimum_pengambilan())
 
     current_date = now.strftime('%Y-%m-%d')
     current_time = now.strftime('%H:%M')
@@ -84,22 +115,46 @@ def hasil_pencarian():
     # Validasi durasi
     duration = max(1, min(duration, 7))
 
-    # Tentukan tanggal pengambilan
-    try:
-        start_date = datetime.strptime(
-            pickup_date_str, '%Y-%m-%d'
-        ).date()
-    except (ValueError, TypeError):
-        start_date = date.today()
-        pickup_date_str = start_date.strftime('%Y-%m-%d')
+    minimum_pickup = waktu_minimum_pengambilan()
 
-    # Tentukan tanggal pengembalian
+    # Jika pencarian dibuka tanpa tanggal dan jam,
+    # gunakan waktu minimum.
+    if not pickup_date_str and not pickup_time:
+        selected_pickup = bulatkan_ke_menit_berikutnya(
+            minimum_pickup
+        )
+    else:
+        selected_pickup = parse_waktu_pengambilan(
+            pickup_date_str,
+            pickup_time
+        )
+
+        if selected_pickup is None:
+            flash(
+                'Tanggal dan jam pengambilan tidak valid.',
+                'error'
+            )
+            return redirect(url_for('main.index'))
+
+        if selected_pickup < minimum_pickup:
+            flash(
+                'Pengambilan kendaraan harus dijadwalkan '
+                'minimal 25 jam dari waktu pemesanan.',
+                'error'
+            )
+            return redirect(
+                request.referrer or url_for('main.index')
+            )
+
+    start_date = selected_pickup.date()
+    pickup_time = selected_pickup.strftime('%H:%M')
+
+    # Tentukan tanggal pengembalian.
     end_date = start_date + timedelta(days=duration)
 
-    # Format tanggal untuk ditampilkan
+    # Format tanggal untuk ditampilkan.
     pickup_date = start_date.strftime('%d %B %Y')
     return_date = end_date.strftime('%d %B %Y')
-    pickup_time = pickup_time or datetime.now().strftime('%H:%M')
     return_time = pickup_time
 
     # Query kendaraan
@@ -180,8 +235,30 @@ def detail_kendaraan(vehicle_id):
 
     # Data pencarian dibawa dari halaman sebelumnya lewat URL
     date_str = request.args.get('date')
+    time_str = request.args.get('time')
     duration = request.args.get('duration', type=int) or 1
-    pickup_time = request.args.get('time') or '10:00'
+    duration = max(1, min(duration, 7))
+
+    # Jika dibuka tanpa jadwal, gunakan waktu minimum yang baru.
+    if not date_str:
+        selected_pickup = bulatkan_ke_menit_berikutnya(
+            waktu_minimum_pengambilan()
+        )
+    else:
+        selected_pickup = parse_waktu_pengambilan(
+            date_str,
+            time_str or '10:00'
+        )
+
+        if selected_pickup is None:
+            flash('Tanggal dan jam pengambilan tidak valid.', 'error')
+            return redirect(url_for('main.index'))
+
+    pickup_date = selected_pickup.date()
+    pickup_time = selected_pickup.strftime('%H:%M')
+
+    end_date = pickup_date + timedelta(days=duration)
+    total = vehicle.price_per_day * duration
 
     try:
         pickup_date = datetime.strptime(date_str, '%Y-%m-%d').date()
@@ -280,29 +357,38 @@ def pesanan():
     if not user:
         return redirect(url_for('main.login'))
 
-    # Ambil data pencarian sebelumnya
-    pickup_date = request.args.get('date')
-    duration = request.args.get('duration', type=int)
+    # Ambil data tanggal dan jam pengambilan.
+    tanggal_str = request.args.get('date')
+    jam_str = request.args.get('time')
 
-    if not pickup_date:
-        pickup_date = datetime.now().date()
+    minimum_pickup = bulatkan_ke_menit_berikutnya(
+        waktu_minimum_pengambilan()
+    )
+
+    # Jika pengguna membuka form tanpa memilih jadwal,
+    # gunakan jadwal default minimum.
+    if not tanggal_str and not jam_str:
+        selected_pickup = minimum_pickup
     else:
-        pickup_date = datetime.strptime(
-            pickup_date,
-            '%Y-%m-%d'
-        ).date()
+        selected_pickup = parse_waktu_pengambilan(
+            tanggal_str,
+            jam_str
+        )
 
-    if not duration:
-        duration = 1
+        if selected_pickup is None:
+            flash(
+                'Tanggal dan jam pengambilan tidak valid.',
+                'error'
+            )
+            return redirect(url_for('main.index'))
+
+    pickup_date = selected_pickup.date()
+    pickup_time = selected_pickup.strftime('%H:%M')
+
+    duration = request.args.get('duration', type=int) or 1
+    duration = max(1, min(duration, 7))
 
     end_date = pickup_date + timedelta(days=duration)
-
-    # Jam pengambilan dari halaman pencarian (format HH:MM). Jam kembali = jam ambil.
-    pickup_time = request.args.get('time') or '10:00'
-    try:
-        pickup_time = datetime.strptime(pickup_time, '%H:%M').strftime('%H:%M')
-    except ValueError:
-        pickup_time = '10:00'
     return_time = pickup_time
 
     def render_form(form):
@@ -327,6 +413,18 @@ def pesanan():
 
     if request.method == 'GET':
         return render_form(MultiDict())
+
+    # Validasi ulang saat formulir sewa dikirim.
+    # Batas dihitung dari waktu pengiriman pesanan,
+    # bukan hanya saat pengguna membuka halaman pencarian.
+    if selected_pickup < waktu_minimum_pengambilan():
+        flash(
+            'Jadwal pengambilan harus minimal 25 jam '
+            'dari sekarang. Silakan pilih ulang tanggal '
+            'dan jam pengambilan.',
+            'error'
+        )
+        return redirect(url_for('main.index'))
 
     # ---------- POST: validasi lalu simpan ----------
     f = request.form
@@ -842,6 +940,25 @@ def ganti_password():
 # =========================================================
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
+    # Hapus pesan validasi jadwal dari antrean flash
+    # agar tidak ikut tampil di halaman login.
+    flash_lama = session.get('_flashes', [])
+
+    pesan_jadwal = (
+        'Pengambilan kendaraan harus dijadwalkan',
+        'Jadwal pengambilan harus minimal 25 jam',
+    )
+
+    flash_lama = [
+        item for item in flash_lama
+        if not any(teks in item[1] for teks in pesan_jadwal)
+    ]
+
+    if flash_lama:
+        session['_flashes'] = flash_lama
+    else:
+        session.pop('_flashes', None)
+        
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')

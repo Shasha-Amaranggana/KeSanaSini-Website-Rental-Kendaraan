@@ -507,60 +507,62 @@ vehicleTabs.forEach(function(tab) {
 const pickupDate = document.getElementById('pickup-date');
 const pickupTime = document.getElementById('pickup-time');
 
-const now = new Date();
+function terapkanBatasPengambilan() {
+    const minimum = new Date(
+        Date.now() + 25 * 60 * 60 * 1000
+    );
 
-// =============================
-// TANGGAL HARI INI
-// =============================
-const year = now.getFullYear();
-const month = String(now.getMonth() + 1).padStart(2, '0');
-const day = String(now.getDate()).padStart(2, '0');
+    // Bulatkan ke menit berikutnya.
+    if (minimum.getSeconds() || minimum.getMilliseconds()) {
+        minimum.setMinutes(minimum.getMinutes() + 1);
+    }
+    minimum.setSeconds(0, 0);
 
-const today = `${year}-${month}-${day}`;
+    const tanggalMinimum = [
+        minimum.getFullYear(),
+        String(minimum.getMonth() + 1).padStart(2, '0'),
+        String(minimum.getDate()).padStart(2, '0')
+    ].join('-');
 
-pickupDate.value = today;
-pickupDate.min = today;
+    const jamMinimum = [
+        String(minimum.getHours()).padStart(2, '0'),
+        String(minimum.getMinutes()).padStart(2, '0')
+    ].join(':');
 
-// =============================
-// WAKTU 1 JAM DARI SEKARANG
-// =============================
-const pickupNow = new Date(now);
-pickupNow.setHours(pickupNow.getHours() + 1);
+    pickupDate.min = tanggalMinimum;
 
-const hour = String(pickupNow.getHours()).padStart(2, '0');
-const minute = String(pickupNow.getMinutes()).padStart(2, '0');
+    if (
+        !pickupDate.value ||
+        pickupDate.value < tanggalMinimum
+    ) {
+        pickupDate.value = tanggalMinimum;
+    }
 
-const minimumTime = `${hour}:${minute}`;
+    if (pickupDate.value === tanggalMinimum) {
+        pickupTime.min = jamMinimum;
 
-pickupTime.value = minimumTime;
-
-// =============================
-// VALIDASI TANGGAL & JAM
-// =============================
-pickupDate.addEventListener('change', function () {
-
-    // Kalau memilih hari ini
-    if (this.value === today) {
-        pickupTime.min = minimumTime;
-
-        // Kalau waktu yang dipilih lebih kecil dari waktu minimum
-        if (pickupTime.value < minimumTime) {
-            pickupTime.value = minimumTime;
+        if (
+            !pickupTime.value ||
+            pickupTime.value < jamMinimum
+        ) {
+            pickupTime.value = jamMinimum;
         }
-    } 
-    // Kalau memilih hari setelah hari ini
-    else if (this.value > today) {
+    } else {
         pickupTime.min = '';
     }
-});
+}
 
-pickupTime.addEventListener('change', function () {
+terapkanBatasPengambilan();
 
-    // Kalau tanggal yang dipilih hari ini
-    if (pickupDate.value === today && this.value < minimumTime) {
-        this.value = minimumTime;
-    }
-});
+pickupDate.addEventListener(
+    'change',
+    terapkanBatasPengambilan
+);
+
+pickupTime.addEventListener(
+    'change',
+    terapkanBatasPengambilan
+);
 
 </script>
 

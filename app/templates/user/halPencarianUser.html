@@ -95,6 +95,7 @@ KeSanaSini - Hasil Pencarian
                             <div class="field-input">
                                 <input
                                     type="date"
+                                    id="search-pickup-date"
                                     name="date"
                                     value="{{ request.args.get('date', '') }}"
                                     required
@@ -106,6 +107,7 @@ KeSanaSini - Hasil Pencarian
                             <div class="field-input">
                                 <input
                                     type="time"
+                                    id="search-pickup-time"
                                     name="time"
                                     value="{{ request.args.get('time', '') }}"
                                     required
@@ -275,7 +277,7 @@ KeSanaSini - Hasil Pencarian
                         <button
                             type="button"
                             class="rent-button"
-                            onclick="rentVehicle({{ vehicle.id }})">
+                            data-vehicle-id="{{ vehicle.id }}">
                             SEWA
                         </button>
 
@@ -379,27 +381,29 @@ KeSanaSini - Hasil Pencarian
     // =====================================================
 
     function rentVehicle(vehicleId) {
-        window.location.href =
-            "{{ url_for('main.pesanan') }}" +
-            "?vehicle_id=" +
-            vehicleId +
-            "&date={{ request.args.get('date', '') }}" +
-            "&duration={{ request.args.get('duration', 1) }}";
-    }
-
-    function rentVehicle(vehicleId) {
-        const params = new URLSearchParams(window.location.search);
-
         const query = new URLSearchParams({
-            date: params.get('date') || '',
-            time: params.get('time') || '',
-            duration: params.get('duration') || 1
+            date: searchPickupDate.value,
+            time: searchPickupTime.value,
+            duration: document.querySelector(
+                '.search-form select[name="duration"]'
+            ).value
         });
 
-        const base = "{{ url_for('main.detail_kendaraan', vehicle_id=0) }}".slice(0, -1);
+        const base = "{{ url_for('main.detail_kendaraan', vehicle_id=0) }}"
+            .slice(0, -1);
 
-        window.location.href = base + vehicleId + "?" + query.toString();
-    }
+        window.location.href =
+            base + vehicleId + "?" + query.toString();}
+
+    document.querySelectorAll('.rent-button').forEach(button => {
+        button.addEventListener('click', function () {
+            const vehicleId = Number(this.dataset.vehicleId);
+
+            if (Number.isInteger(vehicleId) && vehicleId > 0) {
+                rentVehicle(vehicleId);
+            }
+        });
+    });
 
     // BUKA / TUTUP FORM GANTI PENCARIAN
 
@@ -409,7 +413,72 @@ KeSanaSini - Hasil Pencarian
     changeSearchButton.addEventListener('click', function () {
         searchFormContainer.hidden = !searchFormContainer.hidden;
     });
-    
+
+const searchPickupDate = document.getElementById('search-pickup-date');
+const searchPickupTime = document.getElementById('search-pickup-time');
+
+function bulatkanMenitSearch(waktu) {
+    const hasil = new Date(waktu);
+
+    if (hasil.getSeconds() || hasil.getMilliseconds()) {
+        hasil.setMinutes(hasil.getMinutes() + 1);
+    }
+
+    hasil.setSeconds(0, 0);
+    return hasil;
+}
+
+function formatTanggalSearch(waktu) {
+    const tahun = waktu.getFullYear();
+    const bulan = String(waktu.getMonth() + 1).padStart(2, '0');
+    const hari = String(waktu.getDate()).padStart(2, '0');
+
+    return `${tahun}-${bulan}-${hari}`;
+}
+
+function formatJamSearch(waktu) {
+    const jam = String(waktu.getHours()).padStart(2, '0');
+    const menit = String(waktu.getMinutes()).padStart(2, '0');
+
+    return `${jam}:${menit}`;
+}
+
+function terapkanBatasSearch() {
+    const minimum = bulatkanMenitSearch(
+        new Date(Date.now() + 25 * 60 * 60 * 1000)
+    );
+
+    const tanggalMinimum = formatTanggalSearch(minimum);
+    const jamMinimum = formatJamSearch(minimum);
+
+    searchPickupDate.min = tanggalMinimum;
+
+    if (
+        !searchPickupDate.value ||
+        searchPickupDate.value < tanggalMinimum
+    ) {
+        searchPickupDate.value = tanggalMinimum;
+    }
+
+    if (searchPickupDate.value === tanggalMinimum) {
+        searchPickupTime.min = jamMinimum;
+
+        if (
+            !searchPickupTime.value ||
+            searchPickupTime.value < jamMinimum
+        ) {
+            searchPickupTime.value = jamMinimum;
+        }
+    } else {
+        searchPickupTime.min = '';
+    }
+}
+
+terapkanBatasSearch();
+
+searchPickupDate.addEventListener('change', terapkanBatasSearch);
+searchPickupTime.addEventListener('change', terapkanBatasSearch);
+
 </script>
 
 {% endblock %}

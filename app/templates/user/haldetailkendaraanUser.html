@@ -155,7 +155,9 @@ KeSanaSini - Detail Kendaraan
                         {% for s in [5, 4, 3, 2, 1] %}
                         <div class="review-bar-row">
                             <span>{{ s }}</span>
-                            <div class="review-bar"><div style="width: {{ vehicle.rating_percent(s) }}%"></div></div>
+                            <div class="review-bar">
+                                <div style="width: {{ vehicle.rating_percent(s) }}%"></div>
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
