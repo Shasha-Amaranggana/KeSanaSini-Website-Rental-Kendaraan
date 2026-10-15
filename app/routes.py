@@ -6,9 +6,14 @@ from datetime import datetime, date, timedelta
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import MultiDict
 from functools import wraps
-from app import db
+from app import db, oauth
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 import os
+
+import smtplib
+import ssl
+from email.message import EmailMessage
+from html import escape
 
 bp = Blueprint('main', __name__)
 
@@ -861,6 +866,176 @@ def login():
     return render_template('loginRegister.html', mode='login')
 
 
+@bp.route('/login/google')
+def google_login():
+    # Cegah error jika kredensial Google belum disiapkan.
+    if (
+        not current_app.config.get('GOOGLE_CLIENT_ID')
+        or not current_app.config.get('GOOGLE_CLIENT_SECRET')
+    ):
+        flash('Login Google belum dikonfigurasi.', 'error')
+        return redirect(url_for('main.login'))
+
+    redirect_uri = url_for(
+        'main.google_callback',
+        _external=True
+    )
+
+    return oauth.google.authorize_redirect(
+        redirect_uri,
+        prompt='select_account'
+    )
+
+
+@bp.route('/login/google/callback')
+def google_callback():
+    # Ambil dan verifikasi hasil autentikasi dari Google.
+    try:
+        token = oauth.google.authorize_access_token()
+        google_user = token.get('userinfo')
+    except Exception:
+        current_app.logger.exception(
+            'Proses login Google gagal.'
+        )
+        flash(
+            'Login Google gagal. Silakan coba lagi.',
+            'error'
+        )
+        return redirect(url_for('main.login'))
+
+    if not google_user:
+        flash(
+            'Data akun Google tidak berhasil diperoleh.',
+            'error'
+        )
+        return redirect(url_for('main.login'))
+
+    # Hanya terima alamat email yang telah diverifikasi Google.
+    email = (google_user.get('email') or '').strip()
+
+    if not email or google_user.get('email_verified') is not True:
+        flash(
+            'Email Google tidak dapat diverifikasi.',
+            'error'
+        )
+        return redirect(url_for('main.login'))
+
+    # OPSI B: cari akun yang sudah ada, tanpa membuat akun baru.
+    user = User.query.filter(
+        db.func.lower(User.email) == email.lower()
+    ).first()
+
+    if not user:
+        flash(
+            'Email Google belum terdaftar. '
+            'Silakan registrasi terlebih dahulu.',
+            'error'
+        )
+        return redirect(url_for('main.register'))
+
+    # Akun yang dinonaktifkan tidak boleh login dengan Google.
+    if not user.is_active:
+        flash(
+            'Akun Anda sedang dinonaktifkan. Hubungi admin.',
+            'error'
+        )
+        return redirect(url_for('main.login'))
+
+    # Buat session aplikasi setelah identitas berhasil diperiksa.
+    session.clear()
+    session['user_id'] = user.id
+    session['user_name'] = user.name
+    session['user_email'] = user.email
+    session['user_role'] = user.role
+
+    # Pertahankan pemisahan halaman berdasarkan role.
+    if user.role in ('admin', 'superadmin'):
+        return redirect(url_for('main.admin_dashboard'))
+
+    return redirect(url_for('main.index'))
+
+
+def kirim_email_reset_password(email_tujuan, reset_url):
+    """Kirim tautan reset password melalui Gmail SMTP."""
+
+    email_pengirim = os.getenv('SMTP_EMAIL')
+    app_password = os.getenv('SMTP_APP_PASSWORD')
+    smtp_host = os.getenv('SMTP_HOST', 'smtp.gmail.com')
+    smtp_port = int(os.getenv('SMTP_PORT', '587'))
+
+    if not email_pengirim or not app_password:
+        raise RuntimeError(
+            'SMTP_EMAIL dan SMTP_APP_PASSWORD belum dikonfigurasi.'
+        )
+
+    pesan = EmailMessage()
+    pesan['Subject'] = 'Reset Password KeSanaSini'
+    pesan['From'] = f'KeSanaSini <{email_pengirim}>'
+    pesan['To'] = email_tujuan
+
+    # Versi teks biasa jika aplikasi email tidak mendukung HTML.
+    pesan.set_content(
+        f'''Halo,
+
+Kami menerima permintaan untuk mengatur ulang password
+akun KeSanaSini Anda.
+
+Klik tautan berikut untuk membuat password baru:
+{reset_url}
+
+Tautan ini berlaku selama 15 menit.
+
+Jika Anda tidak meminta reset password, abaikan email ini.
+
+Salam,
+Tim KeSanaSini
+'''
+    )
+
+    # Versi HTML agar link mudah diklik.
+    url_aman = escape(reset_url, quote=True)
+
+    pesan.add_alternative(
+        f'''\
+<html>
+<body>
+    <h2>Reset Password KeSanaSini</h2>
+    <p>Kami menerima permintaan untuk mengatur ulang
+    password akun KeSanaSini Anda.</p>
+
+    <p>
+        <a href="{url_aman}">Reset Password</a>
+    </p>
+
+    <p>Link berlaku selama 15 menit.</p>
+
+    <p>Jika Anda tidak meminta reset password,
+    abaikan email ini.</p>
+
+    <p>Salam,<br>Tim KeSanaSini</p>
+</body>
+</html>
+''',
+        subtype='html'
+    )
+
+    # App Password Google dapat ditampilkan dengan spasi.
+    app_password = app_password.strip().replace(' ', '')
+
+    with smtplib.SMTP(
+        smtp_host,
+        smtp_port,
+        timeout=20
+    ) as server:
+        server.ehlo()
+        server.starttls(
+            context=ssl.create_default_context()
+        )
+        server.ehlo()
+        server.login(email_pengirim, app_password)
+        server.send_message(pesan)
+
+
 @bp.route('/lupa-password', methods=['GET', 'POST'])
 def lupa_password():
     if request.method == 'POST':
@@ -870,10 +1045,11 @@ def lupa_password():
             db.func.lower(User.email) == email.lower()
         ).first()
 
-        # Pesan dibuat sama agar tidak membocorkan
-        # apakah sebuah email terdaftar.
+        # Pesan tetap sama agar tidak membocorkan
+        # apakah email terdaftar.
         flash(
-            'Jika email terdaftar, tautan reset akan dibuat.',
+            'Jika email terdaftar, tautan reset akan dikirim. '
+            'Periksa kotak masuk dan folder spam.',
             'info'
         )
 
@@ -894,18 +1070,24 @@ def lupa_password():
                 _external=True
             )
 
-            # Hanya untuk pengujian lokal.
-            current_app.logger.warning(
-                '[DEV ONLY] Tautan reset password: %s',
-                reset_url
-            )
+            try:
+                kirim_email_reset_password(
+                    user.email,
+                    reset_url
+                )
+            except Exception:
+                current_app.logger.exception(
+                    'Gagal mengirim email reset password.'
+                )
 
-        return redirect(url_for('main.lupa_password'))
+        return redirect(
+            url_for('main.lupa_password')
+        )
 
     return render_template(
-    'loginRegister.html',
-    mode='forgot_password'
-)
+        'loginRegister.html',
+        mode='forgot_password'
+    )
 
 
 @bp.route('/reset-password/<token>', methods=['GET', 'POST'])
