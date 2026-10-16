@@ -1,112 +1,99 @@
-/* =====================================================
-   RESET
-===================================================== */
+/* ═════════════════════════════════════════════════════════════
+    CSS GLOBAL WEBSITE KeSanaSini
+    ⤷ Mengatur tampilan umum halaman pengguna.
+═════════════════════════════════════════════════════════════ */
 
+
+/* ═════════════════════════════════════════════════════════════
+   A.   RESET DAN PENGATURAN DASAR
+═════════════════════════════════════════════════════════════ */
+
+/* A.1. Reset margin, padding, dan perhitungan ukuran elemen
+   ════════════════════════════════════════════════════════  */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-
-/* =====================================================
-   HTML
-===================================================== */
-
+/* A.2. Pengaturan scroll halaman
+   ════════════════════════════════════════════════════════  */
 html {
     scroll-behavior: smooth;
 }
 
-
-/* =====================================================
-   BODY
-===================================================== */
-
+/* A.3. Pengaturan dasar body 
+   ════════════════════════════════════════════════════════  */
 body {
     width: 100%;
     min-height: 100vh;
-
     font-family: 'Inter', Arial, sans-serif;
-
     color: #111;
-
     background-color: #ffedcf;
-
     overflow-x: hidden;
 }
 
 
-/* =====================================================
-   BACKGROUND UMUM HALAMAN USER
-===================================================== */
 
-/*
-   Background ini dipakai oleh beberapa halaman user.
+/* ═════════════════════════════════════════════════════════════
+   B.   BACKGROUND DAN LAYOUT HALAMAN USER
+═════════════════════════════════════════════════════════════ */
 
-   Kalau hanya halaman tertentu yang memakai background,
-   gunakan class="user-page" pada body.
-*/
-
+/* B.1.   Background umum halaman user 
+   ════════════════════════════════════════════════════════  */
 body.user-page {
-    background-image:
-        url("../images/home-bg.png");
-
+    background-image: url("../images/home-bg.png");
     background-size: 100% auto;
-
     background-position: center top;
-
     background-repeat: no-repeat;
-
     background-attachment: fixed;
-}
 
-
-/* =====================================================
-   LAYOUT HALAMAN USER - Biar footer di bawah, konten di atas
-===================================================== */
-
-body.user-page {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
 }
 
+
+/* B.2.   Konten halaman akun mengisi ruang yang tersedia 
+   ════════════════════════════════════════════════════════  */
 body.user-page > main.account-page {
     flex: 1 0 auto;
 }
 
+
+/* B.3.   Footer tidak menyusut 
+   ════════════════════════════════════════════════════════  */
 body.user-page > .footer {
     flex-shrink: 0;
 }
 
 
 
-/* =====================================================
-   NAVBAR
-===================================================== */
+/* ═════════════════════════════════════════════════════════════
+   C.  NAVBAR UTAMA
+═════════════════════════════════════════════════════════════ */
+
+/* C.1.   Kerangka Navbar 
+   ════════════════════════════════════════════════════════  */
 .navbar {
     width: 100%;
     height: 78px;
-
-    background: white;
+    padding: 0 50px;
 
     display: flex;
     align-items: center;
 
-    padding: 0 50px;
-
     position: relative;
-
     z-index: 100;
 
-    box-shadow:
-        0 2px 8px rgba(0, 0, 0, 0.12);
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 
-/* =====================================================
-   LOGO
-===================================================== */
+/* C.2.   Logo Website - Kiri 
+   ════════════════════════════════════════════════════════  */
+/* Kerangka Logo */
 .navbar-logo {
     width: 220px;
 
@@ -116,133 +103,103 @@ body.user-page > .footer {
     text-decoration: none;
 }
 
-
+/* Gambar Logo */
 .navbar-logo img {
-
     width: 260px;
     height: auto;
-
     object-fit: contain;
 }
 
 
-/* =====================================================
-   MENU NAVBAR
-===================================================== */
-
+/* C.3.   Menu navigasi Navbar - Tengah
+   ════════════════════════════════════════════════════════  */
+/* Kerangka Menu Navbar */
 .nav-menu {
-
     display: flex;
     align-items: center;
-
     gap: 100px;
-
     margin-left: 200px;
 }
 
-
+/* Link Menu Navbar (Menu utama, Pesanan saya, Riwayat pesanan */
 .nav-link {
-
     position: relative;
-
     padding: 28px 0 22px;
 
-    text-decoration: none;
-
     color: #3d3d3d;
-
-    font-size: 17px;
     font-family: 'Poppins', sans-serif;
+    font-size: 17px;
     font-weight: 550;
-
+    text-decoration: none;
     white-space: nowrap;
 
-    transition:
-        color 0.25s ease;
+    transition: color 0.25s ease;
 }
 
-
+/* Warna link navbar saat kursor ngarah ke mereka */
 .nav-link:hover {
-
     color: #ef7518;
 }
 
-
+/* Warna link navbar saat ada di halaman tersebut */
 .nav-link.active {
-
     color: #3d3d3d;
 }
 
-
+/* Garis penanda link navbar saat ada di halaman tersebut */
 .nav-link.active::after {
-
     content: '';
-
     position: absolute;
-
     left: 0;
     right: 0;
-
     bottom: 13px;
 
     height: 3px;
-
     background: #ef7518;
-
     border-radius: 5px;
 }
 
 
-/* =====================================================
-   USER MENU
-===================================================== */
 
+/* ═════════════════════════════════════════════════════════════
+   D.  MENU PROFIL PENGGUNA DAN DROPDOWN
+═════════════════════════════════════════════════════════════ */
+
+/* D.1.   Kerangka Menu Profil 
+   ════════════════════════════════════════════════════════  */
 .user-menu {
-
+    position: relative;
+    height: 100%;
     margin-left: auto;
 
-    height: 100%;
-
     display: flex;
-
     align-items: center;
-
     gap: 14px;
-
-    position: relative;
 
     cursor: pointer;
 }
 
 
-/* =====================================================
-   USER ICON
-===================================================== */
-
+/* D.2.   Ikon Akun 
+   ════════════════════════════════════════════════════════  */
 .user-icon {
-
     width: 36px;
     height: 36px;
 
-    border: 2px solid #32a5ef;
-
-    border-radius: 50%;
-
     display: flex;
-
     align-items: center;
     justify-content: center;
 
-    color: #32a5ef;
+    border: 2px solid #32a5ef;
+    border-radius: 50%;
 
+    color: #32a5ef;
     font-size: 20px;
 }
 
 
-/* =====================================================
-   USER EMAIL
-===================================================== */
-
+/* D.3.   Email Pengguna
+   ════════════════════════════════════════════════════════  */
 .user-email {
     font-size: 17px;
     font-weight: 600;
@@ -250,37 +207,28 @@ body.user-page > .footer {
 }
 
 
-/* =====================================================
-   USER ARROW
-===================================================== */
-
+/* D.4.   Ikon panah Dropdown
+   ════════════════════════════════════════════════════════  */
 .user-arrow {
-
     margin-left: 18px;
-
     color: #32a5ef;
-
     font-size: 12px;
-
-    transition:
-        transform 0.25s ease;
+    transition: transform 0.25s ease;
 }
 
 
-/* =====================================================
-   USER DROPDOWN
-===================================================== */
-
+/* D.5.   Kerangka Menu Dropdown Profil
+   ════════════════════════════════════════════════════════  */
 .user-dropdown {
     position: absolute;
     top: 65px;
     right: 0;
     width: 240px;
 
-    background: white;
-    border-radius: 10px;
     overflow: hidden;
 
+    background: #fff;
+    border-radius: 10px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 
     opacity: 0;
@@ -293,42 +241,38 @@ body.user-page > .footer {
         visibility 0.2s ease;
 }
 
-/* DROPDOWN PROFILE */
+
+/* D.6.   Informasi Menu Dropdown Profil
+   ════════════════════════════════════════════════════════  */
 .dropdown-profile {
     width: 100%;
     min-height: 78px;
-
     padding: 14px 15px;
-
-    background: #ed741d;
 
     display: flex;
     align-items: center;
     gap: 12px;
 
+    background: #ed741d;
     color: white;
 }
 
-
+/* Ikon profil di Dropdown */
 .dropdown-profile-photo {
     width: 45px;
     height: 45px;
-
     flex-shrink: 0;
-
-    border-radius: 50%;
-
-    background: white;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
+    border-radius: 50%;
+    background: #fff;
+
     color: #ed741d;
     font-size: 21px;
 }
-
-/* DROPDOWN PROFILE INFO */
 
 .dropdown-profile-info {
     flex: 1;
@@ -350,102 +294,127 @@ body.user-page > .footer {
     font-size: 15px;
 }
 
+
+/* D.7.   Daftar Menu Dropdown Profil
+   ════════════════════════════════════════════════════════  */
 .dropdown-menu-list {
     padding: 7px;
 }
 
-/* DROPDOWN LINK */
 .user-dropdown a {
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 11px 16px;
+
     color: #333;
-    text-decoration: none;
     font-family: 'Poppins', sans-serif;
     font-size: 15px;
     font-weight: 500;
+    text-decoration: none;
+
     transition: background 0.2s ease;
 }
 
+/* Warna link dropdown saat kursor ngarah ke mereka */
 .user-dropdown a:hover {
     background: #f5f5f5;
 }
 
+/* Ikon link dropdown profil */
 .user-dropdown a i {
     width: 18px;
     text-align: center;
+
     color: #e58137;
     font-size: 17px;
 }
 
+/* Pemisah link logout */
 .user-dropdown a:last-child {
     border-top: 1px solid #e0e0e0;
     margin-top: 5px;
     padding-top: 12px;
 }
 
-/* DROPDOWN TERBUKA */
+
+/* D.8.   Tampilan Daftar Menu Dropdown Profil ketika Dibuka
+   ════════════════════════════════════════════════════════  */
 .user-menu.open .user-dropdown {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
 }
 
-
-/* ARROW BERPUTAR */
+/* Putar panah ketika dropdown dibuka */
 .user-menu.open .user-arrow {
     transform: rotate(180deg);
 }
 
 
 
-/* =====================================================
-   SIDEBAR
-===================================================== */
+/* ═════════════════════════════════════════════════════════════
+   E.  SIDEBAR KELOLA AKUN PENGGUNA
+═════════════════════════════════════════════════════════════ */
 
+/* E.1.   Kerangka Sidebar Kelola Akun Pengguna
+   ════════════════════════════════════════════════════════  */
 .account-sidebar {
+    overflow: hidden;
+
     background: #fff;
     border: 1px solid #dedede;
     border-radius: 5px;
-    overflow: hidden;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.10);
 }
 
+
+/* E.2.   Profil Sidebar
+   ════════════════════════════════════════════════════════  */
 .sidebar-profile {
     min-height: 78px;
+    padding: 14px 15px;
+
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 14px 15px;
+
     background: #fff;
     border-bottom: 1px solid #e5e5e5;
 }
 
+/* Ikon profil sidebar */
 .profile-avatar {
     width: 45px;
     height: 45px;
     flex-shrink: 0;
-    border-radius: 50%;
-    background: #fff0e4;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
+    border-radius: 50%;
+    background: #fff0e4;
+
     color: #ed741d;
     font-size: 21px;
 }
 
+/* Informasi profil sidebar */
 .user-profile-info {
     flex: 1;
     min-width: 0;
+
     display: flex;
     flex-direction: column;
     gap: 0px;
 }
 
+/* Nama pengguna sidebar */
 .sidebar-profile strong {
     display: block;
     overflow: hidden;
+
     color: #333;
     font-size: 15px;
     font-weight: 700;
@@ -453,9 +422,11 @@ body.user-page > .footer {
     text-overflow: ellipsis;
 }
 
+/* Email pengguna sidebar */
 .sidebar-profile .user-email {
     display: block;
     overflow: hidden;
+
     color: #666;
     font-size: 14px;
     font-weight: 600;
@@ -463,26 +434,36 @@ body.user-page > .footer {
     text-overflow: ellipsis;
 }
 
+
+/* E.3.   Daftar Menu Sidebar
+   ════════════════════════════════════════════════════════  */
 .sidebar-menu {
     padding-top: 15px;
     padding-bottom: 10px;
 }
 
+/* Link navigasi sidebar */
 .sidebar-link {
     min-height: 44px;
+    padding: 11px 20px;
+
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 11px 20px;
-    border-radius: 0px;
-    text-decoration: none;
+
+    border-radius: 0;
     color: #333;
     font-family: 'Poppins', sans-serif;
     font-size: 14px;
     font-weight: 550;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    text-decoration: none;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
 }
 
+/* Ikon link sidebar */
 .sidebar-link i {
     width: 18px;
     flex-shrink: 0;
@@ -491,10 +472,12 @@ body.user-page > .footer {
     font-size: 16px;
 }
 
+/* Warna link sidebar saat kursor ngarah ke mereka */
 .sidebar-link:hover {
     background: #f5f5f5;
 }
 
+/* Warna link sidebar saat ada di halaman tersebut */
 .sidebar-link.active {
     background: #ed741d;
     color: #fff;
@@ -504,17 +487,219 @@ body.user-page > .footer {
     color: #fff;
 }
 
+/* Garis pemisah sidebar */
 .sidebar-divider {
     height: 1px;
     margin: 5px 20px;
     background: #e5e5e5;
 }
 
+/* Jarak link logout */
 .logout-link {
     margin-top: 4px;
     color: #333;
 }
 
+
+
+/* ═════════════════════════════════════════════════════════════
+   F.  CARD KONFIRMASI LOGOUT
+═════════════════════════════════════════════════════════════ */
+
+/* F.1.   Card putih Latarnya
+   ════════════════════════════════════════════════════════  */
+.logout-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    padding: 20px;
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* Menampilkan card */
+.logout-modal.show {
+    display: flex;
+}
+
+
+/* F.2.   Kotak Card-nya
+   ════════════════════════════════════════════════════════  */
+.logout-modal-content {
+    width: 100%;
+    max-width: 400px;
+    padding: 30px 25px;
+
+    background: #fff;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+
+    animation: logoutModalIn 0.2s ease-out;
+}
+
+
+/* F.3.   Ikon Card-nya
+   ════════════════════════════════════════════════════════  */
+.logout-modal-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 16px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+    background: #fff0e8;
+
+    color: #e85d26;
+    font-size: 25px;
+}
+
+/* Judul Card */
+.logout-modal-content h3 {
+    margin: 0 0 10px;
+    color: #252525;
+    font-size: 21px;
+}
+
+/* Pesan konfirmasi Card */
+.logout-modal-content p {
+    margin: 0 0 25px;
+    color: #777;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+
+/* F.4.   Tata Letak Tombol Card-nya
+   ════════════════════════════════════════════════════════  */
+.logout-modal-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Membagi ruang tombol dan form secara rata */
+.logout-modal-actions > button,
+.logout-modal-actions > form {
+    flex: 1 1 0;
+    min-width: 0;
+    width: 0;
+    margin: 0;
+}
+
+/* Form logout mengikuti ukuran tombol */
+.logout-modal-actions > form {
+    display: flex;
+}
+
+/* Ukuran dan perataan tombol card */
+.logout-modal-actions .btn-cancel-logout,
+.logout-modal-actions .btn-confirm-logout {
+    flex: 1;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    justify-content: center;
+}
+
+/* Gaya umum tombol dan link Card */
+.logout-modal-actions button,
+.logout-modal-actions a {
+    flex: 1;
+    width: 100%;
+    padding: 12px 10px;
+
+    border: none;
+    border-radius: 8px;
+
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Tombol Batal Log out */
+.btn-cancel-logout {
+    background: #f0f0f0;
+    color: #444;
+}
+
+/* Warna link tombol Batal saat kursor ngarah ke mereka */
+.btn-cancel-logout:hover {
+    background: #e5e5e5;
+}
+
+/* Tombol Konfirmasi Log out */
+.btn-confirm-logout {
+    background: #e85d26;
+    color: #fff;
+}
+
+/* Warna link tombol Konfirmasi saat kursor ngarah ke mereka */
+.btn-confirm-logout:hover {
+    background: #cf4d1b;
+}
+
+
+/* F.5.   Animasi Kemunculan Card-nya
+   ════════════════════════════════════════════════════════  */
+@keyframes logoutModalIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+
+/* ═════════════════════════════════════════════════════════════
+   G.  FOOTER WEBSITE
+═════════════════════════════════════════════════════════════ */
+.footer {
+    width: 100%;
+    height: 70px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #fff;
+    background: #303847;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+
+
+/* ═════════════════════════════════════════════════════════════
+   H.  RESPONSIVE NAVBAR DAN SIDEBAR
+═════════════════════════════════════════════════════════════ */
+
+/* H.1.   Penyesuaian navbar di layar menengah
+   ════════════════════════════════════════════════════════  */
+@media (max-width: 1200px) {
+    .nav-menu {
+        gap: 35px;
+        margin-left: 30px;
+    }
+}
+
+
+/* H.2.   Penyesuaian Sidebar pada layar kecil
+   ════════════════════════════════════════════════════════  */
 @media (max-width: 700px) {
     .account-sidebar {
         width: 100%;
@@ -541,212 +726,26 @@ body.user-page > .footer {
 }
 
 
-
-/* =====================================================
-   KONFIRMASI LOGOUT
-===================================================== */
-
-/* MODAL KONFIRMASI LOGOUT */
-.logout-modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    background: rgba(0, 0, 0, 0.5);
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-}
-
-.logout-modal.show {
-    display: flex;
-}
-
-.logout-modal-content {
-    width: 100%;
-    max-width: 400px;
-    padding: 30px 25px;
-    background: #fff;
-    border-radius: 16px;
-    text-align: center;
-    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
-    animation: logoutModalIn 0.2s ease-out;
-}
-
-.logout-modal-icon {
-    width: 60px;
-    height: 60px;
-    margin: 0 auto 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: #fff0e8;
-    color: #e85d26;
-    font-size: 25px;
-}
-
-.logout-modal-content h3 {
-    margin: 0 0 10px;
-    color: #252525;
-    font-size: 21px;
-}
-
-.logout-modal-content p {
-    margin: 0 0 25px;
-    color: #777;
-    font-size: 14px;
-    line-height: 1.6;
-}
-
-.logout-modal-actions {
-    display: flex;
-    flex-direction: row;
-    gap: 12px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.logout-modal-actions > button,
-.logout-modal-actions > form {
-    flex: 1 1 0;
-    min-width: 0;
-    width: 0;
-    margin: 0;
-}
-
-.logout-modal-actions > form {
-    display: flex;
-}
-
-.logout-modal-actions .btn-cancel-logout,
-.logout-modal-actions .btn-confirm-logout {
-    flex: 1;
-    width: 100%;
-    box-sizing: border-box;
-    text-align: center;
-    justify-content: center;
-}
-
-.logout-modal-actions button,
-.logout-modal-actions a {
-    flex: 1;
-    width: 100%;
-    padding: 12px 10px;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.btn-cancel-logout {
-    background: #f0f0f0;
-    color: #444;
-}
-
-.btn-confirm-logout {
-    background: #e85d26;
-    color: #fff;
-}
-
-.btn-cancel-logout:hover {
-    background: #e5e5e5;
-}
-
-.btn-confirm-logout:hover {
-    background: #cf4d1b;
-}
-
-@keyframes logoutModalIn {
-    from {
-        opacity: 0;
-        transform: translateY(8px) scale(0.98);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-
-
-
-/* =====================================================
-   FOOTER
-===================================================== */
-
-.footer {
-
-    width: 100%;
-
-    height: 70px;
-
-    background: #303847;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    color: white;
-
-    font-size: 15px;
-
-    font-weight: 700;
-}
-
-
-/* =====================================================
-   RESPONSIVE NAVBAR
-===================================================== */
-
-@media (max-width: 1200px) {
-
-    .nav-menu {
-
-        gap: 35px;
-
-        margin-left: 30px;
-    }
-
-}
-
-
-/* =====================================================
-   TABLET / MOBILE
-===================================================== */
-
+/* H.3.   Penyesuaian Navbar pada tablet dan ponsel
+   ════════════════════════════════════════════════════════  */
 @media (max-width: 900px) {
-
     .navbar {
-
         padding: 0 20px;
     }
 
-
     .navbar-logo {
-
         width: 170px;
     }
 
-
     .navbar-logo img {
-
         width: 160px;
     }
 
-
     .nav-menu {
-
         display: none;
     }
-
 
     .user-email {
-
         display: none;
     }
-
 }
