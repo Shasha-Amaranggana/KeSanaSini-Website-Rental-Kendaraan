@@ -21,14 +21,29 @@ KeSanaSini - Detail Kendaraan
 <section class="result-vehicle-section">
 
     <div class="detail-back-wrap">
+
+        {% if from_page == 'home' %}
+
         <a class="detail-back"
-            href="{{ url_for('main.hasil_pencarian',
+        href="{{ url_for('main.index') }}">
+            <i class="fa-solid fa-arrow-left"></i>
+            Kembali ke halaman utama
+        </a>
+
+        {% else %}
+
+        <a class="detail-back"
+        href="{{ url_for('main.hasil_pencarian',
                             date=pickup_date,
                             time=pickup_time,
                             duration=duration,
                             vehicle_type=vehicle.vehicle_type) }}">
-            <i class="fa-solid fa-arrow-left"></i> Kembali ke hasil pencarian
+            <i class="fa-solid fa-arrow-left"></i>
+            Kembali ke hasil pencarian
         </a>
+
+        {% endif %}
+
     </div>
 
     <div class="detail-wrapper">

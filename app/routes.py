@@ -17,6 +17,33 @@ from html import escape
 
 bp = Blueprint('main', __name__)
 
+@bp.before_app_request
+def batalkan_pesanan_kedaluwarsa():
+    # Jangan jalankan pengecekan untuk file statis seperti CSS,
+    # JavaScript, dan gambar.
+    if request.endpoint == 'static' or (
+        request.endpoint and request.endpoint.endswith('.static')
+    ):
+        return
+
+    # Batas waktu pembayaran adalah 24 jam sejak pesanan dibuat.
+    batas_waktu = datetime.now() - timedelta(hours=24)
+
+    # Cari pesanan yang belum dibayar dan sudah kedaluwarsa.
+    pesanan_kedaluwarsa = Rental.query.filter(
+        Rental.status == Rental.STATUS_MENUNGGU_BAYAR,
+        Rental.payment_status != 'Lunas',
+        Rental.created_at <= batas_waktu
+    ).all()
+
+    # Batalkan semua pesanan yang sudah melewati batas waktu.
+    if pesanan_kedaluwarsa:
+        for rental in pesanan_kedaluwarsa:
+            rental.change_status(Rental.STATUS_BATAL)
+
+        db.session.commit()
+
+
 BULAN_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli',
             'Agustus', 'September', 'Oktober', 'November', 'Desember']
 
@@ -40,6 +67,11 @@ def bulatkan_ke_menit_berikutnya(waktu):
 
     return waktu.replace(second=0, microsecond=0)
 
+def waktu_default_pengambilan():
+    """Jadwal bawaan agar pengguna punya waktu mengisi formulir."""
+    return bulatkan_ke_menit_berikutnya(
+        datetime.now() + timedelta(hours=26)
+    )
 
 def parse_waktu_pengambilan(tanggal, jam):
     """Gabungkan tanggal dan jam pilihan menjadi satu datetime."""
@@ -84,7 +116,7 @@ def index():
 
     vehicles = Vehicle.query.all()
 
-    now = bulatkan_ke_menit_berikutnya(waktu_minimum_pengambilan())
+    now = waktu_default_pengambilan()
 
     current_date = now.strftime('%Y-%m-%d')
     current_time = now.strftime('%H:%M')
@@ -120,9 +152,7 @@ def hasil_pencarian():
     # Jika pencarian dibuka tanpa tanggal dan jam,
     # gunakan waktu minimum.
     if not pickup_date_str and not pickup_time:
-        selected_pickup = bulatkan_ke_menit_berikutnya(
-            minimum_pickup
-        )
+        selected_pickup = waktu_default_pengambilan()
     else:
         selected_pickup = parse_waktu_pengambilan(
             pickup_date_str,
@@ -232,6 +262,10 @@ def detail_kendaraan(vehicle_id):
 
     user = User.query.get(session['user_id'])
     vehicle = Vehicle.query.get_or_404(vehicle_id)
+    from_page = request.args.get('from_page', 'search')
+
+    if from_page not in ('home', 'search'):
+        from_page = 'search'
 
     # Data pencarian dibawa dari halaman sebelumnya lewat URL
     date_str = request.args.get('date')
@@ -241,9 +275,7 @@ def detail_kendaraan(vehicle_id):
 
     # Jika dibuka tanpa jadwal, gunakan waktu minimum yang baru.
     if not date_str:
-        selected_pickup = bulatkan_ke_menit_berikutnya(
-            waktu_minimum_pengambilan()
-        )
+        selected_pickup = waktu_default_pengambilan()
     else:
         selected_pickup = parse_waktu_pengambilan(
             date_str,
@@ -268,10 +300,18 @@ def detail_kendaraan(vehicle_id):
     end_date = pickup_date + timedelta(days=duration)
     total = vehicle.price_per_day * duration
 
-    # Cek ketersediaan di tanggal tsb
+    # Cek ketersediaan kendaraan pada tanggal yang dipilih.
+    # Semua status aktif yang belum selesai atau batal
+    # harus memblokir kendaraan jika jadwalnya bertabrakan.
     bentrok = Rental.query.filter(
         Rental.vehicle_id == vehicle.id,
-        Rental.status.in_([Rental.STATUS_MENUNGGU, Rental.STATUS_BERJALAN]),
+        Rental.status.in_([
+            Rental.STATUS_MENUNGGU_BAYAR,
+            Rental.STATUS_MENUNGGU_KONFIRMASI,
+            Rental.STATUS_PENGAMBILAN,
+            Rental.STATUS_DIPAKAI,
+            Rental.STATUS_PENGEMBALIAN,
+        ]),
         Rental.start_date <= end_date,
         Rental.end_date >= pickup_date
     ).first()
@@ -303,7 +343,8 @@ def detail_kendaraan(vehicle_id):
         foto=foto,
         show_reviews=show_reviews,
         star=star,
-        reviews=reviews
+        reviews=reviews,
+        from_page=from_page
     )
 
 @bp.route('/kendaraan/<int:vehicle_id>/ulasan')
@@ -361,14 +402,8 @@ def pesanan():
     tanggal_str = request.args.get('date')
     jam_str = request.args.get('time')
 
-    minimum_pickup = bulatkan_ke_menit_berikutnya(
-        waktu_minimum_pengambilan()
-    )
-
-    # Jika pengguna membuka form tanpa memilih jadwal,
-    # gunakan jadwal default minimum.
     if not tanggal_str and not jam_str:
-        selected_pickup = minimum_pickup
+        selected_pickup = waktu_default_pengambilan()
     else:
         selected_pickup = parse_waktu_pengambilan(
             tanggal_str,

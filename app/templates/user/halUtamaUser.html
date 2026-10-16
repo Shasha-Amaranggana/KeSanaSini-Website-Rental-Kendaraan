@@ -350,8 +350,9 @@ KeSanaSini - Menu Utama
                 vehicle_id=vehicle.id,
                 date=current_date,
                 time=current_time,
-                duration=1
-            ) }}" class="vehicle-card">
+                duration=1,
+                from_page='home') }}"
+                class="vehicle-card">
 
 
 
@@ -433,7 +434,7 @@ KeSanaSini - Menu Utama
 
                         Rp{{ "{:,.0f}".format(
                             vehicle.price_per_day
-                        ).replace(',', '.') }},00/hari
+                        ).replace(',', '.') }}/hari
 
                     </div>
 
