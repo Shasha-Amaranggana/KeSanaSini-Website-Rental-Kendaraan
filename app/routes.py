@@ -9,6 +9,7 @@ from functools import wraps
 from app import db, oauth
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 import os
+import shutil
 
 import smtplib
 import ssl
@@ -377,6 +378,30 @@ def _save_document(file_storage, booking_code, kind):
     file_storage.save(os.path.join(folder, filename))
     return filename
 
+# Menghubungkan KTP/SIM dari Kelola Akun ke Form Sewa
+ACCOUNT_DOC_FOLDER = os.path.join('static', 'uploads', 'dokumen_akun')
+
+def _account_doc_exists(filename):
+    """True kalau user punya dokumen di Kelola Akun dan file-nya benar-benar ada."""
+    if not filename:
+        return False
+    path = os.path.join(current_app.root_path, ACCOUNT_DOC_FOLDER, filename)
+    return os.path.exists(path)
+
+def _copy_account_document(account_file, booking_code, kind):
+    """Salin KTP/SIM dari Kelola Akun ke dokumen pesanan. Return nama file baru."""
+    if not _account_doc_exists(account_file):
+        return None
+    src = os.path.join(current_app.root_path, ACCOUNT_DOC_FOLDER, account_file)
+    ext = account_file.rsplit('.', 1)[-1].lower()
+
+    folder = os.path.join(current_app.root_path, 'static', 'uploads', 'dokumen')
+    os.makedirs(folder, exist_ok=True)
+
+    filename = secure_filename(f"{booking_code}_{kind}.{ext}")
+    shutil.copyfile(src, os.path.join(folder, filename))
+    return filename
+
 @bp.route('/pesanan', methods=['GET', 'POST'])
 def pesanan():
     if 'user_id' not in session:
@@ -390,6 +415,9 @@ def pesanan():
 
     vehicle = Vehicle.query.get_or_404(vehicle_id)
     can_driver = vehicle.rental_type.startswith('Sopir')
+    tipe = vehicle.vehicle_type.lower()
+    accessories_avail = {k: v for k, v in Rental.ACCESSORIES.items()
+                        if tipe in Rental.ACCESSORY_TYPES.get(k, [])}
 
     user = None
     if 'user_id' in session:
@@ -398,6 +426,9 @@ def pesanan():
     if not user:
         return redirect(url_for('main.login'))
 
+    has_ktp = _account_doc_exists(user.ktp_file)
+    has_sim = _account_doc_exists(user.sim_file)
+    
     # Ambil data tanggal dan jam pengambilan.
     tanggal_str = request.args.get('date')
     jam_str = request.args.get('time')
@@ -437,8 +468,10 @@ def pesanan():
             return_time=return_time,
             duration=duration,
             can_driver=can_driver,
+            has_ktp=has_ktp,
+            has_sim=has_sim,
             driver_fee=Rental.DRIVER_FEE,
-            accessories=Rental.ACCESSORIES,
+            accessories=accessories_avail,
             insurances=Rental.INSURANCES,
             purposes=PURPOSES,
             regions=REGIONS,
@@ -464,7 +497,7 @@ def pesanan():
     # ---------- POST: validasi lalu simpan ----------
     f = request.form
     with_driver = can_driver and f.get('rental_type') == 'sopir'
-    accessories = [a for a in f.getlist('accessories') if a in Rental.ACCESSORIES]
+    accessories = [a for a in f.getlist('accessories') if a in accessories_avail]
     insurance = f.get('insurance') if f.get('insurance') in Rental.INSURANCES else 'dasar'
     region = f.get('region')
     luar_kota = region == 'Luar kota'
@@ -477,14 +510,19 @@ def pesanan():
         errors.append('Kota tujuan wajib diisi untuk perjalanan luar kota.')
 
     # KTP wajib untuk semua. SIM hanya wajib kalau lepas kunci.
-    docs = [('ktp', 'KTP')] + ([] if with_driver else [('sim', 'SIM')])
-    for field, label in docs:
-        up = request.files.get(field)
-        if not up or not up.filename:
-            errors.append(f'{label} wajib diunggah.')
-        elif up.filename.rsplit('.', 1)[-1].lower() not in ALLOWED_DOC_EXT:
-            errors.append(f'Format {label} harus JPG, PNG, atau PDF.')
+        # KTP wajib untuk semua, SIM hanya untuk lepas kunci.
+    # Boleh dari Kelola Akun (sudah tersimpan) atau diunggah langsung di form.
+    docs = [('ktp', 'KTP', has_ktp)]
+    if not with_driver:
+        docs.append(('sim', 'SIM', has_sim))
 
+    for field, label, saved in docs:
+        up = request.files.get(field)
+        if up and up.filename:
+            if up.filename.rsplit('.', 1)[-1].lower() not in ALLOWED_DOC_EXT:
+                errors.append(f'Format {label} harus JPG, PNG, atau PDF.')
+        elif not saved:
+            errors.append(f'{label} wajib diunggah.')
     # Cek ulang ketersediaan (bisa saja sudah dipesan orang lain)
     bentrok = Rental.query.filter(
         Rental.vehicle_id == vehicle.id,
@@ -528,9 +566,15 @@ def pesanan():
         special_request=(f.get('special_request') or '').strip() or None,
     )
 
-    rental.ktp_file = _save_document(request.files.get('ktp'), booking_code, 'ktp')
+    rental.ktp_file = (
+        _save_document(request.files.get('ktp'), booking_code, 'ktp')
+        or _copy_account_document(user.ktp_file, booking_code, 'ktp')
+    )
     if not with_driver:
-        rental.sim_file = _save_document(request.files.get('sim'), booking_code, 'sim')
+        rental.sim_file = (
+            _save_document(request.files.get('sim'), booking_code, 'sim')
+            or _copy_account_document(user.sim_file, booking_code, 'sim')
+        )
 
     db.session.add(rental)
     db.session.commit()
