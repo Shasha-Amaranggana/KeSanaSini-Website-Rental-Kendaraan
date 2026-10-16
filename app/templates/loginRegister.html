@@ -1,6 +1,21 @@
+<!-- ═════════════════════════════════════════════════════════════
+    HTML TAMPILAN HALAMAN LOGIN & REGISTER WEBSITE KeSanaSini
+    ⤷ Mengatur bagian login dan register.
+═════════════════════════════════════════════════════════════ -->
+
+
 <!DOCTYPE html>
 <html lang="id">
+
+
+<!-- ═════════════════════════════════════════════════════════════
+    A.   HEAD/TAJUK
+═════════════════════════════════════════════════════════════ -->
 <head>
+    
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     1.    INFORMASI DASAR HALAMAN                    -->
+    <!-- ════════════════════════════════════════════════════ -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -16,51 +31,73 @@
         {% endif %}
     </title>
 
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet"
-    >
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    >
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     2.     CSS FONT LOGIN REGISTER WEBSITE           -->
+    <!--            Digunakan untuk styling umum seluruh halaman login register. -->
+    <!-- ════════════════════════════════════════════════════ -->
     <link
         rel="stylesheet"
-        href="{{ url_for('static', filename='css/style.css') }}"
-    >
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+
     <link
         rel="stylesheet"
-        href="{{ url_for('static', filename='css/loginRegister.css') }}"
-    >
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        href="https://fonts.googleapis.com/css2?family=poppins:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap">
+
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     3.     CSS FONT AWESOME           -->
+    <!--            Menyediakan ikon pada form autentikasi.   -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     4.     CSS KHUSUS HALAMAN                        -->
+    <!--            Atur styling umum halaman login register. -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}">
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/loginRegister.css') }}">
 
 </head>
 
 
+
+<!-- ═════════════════════════════════════════════════════════════
+    B.   BODY/ISI
+═════════════════════════════════════════════════════════════ -->
 <body>
 
-    <!-- =====================================================
-         AREA KIRI
-         Background LOGIN.svg sudah menangani desain kiri.
-    ====================================================== -->
-
-    <div class="left-area">
-    </div>
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     6.     AREA KIRI                                  -->
+    <!--            Menampilkan background desain sisi kiri. -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <div class="left-area"></div>
 
 
-    <!-- =====================================================
-         AREA KANAN
-    ====================================================== -->
-
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     7.     AREA KANAN                                 -->
+    <!--            Menampung form autentikasi pengguna.      -->
+    <!-- ════════════════════════════════════════════════════ -->
     <div class="right-area">
 
         <div class="auth-container">
+            
+            <!-- 7.1. FORM LOGIN                  -->
+            <!-- ════════════════════════════════ -->
             {% if mode == 'login' %}
-                <h1>
-                    SELAMAT DATANG KEMBALI
-                </h1>
+                <h1>SELAMAT DATANG KEMBALI</h1>
                             
-                <!-- FLASH MESSAGE -->
+                <!-- 7.1.1. PESAN NOTIFIKASI          -->
+                <!-- ════════════════════════════════ -->
                 {% with messages = get_flashed_messages() %}
                     {% if messages %}
                         <div class="flash-msg">
@@ -70,32 +107,26 @@
                 {% endwith %}
 
 
-                <!-- =================================================
-                    FORM LOGIN
-                ================================================== -->
-
+                <!-- 7.1.2. INPUT EMAIL DAN PASSWORD  -->
+                <!-- ════════════════════════════════ -->
                 <form
                     action="{{ url_for('main.login') }}"
-                    method="POST"
-                >
+                    method="POST">
 
                     <!-- EMAIL -->
                     <div class="input-group">
                         <i class="fa-regular fa-envelope"></i>
-
                         <input
                             type="email"
                             name="email"
                             class="form-input"
                             placeholder="E-Mail"
                             required>
-
                     </div>
 
-
+                    <!-- PASSWORD -->
                     <div class="input-group">
                         <i class="fa-solid fa-lock"></i>
-
                         <input
                             type="password"
                             name="password"
@@ -103,7 +134,6 @@
                             class="form-input"
                             placeholder="Password"
                             required>
-
                         <i
                             class="fa-regular fa-eye password-toggle"
                             id="password-toggle"
@@ -111,16 +141,13 @@
                         </i>
                     </div>
 
-
                     <!-- LUPA PASSWORD -->
-                    <a
-                        href="{{ url_for('main.lupa_password') }}"
+                    <a href="{{ url_for('main.lupa_password') }}"
                         class="forgot-pass">
                         Lupa password anda?
                     </a>
 
-
-                    <!-- LOGIN -->
+                    <!-- TOMBOL LOGIN -->
                     <button
                         type="submit"
                         class="btn-auth">
@@ -130,34 +157,29 @@
                 </form>
 
 
-                <!-- =================================================
-                    DIVIDER
-                ================================================== -->
-
+                <!-- 7.1.3. GARIS PEMISAH LOGIN EMAIL DAN GOOGLE  -->
+                <!-- ════════════════════════════════ -->
                 <div class="divider">
                     atau
                 </div>
 
 
-                <!-- =================================================
-                    GOOGLE
-                ================================================== -->
-                <a
-                    href="{{ url_for('main.google_login') }}"
+                <!-- 7.1.4. LOGIN MENGGUNAKAN GOOGLE  -->
+                <!-- ════════════════════════════════ -->
+                <a href="{{ url_for('main.google_login') }}"
                     class="btn-google"
-                    style="text-decoration: none;"
-                >
+                    style="text-decoration: none;">
                     <i
                         class="fa-brands fa-google"
-                        style="color: #DB4437; font-size: 18px;"
-                    ></i>
+                        style="color: #DB4437;
+                        font-size: 18px;">
+                    </i>
                     GOOGLE
                 </a>
 
 
-                <!-- =================================================
-                    REGISTER
-                ================================================== -->
+                <!-- 7.1.5. TAUTAN MENUJU REGISTER  -->
+                <!-- ════════════════════════════════ -->
                 <div class="switch-text">
                     Belum punya akun?
                     <a href="{{ url_for('main.register') }}">
@@ -167,13 +189,13 @@
 
 
 
-            <!-- =========================
-                 REGISTER
-            ========================== -->
+            <!-- 7.2. FORM REGISTER               -->
+            <!-- ════════════════════════════════ -->
             {% elif mode == 'register' %}
-
                 <h1>DAFTARKAN DIRI ANDA</h1>
-
+  
+                <!-- 7.2.1. PESAN NOTIFIKASI          -->
+                <!-- ════════════════════════════════ -->
                 {% with messages = get_flashed_messages() %}
                     {% if messages %}
                         <div class="flash-msg">
@@ -182,12 +204,16 @@
                     {% endif %}
                 {% endwith %}
 
-                <form action="{{ url_for('main.register') }}" method="POST" class="register-form">
 
-                    <!-- NAMA -->
+                <!-- 7.2.2. FORM PENDAFTARAN          -->
+                <!-- ════════════════════════════════ -->
+                <form
+                    action="{{ url_for('main.register') }}"
+                    method="POST" class="register-form">
+
+                    <!-- NAMA LENGKAP-->
                     <div class="input-group">
                         <i class="fa-regular fa-user"></i>
-
                         <input
                             type="text"
                             name="name"
@@ -196,12 +222,12 @@
                             required>
                     </div>
 
-                    <!-- TANGGAL LAHIR + JENIS KELAMIN -->
+                    <!-- TANGGAL LAHIR & JENIS KELAMIN -->
                     <div class="input-row">
 
+                        <!-- TANGGAL LAHIR -->
                         <div class="input-group">
                             <i class="fa-regular fa-calendar-days"></i>
-
                             <input
                                 type="date"
                                 name="birth_date"
@@ -209,9 +235,9 @@
                                 required>
                         </div>
 
+                        <!-- JENIS KELAMIN -->
                         <div class="input-group">
                             <i class="fa-solid fa-venus-mars"></i>
-
                             <select
                                 name="gender"
                                 class="form-input"
@@ -233,7 +259,6 @@
                     <!-- EMAIL -->
                     <div class="input-group">
                         <i class="fa-regular fa-envelope"></i>
-
                         <input
                             type="email"
                             name="email"
@@ -242,12 +267,12 @@
                             required>
                     </div>
 
-                    <!-- NO TELEPON + NO DARURAT -->
+                    <!-- NO TELEPON & NO DARURAT -->
                     <div class="input-row">
 
+                        <!-- NO TELEPON  -->
                         <div class="input-group">
                             <i class="fa-solid fa-phone"></i>
-
                             <input
                                 type="tel"
                                 name="phone"
@@ -257,9 +282,9 @@
                                 required>
                         </div>
 
+                        <!-- NO DARURAT  -->
                         <div class="input-group">
                             <i class="fa-solid fa-phone"></i>
-
                             <input
                                 type="tel"
                                 name="emergency_phone"
@@ -274,7 +299,6 @@
                     <!-- PASSWORD -->
                     <div class="input-group">
                         <i class="fa-solid fa-lock"></i>
-
                         <input
                             type="password"
                             name="password"
@@ -285,7 +309,6 @@
                             pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,}"
                             title="Password minimal 8 karakter dan harus mengandung huruf dan angka."
                             required>
-
                         <i
                             class="fa-regular fa-eye password-toggle"
                             id="password-toggle"
@@ -293,11 +316,9 @@
                         </i>
                     </div>
 
-
                     <!-- KONFIRMASI PASSWORD -->
                     <div class="input-group">
                         <i class="fa-solid fa-lock"></i>
-
                         <input
                             type="password"
                             name="confirm_password"
@@ -306,7 +327,6 @@
                             placeholder="Konfirmasi Password"
                             title="Konfirmasi password harus sama dengan password."
                             required>
-
                         <i
                             class="fa-regular fa-eye password-toggle"
                             id="confirm-password-toggle"
@@ -314,7 +334,7 @@
                         </i>
                     </div>
 
-                    <!-- SIGN UP -->
+                    <!-- TOMBOL SIGN UP -->
                     <button
                         type="submit"
                         class="btn-auth register-btn">
@@ -323,12 +343,16 @@
 
                 </form>
 
-                <!-- DIVIDER -->
+
+                <!-- 7.2.3. PEMISAH FORM REGISTER     -->
+                <!-- ════════════════════════════════ -->
                 <div class="divider register-divider">
                     atau
                 </div>
 
-                <!-- LOGIN -->
+
+                <!-- 7.2.4. TAUTAN MENUJU LOGIN       -->
+                <!-- ════════════════════════════════ -->
                 <div class="switch-text register-switch">
                     Sudah punya akun?
                     <a href="{{ url_for('main.login') }}">
@@ -338,11 +362,13 @@
 
 
 
+            <!-- 7.3. FORM LUPA PASSWORD          -->
+            <!-- ════════════════════════════════ -->
             {% elif mode == 'forgot_password' %}
-
-                <!-- TAMPILAN LUPA PASSWORD -->
                 <h1>LUPA PASSWORD</h1>
-
+  
+                <!-- 7.3.1. PESAN NOTIFIKASI          -->
+                <!-- ════════════════════════════════ -->
                 {% with messages = get_flashed_messages() %}
                     {% if messages %}
                         <div class="flash-msg">
@@ -350,32 +376,51 @@
                         </div>
                     {% endif %}
                 {% endwith %}
+  
 
+                <!-- 7.3.2. PENJELASAN LUPA PASSWORD  -->
+                <!-- ════════════════════════════════ -->
                 <p class="forgot-description">
                     Masukkan email yang terdaftar untuk mengatur ulang password akun Anda.
                 </p>
 
+
+                <!-- 7.3.3. FORM PERMINTAAN RESET PASSWORD  -->
+                <!-- ════════════════════════════════ -->
                 <form
                     action="{{ url_for('main.lupa_password') }}"
-                    method="POST"
-                >
+                    method="POST">
+                    
+                    <!-- EMAIL -->
                     <div class="input-group">
                         <i class="fa-regular fa-envelope"></i>
-
                         <input
                             type="email"
                             name="email"
                             class="form-input"
                             placeholder="E-Mail"
-                            required
-                        >
+                            required>
                     </div>
 
-                    <button type="submit" class="btn-auth">
+                    <!-- TOMBOL SIGN UP -->
+                    <button
+                        type="submit"
+                        class="btn-auth">
                         KIRIM
                     </button>
+
                 </form>
 
+
+                <!-- 7.3.4. PEMISAH FORM LUPA PASSWORD -->
+                <!-- ════════════════════════════════ -->
+                <div class="divider register-divider">
+                    atau
+                </div>
+
+
+                <!-- 7.3.5. TAUTAN KEMBALI KE LOGIN   -->
+                <!-- ════════════════════════════════ -->
                 <div class="switch-text">
                     Ingat password Anda?
                     <a href="{{ url_for('main.login') }}">
@@ -384,10 +429,14 @@
                 </div>
 
 
+
+            <!-- 7.4. FORM RESET PASSWORD          -->
+            <!-- ════════════════════════════════ -->
             {% elif mode == 'reset_password' %}
-
                 <h1>RESET PASSWORD</h1>
-
+  
+                <!-- 7.4.1. PESAN NOTIFIKASI          -->
+                <!-- ════════════════════════════════ -->
                 {% with messages = get_flashed_messages() %}
                     {% if messages %}
                         <div class="flash-msg">
@@ -396,19 +445,23 @@
                     {% endif %}
                 {% endwith %}
 
+  
+                <!-- 7.4.2. PENJELASAN RESET PASSWORD -->
+                <!-- ════════════════════════════════ -->
                 <p class="forgot-description">
                     Buat password baru untuk akun KeSanaSini Anda.
                 </p>
 
+  
+                <!-- 7.4.3. FORM PASSWORD BARU        -->
+                <!-- ════════════════════════════════ -->
                 <form
                     action="{{ url_for('main.reset_password', token=token) }}"
-                    method="POST"
-                >
+                    method="POST">
 
                     <!-- PASSWORD BARU -->
                     <div class="input-group">
                         <i class="fa-solid fa-lock"></i>
-
                         <input
                             type="password"
                             name="password"
@@ -418,9 +471,7 @@
                             minlength="8"
                             pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,}"
                             title="Password minimal 8 karakter dan harus mengandung huruf dan angka."
-                            required
-                        >
-
+                            required>
                         <i
                             class="fa-regular fa-eye password-toggle"
                             id="password-toggle"
@@ -431,7 +482,6 @@
                     <!-- KONFIRMASI PASSWORD -->
                     <div class="input-group">
                         <i class="fa-solid fa-lock"></i>
-
                         <input
                             type="password"
                             name="confirm_password"
@@ -440,9 +490,7 @@
                             placeholder="Konfirmasi Password Baru"
                             minlength="8"
                             title="Konfirmasi password harus sama dengan password."
-                            required
-                        >
-
+                            required>
                         <i
                             class="fa-regular fa-eye password-toggle"
                             id="confirm-password-toggle"
@@ -450,8 +498,10 @@
                         </i>
                     </div>
 
-                    <!-- SIMPAN -->
-                    <button type="submit" class="btn-auth">
+                    <!-- TOMBOL SIMPAN -->
+                    <button
+                        type="submit"
+                        class="btn-auth">
                         SIMPAN
                     </button>
 
@@ -459,20 +509,29 @@
 
             {% endif %}
 
-
         </div>
 
     </div>
 
 
+
+<!-- ═════════════════════════════════════════════════════════════
+    C.   JAVASCRIPT
+═════════════════════════════════════════════════════════════ -->
 <script>
+
+// ════════════════════════════════════════════════════
+//     8.     VALIDASI KONFIRMASI PASSWORD             
+//            Memastikan password dan konfirmasi sama. 
+// ════════════════════════════════════════════════════
     const password = document.getElementById('password');
     const confirmPassword = document.getElementById('confirm_password');
 
-    // VALIDASI KONFIRMASI PASSWORD
+    // Validasi konfirmasi password sesuai dengan password
     function checkPassword() {
-        if (!password || !confirmPassword) return;
-
+        if (!password || !confirmPassword) {
+            return;
+        }
         confirmPassword.setCustomValidity(
             confirmPassword.value !== password.value
                 ? 'Konfirmasi password harus sama dengan password.'
@@ -480,25 +539,36 @@
         );
     }
 
+    // Pasang validasi jika kedua input tersedia
     if (password && confirmPassword) {
         password.addEventListener('input', checkPassword);
         confirmPassword.addEventListener('input', checkPassword);
     }
 
-    // IKON MATA: TAHAN UNTUK MELIHAT PASSWORD
+
+// ════════════════════════════════════════════════════
+//     9.     IIKON MATA PASSWORD             
+//            Menampilkan password selama ikon mata ditekan. 
+// ════════════════════════════════════════════════════
     function setupPasswordToggle(toggleId, input) {
         const toggle = document.getElementById(toggleId);
 
-        if (!toggle || !input) return;
+        // Hentikan proses jika ikon atau input tidak tersedia
+        if (!toggle || !input){
+            return;
+        }
 
+        // Tampilkan password
         function showPassword() {
             input.type = 'text';
         }
 
+        // Sembunyikan kembali password
         function hidePassword() {
             input.type = 'password';
         }
 
+        // Interaksi menggunakan mouse
         toggle.addEventListener('mousedown', function (event) {
             event.preventDefault();
             showPassword();
@@ -507,7 +577,7 @@
         toggle.addEventListener('mouseup', hidePassword);
         toggle.addEventListener('mouseleave', hidePassword);
 
-        // Dukungan layar sentuh
+        // Interaksi menggunakan layar sentuh
         toggle.addEventListener('touchstart', function (event) {
             event.preventDefault();
             showPassword();
@@ -517,8 +587,10 @@
         toggle.addEventListener('touchcancel', hidePassword);
     }
 
+    // Aktifkan ikon mata untuk password dan konfirmasi password
     setupPasswordToggle('password-toggle', password);
     setupPasswordToggle('confirm-password-toggle', confirmPassword);
+
 </script>
 
 
