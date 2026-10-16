@@ -60,7 +60,9 @@ KeSanaSini - Form Sewa
             data-days="{{ duration }}"
             data-price="{{ vehicle.price_per_day }}"
             data-driver="{{ driver_fee }}"
-            data-vehicle="{{ vehicle.vehicle_type }}">
+            data-vehicle="{{ vehicle.vehicle_type }}"
+            data-has-ktp="{{ 1 if has_ktp else 0 }}"
+            data-has-sim="{{ 1 if has_sim else 0 }}">
 
             <!-- ========== KOLOM 1 ========== -->
             <div class="order-col">
@@ -92,21 +94,51 @@ KeSanaSini - Form Sewa
                         </label>
                     </div>
 
-                    <!-- Dokumen: hanya untuk lepas kunci -->
+                    <!-- Dokumen: ambil dari Kelola Akun kalau sudah ada -->
                     <div class="doc-box" id="docBox">
+
                         <div class="doc-item">
-                            <small>KTP <em class="doc-status" data-for="ktp">belum diunggah</em></small>
+                            <small>KTP
+                                {% if has_ktp %}
+                                <em class="doc-status done" data-for="ktp">sudah ada di akun</em>
+                                {% else %}
+                                <em class="doc-status" data-for="ktp">belum diunggah</em>
+                                {% endif %}
+                            </small>
+
+                            {% if has_ktp %}
+                            <input type="file" name="ktp" id="ktp" hidden>
+                            <a class="doc-btn" href="{{ url_for('main.kelola_akun') }}" target="_blank">
+                                Ubah di Kelola Akun
+                            </a>
+                            {% else %}
                             <label class="doc-btn">
                                 <input type="file" name="ktp" id="ktp" accept=".jpg,.jpeg,.png,.pdf" hidden>
                                 <span data-default="Unggah KTP">Unggah KTP</span>
                             </label>
+                            {% endif %}
                         </div>
+
                         <div class="doc-item" id="simItem">
-                            <small>{{ sim_label }} <em class="doc-status" data-for="sim">belum diunggah</em></small>
+                            <small>{{ sim_label }}
+                                {% if has_sim %}
+                                <em class="doc-status done" data-for="sim">sudah ada di akun</em>
+                                {% else %}
+                                <em class="doc-status" data-for="sim">belum diunggah</em>
+                                {% endif %}
+                            </small>
+
+                            {% if has_sim %}
+                            <input type="file" name="sim" id="sim" hidden>
+                            <a class="doc-btn" href="{{ url_for('main.kelola_akun') }}" target="_blank">
+                                Ubah di Kelola Akun
+                            </a>
+                            {% else %}
                             <label class="doc-btn">
                                 <input type="file" name="sim" id="sim" accept=".jpg,.jpeg,.png,.pdf" hidden>
                                 <span data-default="Unggah {{ sim_label }}">Unggah {{ sim_label }}</span>
                             </label>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -309,8 +341,8 @@ KeSanaSini - Form Sewa
         $('destination_city').required = luarKota;
 
         // ----- Tombol aktif hanya jika semua syarat terpenuhi -----
-        const ktpOk = $('ktp').files.length > 0;
-        const simOk = withDriver || $('sim').files.length > 0;
+        const ktpOk = form.dataset.hasKtp === '1' || $('ktp').files.length > 0;
+        const simOk = withDriver || form.dataset.hasSim === '1' || $('sim').files.length > 0;
         const agreeOk = $('agree').checked;
         const ready = ktpOk && simOk && agreeOk;
 
