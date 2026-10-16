@@ -229,12 +229,12 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 15px 16px;
+    padding: 5px 16px;
 }
 
 .order-vehicle-image {
-    width: 150px;
-    height: 90px;
+    width: 170px;
+    height: 120px;
     margin: 10px;
     flex-shrink: 0;
     display: flex;
@@ -296,18 +296,52 @@
 
 /* FOOTER KARTU */
 .order-card-footer {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
     align-items: center;
-    gap: 12px;
+    column-gap: 16px;
+    row-gap: 10px;
+
     padding: 12px 16px;
     border-top: 1px solid #e7e1da;
 }
 
 .order-date-range {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    align-self: center;
+
     color: #888888;
     font-size: 14px;
     font-weight: 500;
+}
+
+/* TOTAL PESANAN */
+.order-total {
+    grid-column: 2;
+    grid-row: 1;
+
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 6px;
+
+    color: #f47721;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.order-total span {
+    color: #f47721;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.order-total strong {
+    color: #f47721;
+    font-size: 18px;
+    font-weight: 700;
 }
 
 .order-card-footer > span {
@@ -315,14 +349,21 @@
     font-size: 10px;
 }
 
+/* TOMBOL LIHAT DETAIL */
 .order-detail-button {
-    padding: 7px 12px;
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+
+    padding: 8px 14px;
     border: 1px solid #dddddd;
     border-radius: 5px;
+
     background: #ffffff;
     color: #666666;
     font-family: 'Poppins', sans-serif;
-    font-size: 11px;
+    font-size: 12px;
+
     cursor: pointer;
     transition: 0.2s ease;
 }

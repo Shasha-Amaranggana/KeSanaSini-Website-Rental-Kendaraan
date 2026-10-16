@@ -650,14 +650,26 @@
 ===================================================== */
 
 .result-vehicle-action {
-    width: 180px;
+    width: 230px;
+    min-height: 88px;
+    box-sizing: border-box;
 
     display: flex;
     flex-direction: column;
-
     align-items: flex-end;
+    justify-content: center;
 
-    gap: 10px;
+    gap: 8px;
+    padding: 12px 25px;
+
+    background-color: #f2f2f2;
+
+    /* Menempel ke tepi card */
+    align-self: stretch;
+    margin: -12px -20px -12px 0;
+
+    /* Hanya sudut kanan card yang membulat */
+    border-radius: 0 6px 6px 0;
 
     flex-shrink: 0;
 }
@@ -690,4 +702,56 @@
 
 .rent-button:hover {
     background: #ed741d;
+}
+
+/* =====================================================
+   EMPTY STATE - KENDARAAN TIDAK DITEMUKAN
+===================================================== */
+
+.no-result {
+    width: 100%;
+    min-height: 262px;
+    box-sizing: border-box;
+
+    padding: 45px 20px;
+
+    background: #ffffff;
+    border: 1px solid #e7e1da;
+    border-radius: 8px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+}
+
+/* Ikon kendaraan */
+.no-result > i {
+    margin: 0 0 12px;
+
+    color: #f4a261;
+    font-size: 38px;
+    line-height: 1;
+}
+
+/* Judul */
+.no-result h3 {
+    margin: 0 0 8px;
+
+    color: #444444;
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+/* Keterangan */
+.no-result p {
+    margin: 0;
+
+    color: #888888;
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    line-height: 1.6;
 }
