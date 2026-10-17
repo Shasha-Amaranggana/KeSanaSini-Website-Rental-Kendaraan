@@ -1,1 +1,1 @@
-f
+    app.run(debug=True)
