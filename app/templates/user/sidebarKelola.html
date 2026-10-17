@@ -1,52 +1,112 @@
-<!-- SIDEBAR -->
+<!-- ═════════════════════════════════════════════════════════════
+    SIDEBAR KELOLA AKUN PELANGGAN WEBSITE KeSanaSini
+    ⤷ Menampilkan informasi profil dan menu pengelolaan akun,
+      pesanan, riwayat pesanan, notifikasi, dan logout.
+═════════════════════════════════════════════════════════════ -->
+
+
+<!-- ═════════════════════════════════════════════════════════════
+    A.   SIDEBAR AKUN PELANGGAN
+═════════════════════════════════════════════════════════════ -->
 <aside class="account-sidebar">
 
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     1.     INFORMASI PROFIL PELANGGAN                -->
+    <!--            Menampilkan nama dan email pengguna.     -->
+    <!-- ════════════════════════════════════════════════════ -->
     <div class="sidebar-profile">
+
+        <!-- FOTO PROFIL -->
         <div class="profile-avatar">
             <i class="fa-regular fa-user"></i>
         </div>
 
+        <!-- NAMA DAN EMAIL PELANGGAN -->
         <div class="user-profile-info">
             <strong>{{ user.name }}</strong>
             <span class="user-email" title="{{ user.email }}">
                 {{ user.email }}
             </span>
         </div>
+
     </div>
 
+
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     2.     MENU NAVIGASI SIDEBAR                     -->
+    <!--            Menyediakan tautan ke halaman pengelolaan -->
+    <!--            akun dan fitur pelanggan lainnya.        -->
+    <!-- ════════════════════════════════════════════════════ -->
     <nav class="sidebar-menu">
 
-        <a href="{{ url_for('main.kelola_akun') }}"
-           class="sidebar-link {{ 'active' if request.endpoint == 'main.kelola_akun' else '' }}">
+
+        <!-- ════════════════════════════════════════════════ -->
+        <!--     2.1.   MENU DATA DIRI SAYA                    -->
+        <!--            Membuka halaman pengelolaan akun.     -->
+        <!-- ════════════════════════════════════════════════ -->
+        <a
+            href="{{ url_for('main.kelola_akun') }}"
+            class="sidebar-link {{ 'active' if request.endpoint == 'main.kelola_akun' else '' }}">
             <i class="fa-regular fa-user"></i>
             <span>Data Diri Saya</span>
         </a>
 
-        <a href="{{ url_for('main.kelola_pesanan') }}"
-           class="sidebar-link {{ 'active' if request.endpoint in ['main.kelola_pesanan', 'main.detail_pesanan'] else '' }}">
+
+        <!-- ════════════════════════════════════════════════ -->
+        <!--     2.2.   MENU PESANAN SAYA                     -->
+        <!--            Membuka daftar pesanan yang sedang    -->
+        <!--            dikelola oleh pelanggan.              -->
+        <!-- ════════════════════════════════════════════════ -->
+        <a
+            href="{{ url_for('main.kelola_pesanan') }}"
+            class="sidebar-link {{ 'active' if request.endpoint in ['main.kelola_pesanan', 'main.detail_pesanan'] else '' }}">
             <i class="fa-solid fa-receipt"></i>
             <span>Pesanan Saya</span>
         </a>
 
-        <a href="{{ url_for('main.riwayat_pesanan') }}"
-        class="sidebar-link {{ 'active' if request.endpoint == 'main.riwayat_pesanan' else '' }}">
+
+        <!-- ════════════════════════════════════════════════ -->
+        <!--     2.3.   MENU RIWAYAT PESANAN                  -->
+        <!--            Membuka daftar riwayat penyewaan.     -->
+        <!-- ════════════════════════════════════════════════ -->
+        <a
+            href="{{ url_for('main.riwayat_pesanan') }}"
+            class="sidebar-link {{ 'active' if request.endpoint == 'main.riwayat_pesanan' else '' }}">
             <i class="fa-solid fa-clock-rotate-left"></i>
             <span>Riwayat Pesanan</span>
         </a>
 
-        <a href="{{ url_for('main.notifikasi') }}"
-        class="sidebar-link {{ 'active' if request.endpoint == 'main.notifikasi' else '' }}">
+
+        <!-- ════════════════════════════════════════════════ -->
+        <!--     2.4.   MENU NOTIFIKASI                       -->
+        <!--            Membuka halaman pemberitahuan        -->
+        <!--            terkait aktivitas akun dan pesanan.  -->
+        <!-- ════════════════════════════════════════════════ -->
+        <a
+            href="{{ url_for('main.notifikasi') }}"
+            class="sidebar-link {{ 'active' if request.endpoint == 'main.notifikasi' else '' }}">
             <i class="fa-regular fa-bell"></i>
             <span>Notifikasi</span>
         </a>
 
+
         <div class="sidebar-divider"></div>
 
-        <a href="{{ url_for('main.logout') }}"
-           class="sidebar-link logout-link">
+
+        <!-- ════════════════════════════════════════════════ -->
+        <!--     2.5.   MENU LOG OUT                          -->
+        <!--            Mengarahkan pengguna untuk keluar     -->
+        <!--            dari sesi akun.                       -->
+        <!-- ════════════════════════════════════════════════ -->
+        <a
+            href="{{ url_for('main.logout') }}"
+            class="sidebar-link logout-link">
             <i class="fa-solid fa-right-from-bracket"></i>
             <span>Log Out</span>
         </a>
 
     </nav>
+    
 </aside>
