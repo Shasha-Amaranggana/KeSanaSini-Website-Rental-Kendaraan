@@ -122,6 +122,7 @@ def index():
     current_date = now.strftime('%Y-%m-%d')
     current_time = now.strftime('%H:%M')
 
+
     return render_template(
         'user/halUtamaUser.html',
         vehicles=vehicles,
@@ -254,6 +255,8 @@ def hasil_pencarian():
         max_price=max_price,
         vehicle_type=vehicle_type
     )
+
+
 
 
 @bp.route('/detail-kendaraan/<int:vehicle_id>')
@@ -581,27 +584,83 @@ def pesanan():
 
     return redirect(url_for('main.pembayaran', rental_id=rental.id))
 
+
+def batalkan_pesanan_kedaluwarsa(rental):
+    """
+    Membatalkan pesanan yang melewati batas pembayaran 24 jam
+    dan membuat notifikasi pembatalan untuk pengguna.
+
+    Notifikasi hanya dibuat satu kali karena pesanan yang
+    sudah dibatalkan tidak diproses kembali.
+    """
+    if rental.status != Rental.STATUS_MENUNGGU_BAYAR:
+        return False
+
+    deadline = rental.created_at + timedelta(hours=24)
+
+    if datetime.now() <= deadline:
+        return False
+
+    status_lama = rental.status
+    rental.status = Rental.STATUS_BATAL
+
+    notifikasi = Notification(
+        user_id=rental.user_id,
+        rental_id=rental.id,
+        title='Pesanan Dibatalkan',
+        message=(
+            f'Pesanan {rental.booking_code} dibatalkan '
+            'karena batas waktu pembayaran 24 jam telah habis.'
+        ),
+        old_status=status_lama,
+        new_status=Rental.STATUS_BATAL
+    )
+
+    db.session.add(notifikasi)
+    db.session.commit()
+
+    return True
+
+
 @bp.route('/pembayaran/<int:rental_id>')
 def pembayaran(rental_id):
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
+
     user = User.query.get(session['user_id'])
-    rental = Rental.query.filter_by(id=rental_id, user_id=user.id).first_or_404()
+
+    if not user:
+        session.clear()
+        return redirect(url_for('main.login'))
+
+    rental = Rental.query.filter_by(
+        id=rental_id,
+        user_id=user.id
+    ).first_or_404()
 
     if rental.payment_status == 'Lunas':
-        return redirect(url_for('main.pembayaran_sukses', rental_id=rental.id))
+        return redirect(
+            url_for('main.pembayaran_sukses', rental_id=rental.id)
+        )
 
-    deadline = rental.created_at + timedelta(hours=24)
-    if rental.status == Rental.STATUS_BATAL or datetime.now() > deadline:
-        if rental.status == Rental.STATUS_MENUNGGU_BAYAR:
-            rental.status = Rental.STATUS_BATAL
-            db.session.commit()
+    # Batalkan pesanan dan buat notifikasi jika batas pembayaran habis.
+    if batalkan_pesanan_kedaluwarsa(rental):
         flash('Waktu pembayaran habis, pesanan dibatalkan.')
         return redirect(url_for('main.index'))
 
-    return render_template('user/pembayaran.html', rental=rental, user=user,
-                           total=rental.total_price, deadline=deadline)
+    if rental.status == Rental.STATUS_BATAL:
+        flash('Pesanan ini sudah dibatalkan.')
+        return redirect(url_for('main.index'))
 
+    deadline = rental.created_at + timedelta(hours=24)
+
+    return render_template(
+        'user/pembayaran.html',
+        rental=rental,
+        user=user,
+        total=rental.total_price,
+        deadline=deadline
+    )
 
 @bp.route('/pembayaran/<int:rental_id>/status')
 def status_pembayaran(rental_id):
@@ -616,6 +675,7 @@ def pembayaran_sukses(rental_id):
         return redirect(url_for('main.login'))
 
     user = User.query.get(session['user_id'])
+
     if not user:
         session.clear()
         return redirect(url_for('main.login'))
@@ -625,18 +685,17 @@ def pembayaran_sukses(rental_id):
         user_id=user.id
     ).first_or_404()
 
-    # Pastikan pesanan belum dibatalkan
-    # dan masih menunggu pembayaran.
+    # Pastikan pesanan belum dibatalkan dan pembayaran belum kedaluwarsa.
+    if batalkan_pesanan_kedaluwarsa(rental):
+        flash('Waktu pembayaran habis, pesanan dibatalkan.')
+        return redirect(url_for('main.index'))
+
+    if rental.status == Rental.STATUS_BATAL:
+        flash('Pesanan ini sudah dibatalkan.')
+        return redirect(url_for('main.index'))
+
+    # Ubah status jika pembayaran masih menunggu dan belum kedaluwarsa.
     if rental.status == Rental.STATUS_MENUNGGU_BAYAR:
-        deadline = rental.created_at + timedelta(hours=24)
-
-        if datetime.now() > deadline:
-            rental.status = Rental.STATUS_BATAL
-            db.session.commit()
-
-            flash('Waktu pembayaran habis, pesanan dibatalkan.')
-            return redirect(url_for('main.index'))
-
         rental.status = Rental.STATUS_MENUNGGU_KONFIRMASI
         db.session.commit()
 
@@ -645,7 +704,6 @@ def pembayaran_sukses(rental_id):
         rental=rental,
         user=user
     )
-
 
 
 
