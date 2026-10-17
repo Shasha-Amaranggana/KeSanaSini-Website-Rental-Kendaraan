@@ -1,6 +1,17 @@
-/* =====================================================
-        RESET
-===================================================== */
+/* ═════════════════════════════════════════════════════════════
+    CSS HALAMAN UTAMA WEBSITE KeSanaSini
+    ⤷ Mengatur tampilan halaman utama, fitur pencarian kendaraan,
+      informasi keuntungan, daftar kendaraan, dan tampilan responsif.
+═════════════════════════════════════════════════════════════ */
+
+
+
+/* ═════════════════════════════════════════════════════════════
+   A.   RESET DAN PENGATURAN DASAR
+═════════════════════════════════════════════════════════════ */
+
+/* A.1. Mengatur ulang margin, padding, dan ukuran elemen
+   ════════════════════════════════════════════════════════  */
 * {
     margin: 0;
     padding: 0;
@@ -8,9 +19,17 @@
     font-family: 'Poppins', sans-serif;
 }
 
-/* =====================================================
-   HERO
-===================================================== */
+
+
+/* ═════════════════════════════════════════════════════════════
+   B.   HERO SECTION
+       ⤷ Mengatur bagian utama halaman yang menampilkan judul,
+         deskripsi, dan kotak pencarian kendaraan.
+═════════════════════════════════════════════════════════════ */
+
+/* B.1. Mengatur area utama hero
+   ⤷ Menentukan posisi, lebar, tinggi minimum, dan batas konten.
+   ════════════════════════════════════════════════════════  */
 .hero-section {
     position: relative;
     width: 100%;
@@ -19,9 +38,9 @@
 }
 
 
-/* =====================================================
-   HERO CONTENT
-===================================================== */
+/* B.2. Mengatur area konten hero
+   ⤷ Memberikan ruang untuk teks dan kotak pencarian.
+   ════════════════════════════════════════════════════════  */
 .hero-content {
     position: relative;
     min-height: 515px;
@@ -29,15 +48,18 @@
 }
 
 
-/* =====================================================
-   HERO TEXT
-===================================================== */
-
+/* B.3. Mengatur posisi dan ukuran teks hero
+   ════════════════════════════════════════════════════════  */
 .hero-text {
     margin-left: 6%;
     width: 550px;
 }
 
+
+/* B.4. Mengatur kata-kata herp
+   ⤷ Menentukan jenis huruf, ukuran, ketebalan, dan warna judul.
+   ════════════════════════════════════════════════════════  */
+/* Judul : "Dari Sini" */
 .hero-text h1 {
     font-family: 'Inter', sans-serif;
     font-size: 43px;
@@ -47,13 +69,14 @@
     letter-spacing: -1px;
 }
 
+/* Judul : "Perjalanan Dimulai" */
 .hero-text h1 span {
     display: block;
     color: #e97822;
     margin-top: 3px;
 }
 
-
+/* Detail : "Temukan kendaraan yang tepat untuk..." */
 .hero-text p {
     font-family: 'Poppins', sans-serif;
     margin-top: 24px;
@@ -65,9 +88,15 @@
 }
 
 
-/* =====================================================
-   SEARCH BOX
-===================================================== */
+
+/* ═════════════════════════════════════════════════════════════
+   C.   KOTAK PENCARIAN KENDARAAN
+       ⤷ Mengatur wadah formulir pencarian dan seluruh elemennya.
+═════════════════════════════════════════════════════════════ */
+
+/* C.1. Mengatur posisi dan tampilan kotak pencarian
+   ⤷ Menentukan ukuran, jarak dalam, warna latar, dan bayangan.
+   ════════════════════════════════════════════════════════  */
 .search-box {
     position: absolute;
     left: 6%;
@@ -75,12 +104,16 @@
     width: 550px;
     min-height: 300px;
     padding: 20px 25px;
+
     background: white;
     border-radius: 15px;
     box-shadow:
         0 3px 10px rgba(0, 0, 0, 0.08);
 }
 
+
+/* C.2. Mengatur judul pada kotak pencarian
+   ════════════════════════════════════════════════════════  */
 .search-box h2 {
     font-family: 'Poppins', sans-serif;
     font-size: 21px;
@@ -90,9 +123,15 @@
 }
 
 
-/* =====================================================
-   VEHICLE TABS
-===================================================== */
+
+/* ═════════════════════════════════════════════════════════════
+   D.   INPUT: TAB JENIS KENDARAAN
+       ⤷ Mengatur tab pilihan jenis kendaraan pada formulir.
+═════════════════════════════════════════════════════════════ */
+
+/* D.1. Mengatur wadah tab kendaraan (Kotak Mobil Motor gabung)
+   ⤷ Menyusun tab secara horizontal dan membatasi kontennya.
+   ════════════════════════════════════════════════════════  */
 .vehicle-tabs {
     width: 100%;
     height: 52px;
@@ -103,41 +142,55 @@
     margin-bottom: 20px;
 }
 
+
+/* D.2. Mengatur tampilan dasar setiap tab (Kotak Mobil Motor terpisah)
+   ⤷ Menentukan ukuran, warna, posisi ikon, dan transisi.
+   ════════════════════════════════════════════════════════  */
 .vehicle-tab {
     flex: 1;
+
     border: none;
     background: transparent;
     color: #777;
     font-size: 17px;
     font-weight: 600;
+
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
-
     gap: 10px;
-
     transition:
         all 0.25s ease;
 }
 
+
+/* D.3. Mengatur tampilan tab yang sedang aktif
+   ════════════════════════════════════════════════════════  */
 .vehicle-tab.active {
     background: white;
     color: #222;
     border-radius: 7px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-
     margin: 3px;
 }
 
+
+/* D.4. Mengubah warna teks tab ketika diarahkan kursor
+   ════════════════════════════════════════════════════════  */
 .vehicle-tab:hover {
     color: #222;
 }
 
 
-/* =====================================================
-   SEARCH LABEL
-===================================================== */
+
+/* ═════════════════════════════════════════════════════════════
+   E.   INPUT: LABEL DAN INPUT PENCARIAN
+       ⤷ Mengatur label, kolom input, pilihan waktu, dan durasi.
+═════════════════════════════════════════════════════════════ */
+
+/* E.1. Mengatur tampilan label pencarian
+   ════════════════════════════════════════════════════════  */
 .search-label {
     font-size: 14px;
     font-weight: 700;
@@ -146,15 +199,19 @@
 }
 
 
-/* =====================================================
-   SEARCH FIELDS
-===================================================== */
+/* E.2. Mengatur susunan kolom pencarian
+   ⤷ Menempatkan kolom input secara horizontal.
+   ════════════════════════════════════════════════════════  */
 .search-fields {
     display: flex;
     gap: 12px;
     width: 100%;
 }
 
+
+/* E.3. Mengatur tampilan dasar kolom input
+   ⤷ Menyusun ikon dan elemen input dalam satu baris.
+   ════════════════════════════════════════════════════════  */
 .search-input {
     height: 38px;
     border: 1px solid #c9c9c9;
@@ -166,11 +223,17 @@
     background: white;
 }
 
+
+/* Tiap Ikon pada kolom Input */
 .search-input i {
     color: #737373;
     font-size: 16px;
 }
 
+
+/* E.5. Menyamakan tampilan elemen input dan pilihan
+   ⤷ Mengatur lebar, warna, jenis huruf, dan garis tepi.
+   ════════════════════════════════════════════════════════  */
 .search-input input,
 .search-input select {
     width: 100%;
@@ -182,10 +245,16 @@
     font-family: inherit;
 }
 
+
+/* E.6. Mengatur lebar kolom input pertama
+   ════════════════════════════════════════════════════════  */
 .search-input:first-child {
     width: 200px;
 }
 
+
+/* E.7. Mengatur lebar kolom waktu dan durasi
+   ════════════════════════════════════════════════════════  */
 .time-input {
     width: 135px;
 }
@@ -194,25 +263,40 @@
     width: 145px;
 }
 
+
+/* E.9. Mengatur interaksi pilihan durasi
+   ⤷ Menghilangkan tampilan panah bawaan pada elemen select.
+   ════════════════════════════════════════════════════════  */
 .duration-input select {
     cursor: pointer;
     appearance: none;
 }
 
 
-/* =====================================================
-   PRICE
-===================================================== */
+
+/* ═════════════════════════════════════════════════════════════
+   F.   PENCARIAN BERDASARKAN HARGA
+       ⤷ Mengatur kolom harga minimum dan maksimum.
+═════════════════════════════════════════════════════════════ */
+
+/* F.1. Memberikan jarak sebelum label harga
+   ════════════════════════════════════════════════════════  */
 .price-label {
     margin-top: 17px;
 }
 
+
+/* F.2. Mengatur susunan kolom pencarian harga
+   ════════════════════════════════════════════════════════  */
 .price-search {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
+
+/* F.3. Mengatur tampilan kolom input harga
+   ════════════════════════════════════════════════════════  */
 .price-input{
     height: 38px;
     width: 155px;
@@ -224,6 +308,9 @@
     padding: 0 10px;
 }
 
+
+/* F.4. Mengatur tampilan ikon mata uang
+   ════════════════════════════════════════════════════════  */
 .price-input span {
     width: 18px;
     height: 18px;
@@ -236,6 +323,9 @@
     color: #777;
 }
 
+
+/* F.5. Mengatur tampilan teks input harga
+   ════════════════════════════════════════════════════════  */
 .price-input input {
     width: 100%;
     border: none;
@@ -245,19 +335,30 @@
     background: transparent;
 }
 
+
+/* F.6. Mengatur warna teks petunjuk input harga
+   ════════════════════════════════════════════════════════  */
 .price-input input::placeholder {
     color: #777;
 }
 
+
+/* F.7. Mengatur tampilan pemisah harga
+   ════════════════════════════════════════════════════════  */
 .price-separator {
     color: #777;
     font-size: 18px;
 }
 
 
-/* =====================================================
-   SEARCH BUTTON
-===================================================== */
+
+/* ═════════════════════════════════════════════════════════════
+   G.   TOMBOL PENCARIAN
+       ⤷ Mengatur tampilan tombol dan efek ketika diarahkan kursor.
+═════════════════════════════════════════════════════════════ */
+
+/* G.1. Mengatur tampilan dasar tombol pencarian
+   ════════════════════════════════════════════════════════  */
 .search-button {
     width: 130px;
     height: 38px;
@@ -273,6 +374,10 @@
         all 0.25s ease;
 }
 
+
+/* G.2. Memberikan efek interaksi pada tombol pencarian
+   ⤷ Mengubah warna, posisi, dan bayangan tombol.
+   ════════════════════════════════════════════════════════  */
 .search-button:hover {
     background: #ffca45;
     transform: translateY(-2px);
@@ -281,9 +386,15 @@
 }
 
 
-/* =====================================================
-   BENEFIT BAR
-===================================================== */
+
+/* ═════════════════════════════════════════════════════════════
+   H.   BAR INFORMASI KEUNTUNGAN
+       ⤷ Menampilkan informasi keunggulan layanan penyewaan.
+═════════════════════════════════════════════════════════════ */
+
+/* H.1. Mengatur wadah informasi keuntungan
+   ⤷ Menentukan latar, jarak, dan susunan informasi.
+   ════════════════════════════════════════════════════════  */
 .benefit-bar {
     width: 100%;
     min-height: 76px;
@@ -295,6 +406,9 @@
     padding: 10px 40px 10px 660px;
 }
 
+
+/* H.2. Mengatur susunan setiap informasi keuntungan
+   ════════════════════════════════════════════════════════  */
 .benefit-item {
     display: flex;
     align-items: center;
@@ -303,6 +417,9 @@
     color: white;
 }
 
+
+/* H.3. Mengatur tampilan ikon keuntungan
+   ════════════════════════════════════════════════════════  */
 .benefit-icon {
     color: #ff8629;
     font-size: 22px;
@@ -310,6 +427,9 @@
     text-align: center;
 }
 
+
+/* H.4. Mengatur tampilan judul keuntungan
+   ════════════════════════════════════════════════════════  */
 .benefit-item strong {
     display: block;
     font-size: 12px;
@@ -317,6 +437,9 @@
     margin-bottom: 2px;
 }
 
+
+/* H.5. Mengatur tampilan deskripsi keuntungan
+   ════════════════════════════════════════════════════════  */
 .benefit-item span {
     display: block;
     color: #d5d5d5;
@@ -325,9 +448,15 @@
 }
 
 
-/* =====================================================
-   VEHICLE SECTION
-===================================================== */
+
+/* ═════════════════════════════════════════════════════════════
+   I.   BAGIAN DAFTAR KENDARAAN : JUDULNYA
+       ⤷ Mengatur latar belakang, judul, dan kumpulan kartu.
+═════════════════════════════════════════════════════════════ */
+
+/* I.1. Mengatur area utama daftar kendaraan
+   ⤷ Menggabungkan pola gambar dan gradasi sebagai latar.
+   ════════════════════════════════════════════════════════  */
 .vehicle-section {
     position: relative;
     width: 100%;
@@ -349,81 +478,66 @@
     background-size: 500px auto, 100% 100%;
 }
 
-/* =====================================================
-   SECTION TITLE
-===================================================== */
 
+/* I.2. Mengatur posisi judul bagian kendaraan
+   ════════════════════════════════════════════════════════  */
 .section-title {
-
     text-align: center;
-
     margin-bottom: 25px;
 }
 
 
+/* I.3. Mengatur tampilan kata-katanya
+   ════════════════════════════════════════════════════════  */
+/* Judul : "Kendaraan.." */
 .section-title h2 {
-
     font-size: 30px;
-
     font-weight: 900;
-
     color: #431414;
 }
 
-
+/* Judul : "..Kami" */
 .section-title h2 span {
-
     color: #ed741d;
 }
 
-
+/* Detail : "Mulailah dengan kendaraan favorit dari kami" */
 .section-title p {
     font-family: 'Poppins', sans-serif;
-
     margin-top: 6px;
-
     font-size: 16px;
-
     color: #666;
-
     font-weight: 500;
 }
 
 
-/* =====================================================
-   VEHICLE LIST
-===================================================== */
 
+/* ═════════════════════════════════════════════════════════════
+   J.   DAFTAR DAN KARTU KENDARAAN
+       ⤷ Mengatur susunan kartu serta efek interaksinya.
+═════════════════════════════════════════════════════════════ */
+
+/* J.1. Mengatur susunan daftar kendaraan
+   ⤷ Menampilkan kartu secara horizontal tanpa membungkus baris.
+   ════════════════════════════════════════════════════════  */
 .vehicle-list {
-
     width: 100%;
-
     display: flex;
-
     justify-content: center;
-
     gap: 15px;
-
     flex-wrap: nowrap;
 }
 
 
-/* =====================================================
-   VEHICLE CARD
-===================================================== */
-
+/* J.2. Mengatur tampilan dasar kartu kendaraan
+   ⤷ Menentukan ukuran, warna, sudut, bayangan, dan transisi.
+   ════════════════════════════════════════════════════════  */
 .vehicle-card {
-
     width: 220px;
-
     min-width: 220px;
-
     height: 207px;
-
     background: white;
-
     border-radius: 7px;
-
     overflow: hidden;
 
     box-shadow:
@@ -439,19 +553,25 @@
 }
 
 
+/* J.3. Memberikan efek saat kartu kendaraan diarahkan kursor
+   ⤷ Mengangkat kartu dan memperkuat bayangannya.
+   ════════════════════════════════════════════════════════  */
 .vehicle-card:hover {
-
     transform: translateY(-5px);
-
     box-shadow:
         0 8px 18px rgba(0, 0, 0, 0.2);
 }
 
 
-/* =====================================================
-   VEHICLE NAME
-===================================================== */
 
+/* ═════════════════════════════════════════════════════════════
+   K.   DETAIL KARTU KENDARAAN
+       ⤷ Mengatur nama, gambar, informasi, dan harga kendaraan.
+═════════════════════════════════════════════════════════════ */
+
+/* K.1. Mengatur tampilan nama kendaraan
+   ⤷ Menempatkan nama di tengah dan menambahkan garis pemisah.
+   ════════════════════════════════════════════════════════  */
 .vehicle-name {
     height: 36px;
     border-bottom: 1px solid #d9d9d9;
@@ -467,10 +587,8 @@
 }
 
 
-/* =====================================================
-   VEHICLE IMAGE
-===================================================== */
-
+/* K.2. Mengatur area gambar kendaraan
+   ════════════════════════════════════════════════════════  */
 .vehicle-image {
     width: 100%;
     height: 120px;
@@ -482,21 +600,26 @@
     justify-content: center;
 }
 
+
+/* K.3. Mengatur ukuran dan penyesuaian gambar kendaraan
+   ════════════════════════════════════════════════════════  */
 .vehicle-image img {
     width: 82%;
     height: 100%;
     object-fit: contain;
 }
 
+
+/* K.4. Mengatur ikon pengganti ketika gambar tidak tersedia
+   ════════════════════════════════════════════════════════  */
 .vehicle-no-image {
     font-size: 50px;
     color: #bbb;
 }
 
 
-/* =====================================================
-   VEHICLE INFO
-===================================================== */
+/* K.5. Mengatur area informasi kendaraan
+   ════════════════════════════════════════════════════════  */
 .vehicle-info {
     height: 51px;
     box-sizing: border-box;
@@ -504,6 +627,9 @@
     background-color: #edeae8f2;
 }
 
+
+/* K.6. Mengatur susunan informasi detail kendaraan
+   ════════════════════════════════════════════════════════  */
 .vehicle-detail {
     display: flex;
     justify-content: space-between;
@@ -513,16 +639,26 @@
     margin-bottom: 8px;
 }
 
+
+/* K.7. Menyusun ikon dan teks pada detail kendaraan
+   ════════════════════════════════════════════════════════  */
 .vehicle-detail span {
     display: flex;
     align-items: center;
     gap: 5px;
 }
 
+
+/* K.8. Mengatur ukuran ikon detail kendaraan
+   ════════════════════════════════════════════════════════  */
 .vehicle-detail i {
     font-size: 14px;
 }
 
+
+/* K.9. Mengatur tampilan harga kendaraan
+   ⤷ Menempatkan harga di tengah dengan warna oranye.
+   ════════════════════════════════════════════════════════  */
 .vehicle-price {
     text-align: center;
     font-family: 'Poppins', sans-serif;
@@ -533,173 +669,137 @@
 }
 
 
-/* =====================================================
-   EMPTY
-===================================================== */
 
+/* ═════════════════════════════════════════════════════════════
+   L.   TAMPILAN KETIKA DAFTAR KENDARAAN KOSONG
+       ⤷ Mengatur pesan dan ikon ketika tidak ada kendaraan.
+═════════════════════════════════════════════════════════════ */
+
+/* L.1. Mengatur area pesan kendaraan kosong
+   ════════════════════════════════════════════════════════  */
 .empty-vehicle {
-
     width: 100%;
-
     text-align: center;
-
     padding: 50px;
-
     color: #777;
 }
 
 
+/* L.2. Mengatur tampilan ikon pada pesan kendaraan kosong
+   ════════════════════════════════════════════════════════  */
 .empty-vehicle i {
-
     font-size: 40px;
-
     margin-bottom: 10px;
 }
 
 
-/* =====================================================
-   RESPONSIVE
-===================================================== */
 
+
+/* ═════════════════════════════════════════════════════════════
+   M.   RESPONSIVE DESIGN
+       ⤷ Menyesuaikan tata letak halaman berdasarkan ukuran layar.
+═════════════════════════════════════════════════════════════ */
+
+/* M.1. Penyesuaian untuk layar maksimal 1200px
+   ⤷ Mengurangi jarak informasi dan memungkinkan daftar kendaraan
+     digulir secara horizontal.
+   ════════════════════════════════════════════════════════  */
 @media (max-width: 1200px) {
-
     .benefit-bar {
-
         gap: 20px;
     }
 
-
     .vehicle-list {
-
         overflow-x: auto;
-
         justify-content: flex-start;
-
         padding-bottom: 10px;
     }
-
 }
 
 
+/* M.2. Penyesuaian untuk layar maksimal 900px
+   ⤷ Menyesuaikan ukuran teks, posisi pencarian, dan bar keuntungan.
+   ════════════════════════════════════════════════════════  */
 @media (max-width: 900px) {
-
     .hero-text {
-
         margin-left: 5%;
-
         width: 90%;
     }
 
-
     .hero-text h1 {
-
         font-size: 35px;
     }
 
-
     .hero-text p {
-
         width: 400px;
-
         max-width: 90%;
     }
 
-
     .search-box {
-
         left: 5%;
-
         width: 90%;
-
         max-width: 550px;
     }
 
-
     .benefit-bar {
-
         flex-wrap: wrap;
-
         justify-content: flex-start;
     }
-
 }
 
 
+/* M.3. Penyesuaian untuk layar maksimal 600px
+   ⤷ Menyusun kolom pencarian secara vertikal dan menyederhanakan
+     tampilan untuk perangkat dengan layar kecil.
+   ════════════════════════════════════════════════════════  */
 @media (max-width: 600px) {
-
     .hero-section {
-
         min-height: 800px;
     }
 
-
     .hero-content {
-
         padding-top: 40px;
     }
 
-
     .hero-text h1 {
-
         font-size: 30px;
     }
 
-
     .search-box {
-
         top: 245px;
-
         padding: 18px;
     }
 
-
     .search-fields {
-
         flex-direction: column;
     }
-
 
     .search-input:first-child,
     .time-input,
     .duration-input {
-
         width: 100%;
     }
 
-
     .price-search {
-
         flex-wrap: wrap;
     }
 
-
     .price-input {
-
         flex: 1;
-
         min-width: 120px;
     }
 
-
     .search-button {
-
         width: 100%;
-
         margin-top: 5px;
     }
 
-
     .benefit-bar {
-
         display: none;
     }
 
-
     .vehicle-section {
-
         padding-left: 20px;
-
         padding-right: 20px;
     }
-
 }
