@@ -1,88 +1,181 @@
+
+<!-- ═════════════════════════════════════════════════════════════
+    HTML TAMPILAN HALAMAN KELOLA NOTIFIKASI WEBSITE KeSanaSini
+    ⤷ Menampilkan daftar notifikasi pelanggan mengenai perubahan
+      status pesanan, pengingat, dan informasi denda.
+═════════════════════════════════════════════════════════════ -->
+
+
 {% extends "base.html" %}
 
+
+
+<!-- ═════════════════════════════════════════════════════════════
+    A.   INFORMASI HALAMAN
+═════════════════════════════════════════════════════════════ -->
 {% block title %}
 Kelola Notifikasi - KeSanaSini
 {% endblock %}
 
+
+
+<!-- ═════════════════════════════════════════════════════════════
+    B.   KELAS BODY HALAMAN
+═════════════════════════════════════════════════════════════ -->
 {% block body_class %}
 notifications-page
 {% endblock %}
 
+
+
+<!-- ═════════════════════════════════════════════════════════════
+    C.   CSS HALAMAN
+═════════════════════════════════════════════════════════════ -->
 {% block css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/user/halKelolaNotifikasi.css') }}">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     1.     CSS KHUSUS HALAMAN NOTIFIKASI              -->
+    <!--            Mengatur tampilan daftar notifikasi.       -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/user/halKelolaNotifikasi.css') }}">
+
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     2.     FONT WEBSITE                               -->
+    <!--            Menyediakan font Inter dan Poppins.        -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
 {% endblock %}
 
+
+
+<!-- ═════════════════════════════════════════════════════════════
+    D.   KONTEN UTAMA HALAMAN
+═════════════════════════════════════════════════════════════ -->
 {% block content %}
-<main class="account-page">
-    <div class="account-layout">
 
-        <!-- SIDEBAR -->
-        {% include 'user/sidebarKelola.html' %}
 
-        <!-- KONTEN NOTIFIKASI -->
-        <section class="account-content">
-            <h1>Notifikasi</h1>
 
-            <div class="notification-list">
-                {% if notifications %}
-                    {% for notification in notifications %}
-                    <article class="notification-card
-                        {% if not notification.is_read %}unread{% endif %} {{ notification.tone }}">
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     1.     HALAMAN KELOLA NOTIFIKASI                   -->
+    <!--            Menampilkan sidebar dan daftar notifikasi. -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <main class="account-page">
 
-                        <div class="notification-icon {{ notification.tone }}">
-                            <i class="{{ notification.icon }}"></i>
+        <div class="account-layout">
+
+
+            <!-- ════════════════════════════════════════════ -->
+            <!--     1.1.   SIDEBAR KELOLA AKUN                 -->
+            <!--            Menampilkan navigasi pengelolaan    -->
+            <!--            akun pelanggan.                     -->
+            <!-- ════════════════════════════════════════════ -->
+            {% include 'user/sidebarKelola.html' %}
+
+  
+            <!-- ════════════════════════════════════════════ -->
+            <!--     1.2.   KONTEN NOTIFIKASI                   -->
+            <!--            Menampilkan judul dan daftar       -->
+            <!--            pemberitahuan kepada pelanggan.     -->
+            <!-- ════════════════════════════════════════════ -->
+            <section class="account-content">
+
+                <h1>Notifikasi</h1>
+
+                <div class="notification-list">
+
+                    <!--     1.2.1. DAFTAR NOTIFIKASI              -->
+                    <!-- ════════════════════════════════════════ -->
+                    {% if notifications %}
+
+                        {% for notification in notifications %}
+
+                            <!--  KARTU NOTIFIKASI  -->
+                            <article class="notification-card
+                                {% if not notification.is_read %}unread{% endif %} {{ notification.tone }}">
+
+                                <!--  IKON NOTIFIKASI  -->
+                                <div class="notification-icon {{ notification.tone }}">
+                                    <i class="{{ notification.icon }}"></i>
+                                </div>
+
+                                <!--  INFORMASI NOTIFIKASI  -->
+                                <div class="notification-content">
+
+                                    <!-- JUDUL DAN LABEL NOTIFIKASI -->
+                                    <div class="notification-heading">
+                                        <h3>
+                                            {{ notification.title }}
+                                        </h3>
+
+                                        {% if not notification.is_read %}
+                                            <span class="notification-badge">Baru</span>
+                                        {% endif %}
+                                        {% if notification.category == 'overdue' or notification.category == 'fine' %}
+                                            <span class="notification-badge" style="background:#FEE2E2; color:#B91C1C;">Denda</span>
+                                        {% elif notification.category == 'reminder' %}
+                                            <span class="notification-badge" style="background:#FEF3C7; color:#92400E;">Pengingat</span>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- PESAN NOTIFIKASI -->
+                                    <p>{{ notification.message }}</p>
+
+                                    <!-- KODE PESANAN DAN WAKTU NOTIFIKASI -->
+                                    <div class="notification-meta">
+                                        <span>
+                                            Kode Pesanan:
+                                            {{ notification.rental.booking_code }}
+                                        </span>
+
+                                        <span>
+                                            {{ notification.created_at.strftime('%d-%m-%Y %H:%M') }}
+                                        </span>
+                                    </div>
+
+                                    <!-- TOMBOL DETAIL PESANAN -->
+                                    <a
+                                        href="{{ url_for('main.detail_pesanan', rental_id=notification.rental_id) }}"
+                                        class="notification-detail-button">
+                                        Lihat Pesanan
+                                    </a>
+
+                                </div>
+
+                            </article>
+
+                        {% endfor %}
+
+                    <!--     1.2.2. NOTIFIKASI KOSONG             -->
+                    <!-- ════════════════════════════════════════ -->
+                    {% else %}
+
+                        <div class="notification-empty">
+                            <i class="fa-regular fa-bell-slash"></i>
+                            <h2>
+                                Belum Ada Notifikasi
+                            </h2>
+
+                            <p>
+                                Pemberitahuan perubahan status pesanan
+                                akan muncul di sini.
+                            </p>
                         </div>
 
-                        <div class="notification-content">
-                            <div class="notification-heading">
-                                <h3>{{ notification.title }}</h3>
+                    {% endif %}
 
-                                {% if not notification.is_read %}
-                                    <span class="notification-badge">Baru</span>
-                                {% endif %}
-                                {% if notification.category == 'overdue' or notification.category == 'fine' %}
-                                    <span class="notification-badge" style="background:#FEE2E2; color:#B91C1C;">Denda</span>
-                                {% elif notification.category == 'reminder' %}
-                                    <span class="notification-badge" style="background:#FEF3C7; color:#92400E;">Pengingat</span>
-                                {% endif %}
-                            </div>
+                </div>
 
-                            <p>{{ notification.message }}</p>
+            </section>
 
-                            <div class="notification-meta">
-                                <span>
-                                    Kode Pesanan:
-                                    {{ notification.rental.booking_code }}
-                                </span>
+        </div>
 
-                                <span>
-                                    {{ notification.created_at.strftime('%d-%m-%Y %H:%M') }}
-                                </span>
-                            </div>
-
-                            <a
-                                href="{{ url_for('main.detail_pesanan', rental_id=notification.rental_id) }}"
-                                class="notification-detail-button">
-                                Lihat Pesanan
-                            </a>
-                        </div>
-
-                    </article>
-                    {% endfor %}
-                {% else %}
-                    <div class="notification-empty">
-                        <i class="fa-regular fa-bell-slash"></i>
-                        <h2>Belum Ada Notifikasi</h2>
-                        <p>
-                            Pemberitahuan perubahan status pesanan
-                            akan muncul di sini.
-                        </p>
-                    </div>
-                {% endif %}
-            </div>
-        </section>
-
-    </div>
-</main>
+    </main>
+    
 {% endblock %}
