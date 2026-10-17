@@ -1,7 +1,18 @@
+/* ═════════════════════════════════════════════════════════════
+    CSS HALAMAN KELOLA NOTIFIKASI WEBSITE KeSanaSini
+    ⤷ Mengatur latar halaman, sidebar, daftar notifikasi,
+      kartu notifikasi, label, tombol, dan tampilan responsif.
+═════════════════════════════════════════════════════════════ */
 
-/* =====================================================
-   RESET
-===================================================== */
+
+
+/* ═════════════════════════════════════════════════════════════
+   A.   RESET DAN PENGATURAN DASAR
+═════════════════════════════════════════════════════════════ */
+
+/* A.1. Mengatur ulang margin, padding, ukuran elemen,
+   dan jenis font yang digunakan pada halaman.
+   ════════════════════════════════════════════════════════ */
 * {
     margin: 0;
     padding: 0;
@@ -9,35 +20,58 @@
     font-family: 'Poppins', sans-serif;
 }
 
-/* =====================================================
-   HALAMAN KELOLA NOTIFIKASI
-===================================================== */
+
+
+/* ═════════════════════════════════════════════════════════════
+   B.   HALAMAN KELOLA NOTIFIKASI
+       ⤷ Mengatur latar belakang, ukuran halaman, dan tata
+         letak sidebar serta konten notifikasi.
+═════════════════════════════════════════════════════════════ */
+
+/* B.1. Mengatur area utama halaman kelola notifikasi
+   ⤷ Menentukan ukuran halaman, gradasi latar, dan posisi
+     elemen dekoratif di belakang konten.
+   ════════════════════════════════════════════════════════ */
 .account-page {
     width: 100%;
     min-height: 525px;
     padding: 26px 5% 44px;
+
     background: linear-gradient(
         to bottom,
         #FFD9A6 0%,
         #FFE6C4 55%,
         #FFF0D8 100%
     );
+
     position: relative;
     isolation: isolate;
 }
 
+
+/* B.2. Menambahkan pola kendaraan pada latar halaman
+   ⤷ Menempatkan gambar dekoratif di belakang konten tanpa
+     mengganggu interaksi pengguna.
+   ════════════════════════════════════════════════════════ */
 .account-page::before {
     content: "";
     position: absolute;
     inset: 0;
+
     background-image: url("../../images/vehicle-pattern.png");
     background-repeat: repeat;
     background-position: center;
     background-size: 500px auto;
+
     z-index: -1;
     pointer-events: none;
 }
 
+
+/* B.3. Mengatur susunan sidebar dan konten utama
+   ⤷ Menggunakan grid untuk menentukan lebar sidebar,
+     jarak antarkolom, dan posisi keseluruhan konten.
+   ════════════════════════════════════════════════════════ */
 .account-layout {
     display: grid;
     grid-template-columns: 250px minmax(0, 1fr);
@@ -47,13 +81,23 @@
     align-items: start;
 }
 
-/* =====================================================
-   KONTEN UTAMA
-===================================================== */
+
+
+/* ═════════════════════════════════════════════════════════════
+   C.   KONTEN UTAMA
+       ⤷ Mengatur area konten notifikasi dan judul halaman.
+═════════════════════════════════════════════════════════════ */
+
+/* C.1. Mengatur area konten agar dapat menyesuaikan lebar
+   kolom yang tersedia.
+   ════════════════════════════════════════════════════════ */
 .account-content {
     min-width: 0;
 }
 
+
+/* C.2. Mengatur tampilan judul halaman notifikasi
+   ════════════════════════════════════════════════════════ */
 .account-content > h1 {
     margin: -3px 0 25px;
     color: #484848;
@@ -62,9 +106,15 @@
     font-weight: 800;
 }
 
-/* =====================================================
-   DAFTAR NOTIFIKASI
-===================================================== */
+
+
+/* ═════════════════════════════════════════════════════════════
+   D.   DAFTAR NOTIFIKASI
+       ⤷ Mengatur susunan daftar dan jarak antarkartu notifikasi.
+═════════════════════════════════════════════════════════════ */
+
+/* D.1. Mengatur susunan daftar notifikasi secara vertikal
+   ════════════════════════════════════════════════════════ */
 .notification-list {
     display: flex;
     flex-direction: column;
@@ -72,32 +122,57 @@
     margin-top: 14px;
 }
 
-/* =====================================================
-   KARTU NOTIFIKASI
-===================================================== */
+
+
+/* ═════════════════════════════════════════════════════════════
+   E.   KARTU NOTIFIKASI
+       ⤷ Mengatur tampilan dasar kartu dan efek ketika
+         notifikasi diarahkan kursor.
+═════════════════════════════════════════════════════════════ */
+
+/* E.1. Mengatur tampilan dasar kartu notifikasi
+   ⤷ Menentukan susunan ikon dan konten, jarak, latar,
+     garis tepi, sudut, bayangan, dan transisi.
+   ════════════════════════════════════════════════════════ */
 .notification-card {
     display: flex;
     align-items: flex-start;
     gap: 15px;
     padding: 18px 20px;
+
     background: #ffffff;
     border: 1px solid #e7e1da;
     border-radius: 8px;
+
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.07);
     transition: border-color 0.2s ease;
 }
 
+
+/* E.2. Mengubah warna garis tepi ketika kartu diarahkan kursor
+   ════════════════════════════════════════════════════════ */
 .notification-card:hover {
     border-color: #f5b47e;
 }
 
-/* NOTIFIKASI BELUM DIBACA */
+
+/* E.3. Membedakan kartu notifikasi yang belum dibaca
+   ⤷ Mengubah latar dan garis tepi kiri sebagai penanda.
+   ════════════════════════════════════════════════════════ */
 .notification-card.unread {
     background: #fffaf5;
     border-left: 4px solid #f47721;
 }
 
-/* IKON NOTIFIKASI */
+
+
+/* ═════════════════════════════════════════════════════════════
+   F.   IKON NOTIFIKASI
+       ⤷ Mengatur ukuran, posisi, bentuk, dan warna ikon.
+═════════════════════════════════════════════════════════════ */
+
+/* F.1. Mengatur tampilan area ikon notifikasi
+   ════════════════════════════════════════════════════════ */
 .notification-icon {
     width: 42px;
     height: 42px;
@@ -111,12 +186,25 @@
     font-size: 18px;
 }
 
-/* ISI NOTIFIKASI */
+
+
+/* ═════════════════════════════════════════════════════════════
+   G.   ISI NOTIFIKASI
+       ⤷ Mengatur area konten, judul, dan label notifikasi.
+═════════════════════════════════════════════════════════════ */
+
+/* G.1. Mengatur area isi notifikasi
+   ⤷ Memanfaatkan ruang yang tersedia dan mencegah konten
+     melebar melebihi ukuran kartu.
+   ════════════════════════════════════════════════════════ */
 .notification-content {
     flex: 1;
     min-width: 0;
 }
 
+
+/* G.2. Mengatur susunan judul dan label notifikasi
+   ════════════════════════════════════════════════════════ */
 .notification-heading {
     display: flex;
     align-items: center;
@@ -125,6 +213,9 @@
     margin-bottom: 7px;
 }
 
+
+/* G.3. Mengatur tampilan judul notifikasi
+   ════════════════════════════════════════════════════════ */
 .notification-heading h3 {
     color: #484848;
     font-size: 14px;
@@ -132,7 +223,17 @@
     font-weight: 700;
 }
 
-/* LABEL BARU */
+
+
+/* ═════════════════════════════════════════════════════════════
+   H.   LABEL NOTIFIKASI
+       ⤷ Mengatur tampilan label status dan kategori notifikasi.
+═════════════════════════════════════════════════════════════ */
+
+/* H.1. Mengatur tampilan dasar label notifikasi
+   ⤷ Digunakan untuk label seperti "Baru", "Denda",
+     dan "Pengingat".
+   ════════════════════════════════════════════════════════ */
 .notification-badge {
     display: inline-block;
     padding: 3px 8px;
@@ -143,7 +244,11 @@
     font-weight: 700;
 }
 
-/* PESAN NOTIFIKASI */
+
+/* H.2. Mengatur tampilan teks pesan notifikasi
+   ⤷ Mengatur jarak, warna, ukuran, tinggi baris, dan
+     pemenggalan teks panjang.
+   ════════════════════════════════════════════════════════ */
 .notification-content > p {
     margin-bottom: 12px;
     color: #686868;
@@ -152,7 +257,9 @@
     overflow-wrap: anywhere;
 }
 
-/* KODE PESANAN DAN WAKTU */
+
+/* H.3. Mengatur susunan kode pesanan dan waktu notifikasi
+   ════════════════════════════════════════════════════════ */
 .notification-meta {
     display: flex;
     flex-wrap: wrap;
@@ -162,11 +269,23 @@
     font-size: 10px;
 }
 
+
+/* H.4. Mengatur tinggi baris informasi notifikasi
+   ════════════════════════════════════════════════════════ */
 .notification-meta span {
     line-height: 1.6;
 }
 
-/* TOMBOL LIHAT PESANAN */
+
+
+/* ═════════════════════════════════════════════════════════════
+   I.   TOMBOL LIHAT PESANAN
+       ⤷ Mengatur tampilan tombol menuju detail pesanan
+         dan efek ketika diarahkan kursor.
+═════════════════════════════════════════════════════════════ */
+
+/* I.1. Mengatur tampilan dasar tombol detail pesanan
+   ════════════════════════════════════════════════════════ */
 .notification-detail-button {
     display: inline-block;
     padding: 7px 12px;
@@ -180,14 +299,24 @@
     transition: 0.2s ease;
 }
 
+
+/* I.2. Mengubah warna tombol ketika diarahkan kursor
+   ════════════════════════════════════════════════════════ */
 .notification-detail-button:hover {
     border-color: #f47721;
     color: #f47721;
 }
 
-/* =====================================================
-   KONDISI BELUM ADA NOTIFIKASI
-===================================================== */
+
+
+/* ═════════════════════════════════════════════════════════════
+   J.   KONDISI BELUM ADA NOTIFIKASI
+       ⤷ Mengatur tampilan ketika daftar notifikasi kosong,
+         termasuk ikon, judul, dan keterangan.
+═════════════════════════════════════════════════════════════ */
+
+/* J.1. Mengatur area pesan ketika notifikasi belum tersedia
+   ════════════════════════════════════════════════════════ */
 .notification-empty {
     padding: 45px 20px;
     background: #ffffff;
@@ -196,12 +325,18 @@
     text-align: center;
 }
 
+
+/* J.2. Mengatur tampilan ikon notifikasi kosong
+   ════════════════════════════════════════════════════════ */
 .notification-empty > i {
     margin-bottom: 12px;
     color: #f4a261;
     font-size: 38px;
 }
 
+
+/* J.3. Mengatur tampilan judul notifikasi kosong
+   ════════════════════════════════════════════════════════ */
 .notification-empty h2 {
     margin-bottom: 8px;
     color: #444444;
@@ -209,6 +344,10 @@
     font-weight: 700;
 }
 
+
+/* J.4. Mengatur tampilan keterangan notifikasi kosong
+   ⤷ Membatasi lebar teks dan mengatur posisi serta tinggi baris.
+   ════════════════════════════════════════════════════════ */
 .notification-empty p {
     max-width: 400px;
     margin: 0 auto;
@@ -217,9 +356,55 @@
     line-height: 1.8;
 }
 
-/* =====================================================
-   RESPONSIVE
-===================================================== */
+
+
+/* ═════════════════════════════════════════════════════════════
+   K.   KATEGORI WARNA NOTIFIKASI
+       ⤷ Membedakan ikon dan kartu notifikasi berdasarkan
+         kategori peringatan dan kondisi berbahaya.
+═════════════════════════════════════════════════════════════ */
+
+/* K.1. Mengatur warna ikon untuk notifikasi peringatan
+   ════════════════════════════════════════════════════════ */
+.notification-icon.tone-warning {
+    background: #FEF3C7;
+    color: #D97706;
+}
+
+
+/* K.2. Mengubah garis tepi kartu peringatan yang belum dibaca
+   ════════════════════════════════════════════════════════ */
+.notification-card.unread.tone-warning {
+    border-left-color: #D97706;
+}
+
+
+/* K.3. Mengatur warna ikon untuk notifikasi berbahaya
+   ════════════════════════════════════════════════════════ */
+.notification-icon.tone-danger {
+    background: #FEE2E2;
+    color: #DC2626;
+}
+
+
+/* K.4. Mengubah garis tepi kartu berbahaya yang belum dibaca
+   ════════════════════════════════════════════════════════ */
+.notification-card.unread.tone-danger {
+    border-left-color: #DC2626;
+}
+
+
+
+/* ═════════════════════════════════════════════════════════════
+   L.   RESPONSIVE DESIGN
+       ⤷ Menyesuaikan tata letak halaman dan kartu notifikasi
+         pada layar dengan lebar maksimal 700px.
+═════════════════════════════════════════════════════════════ */
+
+/* L.1. Menyesuaikan tata letak halaman pada layar kecil
+   ⤷ Mengubah susunan sidebar dan konten menjadi satu kolom
+     serta menyesuaikan jarak dan ukuran judul.
+   ════════════════════════════════════════════════════════ */
 @media (max-width: 700px) {
     .account-page {
         padding: 20px 4%;
@@ -262,20 +447,3 @@
         padding: 35px 15px;
     }
 }
-
-/* KATEGORI WARNA NOTIFIKASI */
-.notification-icon.tone-warning {
-    background: #FEF3C7;
-    color: #D97706;
-}
-.notification-card.unread.tone-warning {
-    border-left-color: #D97706;
-}
-.notification-icon.tone-danger {
-    background: #FEE2E2;
-    color: #DC2626;
-}
-.notification-card.unread.tone-danger {
-    border-left-color: #DC2626;
-}
-
