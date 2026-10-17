@@ -1,6 +1,17 @@
-/* =====================================================
-        RESET
-===================================================== */
+/* ═════════════════════════════════════════════════════════════
+    CSS HALAMAN KELOLA AKUN WEBSITE KeSanaSini
+    ⤷ Mengatur tampilan halaman pengaturan akun, data diri,
+      unggah dokumen, penggantian password, tab, dan responsif.
+═════════════════════════════════════════════════════════════ */
+
+
+
+/* ═════════════════════════════════════════════════════════════
+   A.   RESET DAN PENGATURAN DASAR
+═════════════════════════════════════════════════════════════ */
+
+/* A.1. Mengatur ulang margin, padding, dan ukuran elemen
+   ════════════════════════════════════════════════════════ */
 * {
     margin: 0;
     padding: 0;
@@ -8,9 +19,17 @@
     font-family: 'Poppins', sans-serif;
 }
 
-/* =====================================================
-   HALAMAN KELOLA AKUN
-===================================================== */
+
+
+/* ═════════════════════════════════════════════════════════════
+   B.   HALAMAN KELOLA AKUN
+       ⤷ Mengatur latar belakang, ukuran halaman, dan susunan
+         sidebar serta konten utama.
+═════════════════════════════════════════════════════════════ */
+
+/* B.1. Mengatur area utama halaman kelola akun
+   ⤷ Menentukan ukuran, jarak, latar belakang, dan posisi.
+   ════════════════════════════════════════════════════════ */
 .account-page {
     width: 100%;
     min-height: 525px;
@@ -27,6 +46,10 @@
     isolation: isolate;
 }
 
+
+/* B.2. Mengatur pola latar belakang halaman
+   ⤷ Menampilkan pola kendaraan di atas latar belakang.
+   ════════════════════════════════════════════════════════ */
 .account-page::before {
     content: "";
     position: absolute;
@@ -41,6 +64,9 @@
     pointer-events: none;
 }
 
+
+/* B.3. Mengatur susunan sidebar dan konten akun
+   ════════════════════════════════════════════════════════ */
 .account-layout {
     display: grid;
     grid-template-columns: 250px minmax(0, 1fr);
@@ -52,13 +78,20 @@
 
 
 
-/* =====================================================
-   KONTEN UTAMA
-===================================================== */
+/* ═════════════════════════════════════════════════════════════
+   C.   KONTEN UTAMA
+       ⤷ Mengatur judul halaman dan susunan formulir akun.
+═════════════════════════════════════════════════════════════ */
+
+/* C.1. Mengatur area konten utama
+   ════════════════════════════════════════════════════════ */
 .account-content {
     min-width: 0;
 }
 
+
+/* C.2. Mengatur judul halaman "Pengaturan Akun"
+   ════════════════════════════════════════════════════════ */
 .account-content > h1 {
     margin: -3px 0 25px;
     color: #484848;
@@ -67,15 +100,24 @@
     font-weight: 800;
 }
 
+
+/* C.3. Mengatur susunan formulir akun
+   ════════════════════════════════════════════════════════ */
 .account-form {
     display: flex;
     flex-direction: column;
     gap: 17px;
 }
 
-/* =====================================================
-   CARD
-===================================================== */
+
+
+/* ═════════════════════════════════════════════════════════════
+   D.   CARD INFORMASI AKUN
+       ⤷ Mengatur tampilan kartu, judul kartu, dan area isinya.
+═════════════════════════════════════════════════════════════ */
+
+/* D.1. Mengatur tampilan dasar kartu akun
+   ════════════════════════════════════════════════════════ */
 .account-card {
     overflow: hidden;
     background: #fff;
@@ -84,6 +126,9 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
 }
 
+
+/* D.2. Mengatur judul kartu akun
+   ════════════════════════════════════════════════════════ */
 .card-heading {
     min-height: 33px;
     display: flex;
@@ -95,14 +140,23 @@
     font-weight: 800;
 }
 
+
+/* D.3. Mengatur area isi kartu akun
+   ════════════════════════════════════════════════════════ */
 .card-body {
     padding: 20px 25px 20px;
 }
 
-/* =====================================================
-   FORM
-===================================================== */
 
+
+/* ═════════════════════════════════════════════════════════════
+   E.   FORM DATA DIRI
+       ⤷ Mengatur label, input, pilihan tanggal lahir,
+         jenis kelamin, dan susunan kolom formulir.
+═════════════════════════════════════════════════════════════ */
+
+/* E.1. Mengatur susunan setiap kelompok input
+   ════════════════════════════════════════════════════════ */
 .form-group {
     min-width: 0;
     display: flex;
@@ -110,6 +164,9 @@
     gap: 7px;
 }
 
+
+/* E.2. Mengatur tampilan label formulir
+   ════════════════════════════════════════════════════════ */
 .form-group > label {
     color: #777;
     margin-top: 5px;
@@ -117,6 +174,9 @@
     font-weight: 700;
 }
 
+
+/* E.3. Mengatur tampilan input dan dropdown formulir
+   ════════════════════════════════════════════════════════ */
 .form-group input:not([type="file"]),
 .form-group select {
     width: 100%;
@@ -132,38 +192,67 @@
     font-size: 16px;
 }
 
+
+/* E.4. Memberikan efek fokus pada input dan dropdown
+   ════════════════════════════════════════════════════════ */
 .form-group input:focus,
 .form-group select:focus {
     border-color: #ff9145;
     box-shadow: 0 0 0 2px rgba(255, 145, 69, 0.12);
 }
 
+
+/* E.5. Mengatur warna teks placeholder
+   ════════════════════════════════════════════════════════ */
 .form-group input::placeholder {
     color: #555;
     opacity: 1;
 }
 
+
+/* E.6. Mengatur susunan baris formulir
+   ════════════════════════════════════════════════════════ */
 .form-row {
     display: grid;
     gap: 10px;
 }
 
+
+/* E.7. Mengatur pembagian kolom data pribadi
+   ⤷ Menentukan lebar kolom tanggal lahir dan jenis kelamin.
+   ════════════════════════════════════════════════════════ */
 .personal-row {
     grid-template-columns: minmax(0, 1.65fr) minmax(100px, 1fr);
     margin-top: 12px;
 }
 
+
+/* E.8. Mengatur susunan pilihan tanggal lahir
+   ════════════════════════════════════════════════════════ */
 .birth-inputs {
     display: grid;
     grid-template-columns: 0.8fr 1fr 1fr;
     gap: 7px;
 }
 
+
+/* E.9. Mengatur tinggi dropdown tanggal lahir dan jenis kelamin
+   ════════════════════════════════════════════════════════ */
 .birth-inputs select,
 .gender-group select {
     height: 37px;
 }
 
+
+
+/* ═════════════════════════════════════════════════════════════
+   F.   UNGGAH DAN PRATINJAU DOKUMEN
+       ⤷ Mengatur kolom unggah KTP dan SIM, status dokumen,
+         pratinjau berkas, serta pesan peringatan.
+═════════════════════════════════════════════════════════════ */
+
+/* F.1. Mengatur susunan kolom unggah dokumen
+   ════════════════════════════════════════════════════════ */
 .document-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -171,10 +260,16 @@
     margin-top: 12px;
 }
 
+
+/* F.2. Mengatur jarak elemen pada kelompok dokumen
+   ════════════════════════════════════════════════════════ */
 .document-group {
     gap: 6px;
 }
 
+
+/* F.3. Mengatur tampilan kotak unggah dokumen
+   ════════════════════════════════════════════════════════ */
 .upload-box {
     height: 37px;
     display: flex;
@@ -188,16 +283,25 @@
     transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
+
+/* F.4. Memberikan efek hover pada kotak unggah dokumen
+   ════════════════════════════════════════════════════════ */
 .upload-box:hover {
     border-color: #ff9145;
     background: #fffaf6;
 }
 
+
+/* F.5. Mengatur tampilan ikon unggah dokumen
+   ════════════════════════════════════════════════════════ */
 .upload-box i {
     color: #ff9145;
     font-size: 19px;
 }
 
+
+/* F.6. Mengatur tampilan teks status dokumen
+   ════════════════════════════════════════════════════════ */
 .upload-status {
     overflow: hidden;
     color: #00b86b;
@@ -206,25 +310,39 @@
     white-space: nowrap;
 }
 
+
+/* F.7. Mengatur warna status berkas yang dipilih
+   ════════════════════════════════════════════════════════ */
 .upload-status.file-selected {
     color: #444;
 }
 
-/* STATUS DOKUMEN */
+
+/* F.8. Mengatur warna status dokumen yang belum diunggah
+   ════════════════════════════════════════════════════════ */
 .upload-status.file-missing {
     color: #dc2626;
     font-weight: 600;
 }
 
+
+/* F.9. Mengatur warna status dokumen yang sudah diunggah
+   ════════════════════════════════════════════════════════ */
 .upload-status.file-uploaded {
     color: #16a34a;
     font-weight: 600;
 }
 
+
+/* F.10. Mengatur jarak area pratinjau dokumen
+   ════════════════════════════════════════════════════════ */
 .document-preview {
     margin-top: 10px;
 }
 
+
+/* F.11. Mengatur tampilan pratinjau gambar dokumen
+   ════════════════════════════════════════════════════════ */
 .document-preview img {
     display: block;
     width: 150px;
@@ -235,6 +353,9 @@
     cursor: zoom-in;
 }
 
+
+/* F.12. Mengatur tampilan tautan dokumen PDF
+   ════════════════════════════════════════════════════════ */
 .document-preview a {
     display: inline-block;
     margin-top: 8px;
@@ -242,7 +363,9 @@
     text-decoration: underline;
 }
 
-/* Pesan peringatan sewa lepas kunci */
+
+/* F.13. Mengatur tampilan pesan peringatan sewa lepas kunci
+   ════════════════════════════════════════════════════════ */
 .document-warning {
     margin-top: 12px;
     padding: 12px 14px;
@@ -255,53 +378,77 @@
 }
 
 
-/* =====================================================
-   TOMBOL SIMPAN
-===================================================== */
 
+/* ═════════════════════════════════════════════════════════════
+   G.   TOMBOL SIMPAN
+       ⤷ Mengatur posisi, ukuran, dan efek interaksi tombol
+         penyimpanan data diri serta password.
+═════════════════════════════════════════════════════════════ */
+
+/* G.1. Mengatur posisi tombol simpan
+   ════════════════════════════════════════════════════════ */
 .save-row {
     display: flex;
     justify-content: flex-end;
     margin-top: 10px;
 }
 
-/* Tombol SIMPAN data diri */
+
+/* G.2. Mengatur lebar tombol simpan data diri
+   ════════════════════════════════════════════════════════ */
 #panel-info .save-button {
     width: 130px;
 }
 
-/* Tombol SIMPAN PASSWORD */
+
+/* G.3. Mengatur lebar tombol simpan password pada panel tab
+   ════════════════════════════════════════════════════════ */
 #panel-password .save-button {
     width: 220px;
 }
 
+
+/* G.4. Mengatur tampilan dasar tombol simpan
+   ════════════════════════════════════════════════════════ */
 .save-button {
     height: 38px;
     padding: 0 15px;
     border: none;
     border-radius: 9px;
+    
     background: #ffbd27;
     color: #111;
     font-family: 'Poppins', sans-serif;
     font-size: 16px;
     font-weight: 800;
+
     cursor: pointer;
     margin-top: 15px;
+
     transition: transform 0.2s ease,
                 background-color 0.2s ease,
                 box-shadow 0.2s ease;
 }
 
+
+/* G.5. Memberikan efek hover pada tombol simpan
+   ════════════════════════════════════════════════════════ */
 .save-button:hover {
     transform: translateY(-3px);
     background: #ffca45;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
+
+/* G.6. Mengatur efek ketika tombol simpan ditekan
+   ════════════════════════════════════════════════════════ */
 .save-button:active {
     transform: translateY(-1px);
 }
 
+
+/* G.7. Menyesuaikan lebar tombol password pada layar kecil
+   ════════════════════════════════════════════════════════ */
 @media (max-width: 420px) {
     #panel-password .save-button {
         width: 100%;
@@ -309,15 +456,23 @@
 }
 
 
-/* =====================================================
-   DATA LAINNYA
-===================================================== */
 
+/* ═════════════════════════════════════════════════════════════
+   H.   DATA LAINNYA
+       ⤷ Mengatur susunan kolom kontak dan jarak isi kartu
+         data tambahan pengguna.
+═════════════════════════════════════════════════════════════ */
+
+/* H.1. Mengatur susunan kolom informasi kontak
+   ════════════════════════════════════════════════════════ */
 .contact-row {
     grid-template-columns: 1fr 1fr;
     margin-top: 12px;
 }
 
+
+/* H.2. Mengatur jarak isi kartu data lainnya
+   ════════════════════════════════════════════════════════ */
 .additional-card .card-body {
     padding-top: 14px;
     padding-bottom: 15px;
@@ -325,14 +480,21 @@
 
 
 
-/* =====================================================
-   GANTI PASSWORD
-===================================================== */
+/* ═════════════════════════════════════════════════════════════
+   I.   GANTI PASSWORD
+       ⤷ Mengatur deskripsi, jarak formulir, dan petunjuk
+         pengisian password baru.
+═════════════════════════════════════════════════════════════ */
 
+/* I.1. Mengatur jarak formulir ganti password
+   ════════════════════════════════════════════════════════ */
 .password-form {
     margin-top: 16px;
 }
 
+
+/* I.2. Mengatur tampilan deskripsi ganti password
+   ════════════════════════════════════════════════════════ */
 .password-description {
     margin-bottom: 18px;
     color: #777;
@@ -340,10 +502,16 @@
     line-height: 1.7;
 }
 
+
+/* I.3. Mengatur jarak antar-kelompok input password
+   ════════════════════════════════════════════════════════ */
 .password-form .form-group {
     margin-bottom: 16px;
 }
 
+
+/* I.4. Mengatur tampilan petunjuk password
+   ════════════════════════════════════════════════════════ */
 .password-hint {
     margin-top: 2px;
     color: #888;
@@ -351,14 +519,23 @@
     line-height: 1.5;
 }
 
+
+/* I.5. Mengatur jarak area tombol simpan password
+   ════════════════════════════════════════════════════════ */
 .password-card .save-row {
     margin-top: 8px;
 }
 
+
+/* I.6. Mengatur lebar tombol simpan pada kartu password
+   ════════════════════════════════════════════════════════ */
 .password-card .save-button {
     width: 190px;
 }
 
+
+/* I.7. Menyesuaikan lebar tombol password pada layar kecil
+   ════════════════════════════════════════════════════════ */
 @media (max-width: 420px) {
     .password-card .save-button {
         width: 100%;
@@ -366,6 +543,15 @@
 }
 
 
+
+/* ═════════════════════════════════════════════════════════════
+   J.   PESAN FLASH
+       ⤷ Mengatur tampilan pesan keberhasilan dan kesalahan
+         yang dikirim oleh Flask.
+═════════════════════════════════════════════════════════════ */
+
+/* J.1. Mengatur tampilan dasar pesan flash
+   ════════════════════════════════════════════════════════ */
 .flash-message {
     padding: 12px 16px;
     margin-bottom: 16px;
@@ -373,21 +559,40 @@
     font-size: 13px;
 }
 
+
+/* J.2. Mengatur tampilan pesan flash kesalahan
+   ════════════════════════════════════════════════════════ */
 .flash-message.error {
     background: #fdeaea;
     color: #b42318;
 }
 
+
+/* J.3. Mengatur tampilan pesan flash keberhasilan
+   ════════════════════════════════════════════════════════ */
 .flash-message.success {
     background: #e8f7ed;
     color: #18743b;
 }
 
+
+
+/* ═════════════════════════════════════════════════════════════
+   K.   INPUT PASSWORD DAN IKON
+       ⤷ Mengatur posisi input password, ikon, serta tombol
+         untuk menampilkan atau menyembunyikan password.
+═════════════════════════════════════════════════════════════ */
+
+/* K.1. Mengatur wadah input password
+   ════════════════════════════════════════════════════════ */
 .password-input-wrapper {
     position: relative;
     width: 100%;
 }
 
+
+/* K.2. Mengatur ukuran dan ruang input password
+   ════════════════════════════════════════════════════════ */
 .password-input-wrapper input.form-input {
     width: 100%;
     height: 37px;
@@ -395,6 +600,9 @@
     box-sizing: border-box;
 }
 
+
+/* K.3. Mengatur posisi dan tampilan ikon kunci
+   ════════════════════════════════════════════════════════ */
 .password-input-wrapper > .fa-lock {
     position: absolute;
     left: 20px;
@@ -405,6 +613,9 @@
     z-index: 2;
 }
 
+
+/* K.4. Mengatur posisi dan tampilan ikon mata password
+   ════════════════════════════════════════════════════════ */
 .password-input-wrapper > .password-toggle {
     position: absolute;
     right: 14px;
@@ -419,19 +630,30 @@
     touch-action: none;
 }
 
+
+/* K.5. Mengubah warna ikon mata ketika diarahkan kursor
+   ════════════════════════════════════════════════════════ */
 .password-input-wrapper > .password-toggle:hover {
     color: #333;
 }
 
+
+/* K.6. Menyembunyikan tombol bawaan input password pada Edge
+   ════════════════════════════════════════════════════════ */
 .password-input-wrapper input::-ms-reveal,
 .password-input-wrapper input::-ms-clear {
     display: none;
 }
 
-/* =====================================================
-   TAB PENGATURAN AKUN
-===================================================== */
 
+
+/* ═════════════════════════════════════════════════════════════
+   L.   TAB PENGATURAN AKUN
+       ⤷ Mengatur tampilan tab Informasi Akun dan Atur Password.
+═════════════════════════════════════════════════════════════ */
+
+/* L.1. Mengatur susunan area tab akun
+   ════════════════════════════════════════════════════════ */
 .account-tabs {
     display: flex;
     align-items: center;
@@ -440,6 +662,9 @@
     border-bottom: 1px solid rgba(100, 75, 50, 0.2);
 }
 
+
+/* L.2. Mengatur tampilan dasar tombol tab
+   ════════════════════════════════════════════════════════ */
 .account-tab {
     position: relative;
     display: inline-flex;
@@ -459,31 +684,53 @@
     transition: color 0.2s ease, border-color 0.2s ease;
 }
 
+
+/* L.3. Mengatur ukuran ikon pada tab akun
+   ════════════════════════════════════════════════════════ */
 .account-tab i {
     font-size: 15px;
 }
 
+
+/* L.4. Memberikan efek hover pada tombol tab
+   ════════════════════════════════════════════════════════ */
 .account-tab:hover {
     color: #e87528;
 }
 
+
+/* L.5. Mengatur tampilan tab yang sedang aktif
+   ════════════════════════════════════════════════════════ */
 .account-tab.active {
     color: #d96520;
     border-bottom-color: #e87528;
     font-weight: 700;
 }
 
-/* Panel tab */
 
+
+/* ═════════════════════════════════════════════════════════════
+   M.   PANEL TAB
+       ⤷ Mengatur visibilitas dan animasi perpindahan panel tab.
+═════════════════════════════════════════════════════════════ */
+
+/* M.1. Menyembunyikan panel tab dengan atribut hidden
+   ════════════════════════════════════════════════════════ */
 .account-tab-panel[hidden] {
     display: none !important;
 }
 
+
+/* M.2. Mengatur tampilan dasar dan animasi panel tab
+   ════════════════════════════════════════════════════════ */
 .account-tab-panel {
     min-width: 0;
     animation: tabFadeIn 0.2s ease;
 }
 
+
+/* M.3. Mendefinisikan animasi kemunculan panel tab
+   ════════════════════════════════════════════════════════ */
 @keyframes tabFadeIn {
     from {
         opacity: 0;
@@ -496,6 +743,9 @@
     }
 }
 
+
+/* M.4. Menyesuaikan jarak dan ukuran tab pada layar kecil
+   ════════════════════════════════════════════════════════ */
 @media (max-width: 420px) {
     .account-tabs {
         gap: 18px;
@@ -508,10 +758,15 @@
 }
 
 
-/* =====================================================
-   RESPONSIVE
-===================================================== */
 
+/* ═════════════════════════════════════════════════════════════
+   N.   RESPONSIVE DESIGN
+       ⤷ Menyesuaikan layout akun dan formulir pada layar
+         dengan lebar maksimal 700px dan 420px.
+═════════════════════════════════════════════════════════════ */
+
+/* N.1. Menyesuaikan layout halaman pada layar maksimal 700px
+   ════════════════════════════════════════════════════════ */
 @media (max-width: 700px) {
     .account-page {
         padding: 20px 4%;
@@ -536,6 +791,10 @@
     }
 }
 
+
+/* N.2. Menyesuaikan isi kartu dan kolom formulir pada layar
+   maksimal 420px
+   ════════════════════════════════════════════════════════ */
 @media (max-width: 420px) {
     .card-body {
         padding: 12px;
