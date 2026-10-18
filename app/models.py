@@ -304,6 +304,7 @@ class Rental(db.Model):
     # Tambahan Data Pembayaran
     payment_method = db.Column(db.String(50), nullable=True)
     payment_status = db.Column(db.String(20), nullable=False, default='Belum Lunas') # 'Lunas' / 'Belum Lunas'
+    cancellation_reason = db.Column(db.String(500), nullable=True)
 
     with_driver = db.Column(db.Boolean, nullable=False, default=False)
     accessories = db.Column(db.String(200), nullable=True, default='')  

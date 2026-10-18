@@ -221,12 +221,256 @@ Detail Pesanan - KeSanaSini
 
                         {% endif %}
 
+                        <!-- =====================================================
+                            TOMBOL BATALKAN PESANAN
+                        ===================================================== -->
+                        {% if rental.status in [
+                            rental.STATUS_MENUNGGU_BAYAR,
+                            rental.STATUS_MENUNGGU_KONFIRMASI,
+                            rental.STATUS_PENGAMBILAN
+                        ] %}
+
+                        <div class="cancel-order-form">
+
+                            {% if rental.status != rental.STATUS_MENUNGGU_BAYAR %}
+                                <p class="cancel-order-note">
+                                    Jika pembayaran sudah dilakukan, hubungi admin
+                                    untuk mengurus pengembalian dana.
+                                </p>
+                            {% endif %}
+
+                            <button
+                                type="button"
+                                class="btn-batalkan-pesanan"
+                                onclick="bukaModalPembatalan()"
+                            >
+                                <i class="fa-solid fa-circle-xmark"></i>
+                                Batalkan Pesanan
+                            </button>
+
+                        </div>
+
+                        <!-- MODAL KONFIRMASI PEMBATALAN -->
+                        <div
+                            class="cancel-modal-overlay"
+                            id="cancelConfirmModal"
+                            aria-hidden="true"
+                        >
+                            <div
+                                class="cancel-modal"
+                                role="dialog"
+                                aria-modal="true"
+                                aria-labelledby="cancelConfirmTitle"
+                            >
+                                <div class="cancel-modal-icon">
+                                    <i class="fa-solid fa-circle-exclamation"></i>
+                                </div>
+
+                                <h2 id="cancelConfirmTitle">Konfirmasi Pembatalan</h2>
+
+                                <p>
+                                    Apakah kamu yakin ingin membatalkan pesanan ini?
+                                </p>
+
+                                {% if rental.payment_status == 'Lunas' %}
+                                    <p class="cancel-modal-warning">
+                                        Pengembalian dana harus dikoordinasikan
+                                        dengan admin.
+                                    </p>
+                                {% endif %}
+
+                                <div class="cancel-modal-actions">
+                                    <button
+                                        type="button"
+                                        class="cancel-modal-btn cancel-modal-back"
+                                        onclick="tutupModalPembatalan()"
+                                    >
+                                        Kembali
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="cancel-modal-btn cancel-modal-continue"
+                                        onclick="bukaAlasanPembatalan()"
+                                    >
+                                        Lanjutkan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- MODAL ALASAN PEMBATALAN -->
+                        <div
+                            class="cancel-modal-overlay"
+                            id="cancelReasonModal"
+                            aria-hidden="true"
+                        >
+                            <div
+                                class="cancel-modal cancel-reason-modal"
+                                role="dialog"
+                                aria-modal="true"
+                                aria-labelledby="cancelReasonTitle"
+                            >
+                                <div class="cancel-modal-icon">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </div>
+
+                                <h2 id="cancelReasonTitle">Alasan Pembatalan</h2>
+
+                                <p>
+                                    Beri tahu kami alasan kamu membatalkan pesanan ini.
+                                </p>
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'main.batalkan_pesanan_user',
+                                        rental_id=rental.id
+                                    ) }}"
+                                    id="cancelReasonForm"
+                                >
+                                    <label for="cancellation_reason">
+                                        Alasan pembatalan
+                                    </label>
+
+                                    <textarea
+                                        id="cancellation_reason"
+                                        name="cancellation_reason"
+                                        rows="4"
+                                        maxlength="500"
+                                        placeholder="Contoh: Ada keperluan mendadak..."
+                                        required
+                                    ></textarea>
+
+                                    <small class="cancel-reason-hint">
+                                        Maksimal 500 karakter.
+                                    </small>
+
+                                    <div class="cancel-modal-actions">
+                                        <button
+                                            type="button"
+                                            class="cancel-modal-btn cancel-modal-back"
+                                            onclick="kembaliKeKonfirmasi()"
+                                        >
+                                            Kembali
+                                        </button>
+
+                                        <button
+                                            type="submit"
+                                            class="cancel-modal-btn cancel-modal-submit"
+                                        >
+                                            Kirim Pembatalan
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
                     </div>
 
                 </div>
+
+
+                <!-- =====================================================
+                    HUBUNGI ADMIN
+                ===================================================== -->
+                <div class="order-admin-contact-wrapper">
+
+                    {% set pesan_admin =
+                        'Halo Admin KeSanaSini, saya ingin bertanya mengenai pesanan '
+                        ~ rental.booking_code
+                        ~ ' untuk kendaraan '
+                        ~ rental.vehicle.brand
+                        ~ ' '
+                        ~ rental.vehicle.model
+                        ~ '. Status pesanan: '
+                        ~ rental.status
+                        ~ '. Status pembayaran: '
+                        ~ (rental.payment_status or 'Belum Lunas')
+                        ~ '.'
+                    %}
+
+                    {% if rental.status == rental.STATUS_BATAL
+                    and rental.payment_status == 'Lunas' %}
+                        {% set pesan_admin = pesan_admin
+                            ~ ' Saya ingin menanyakan proses pengembalian dana.'
+                        %}
+                    {% endif %}
+
+                    <a
+                        class="order-admin-contact"
+                        href="https://wa.me/6281234567890?text={{ pesan_admin|urlencode }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <i class="fa-brands fa-whatsapp"></i>
+
+                        <div class="order-admin-contact-info">
+                            <b>
+                                {% if rental.status == rental.STATUS_BATAL
+                                and rental.payment_status == 'Lunas' %}
+                                    Pengembalian Dana
+                                {% else %}
+                                    Ada Pertanyaan?
+                                {% endif %}
+                            </b>
+
+                            <span>
+                                {% if rental.status == rental.STATUS_BATAL
+                                and rental.payment_status == 'Lunas' %}
+                                    Hubungi admin untuk menanyakan pengembalian dana.
+                                {% else %}
+                                    Hubungi admin terkait pesanan ini.
+                                {% endif %}
+                            </span>
+                        </div>
+                    </a>
+
+                </div>
+
+
             </article>
 
         </section>
     </div>
 </main>
+
+<script>
+
+    function bukaModalPembatalan() {
+        document.getElementById('cancelConfirmModal').classList.add('active');
+        document.getElementById('cancelConfirmModal').setAttribute('aria-hidden', 'false');
+    }
+
+    function tutupModalPembatalan() {
+        document.getElementById('cancelConfirmModal').classList.remove('active');
+        document.getElementById('cancelConfirmModal').setAttribute('aria-hidden', 'true');
+    }
+
+    function bukaAlasanPembatalan() {
+        tutupModalPembatalan();
+
+        document.getElementById('cancelReasonModal').classList.add('active');
+        document.getElementById('cancelReasonModal').setAttribute('aria-hidden', 'false');
+
+        document.getElementById('cancellation_reason').focus();
+    }
+
+    function kembaliKeKonfirmasi() {
+        document.getElementById('cancelReasonModal').classList.remove('active');
+        document.getElementById('cancelReasonModal').setAttribute('aria-hidden', 'true');
+
+        bukaModalPembatalan();
+    }
+
+    // Tutup modal jika pengguna mengeklik area gelap di luarnya.
+    document.querySelectorAll('.cancel-modal-overlay').forEach(function (overlay) {
+        overlay.addEventListener('click', function (event) {
+            if (event.target === overlay) {
+                overlay.classList.remove('active');
+                overlay.setAttribute('aria-hidden', 'true');
+            }
+        });
+    });
+</script>
 {% endblock %}
