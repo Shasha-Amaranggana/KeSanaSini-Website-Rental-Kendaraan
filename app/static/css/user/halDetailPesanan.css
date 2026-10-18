@@ -207,6 +207,7 @@
 /* Bagian timeline */
 .timeline-section {
     padding: 12px 18px 28px;
+    border-top: 2px solid #cac1c1;
 }
 
 .timeline-steps {
@@ -312,6 +313,8 @@
 /* Garis pemisah timeline dan informasi sewa */
 .detail-section-divider {
     height: 1px;
+    margin-left: 25px;
+    margin-right: 25px;
     background: #e7e1da;
 }
 
@@ -346,6 +349,12 @@
 
 .order-detail-pricing h3 {
     margin: 0 0 12px;
+    margin-left: -30px;
+    margin-right: -30px;
+
+    padding: 16px 30px 0;
+    border-top: 3px solid #F47721;
+
     color: #303847;
     font-size: 20px;
 }
@@ -401,6 +410,364 @@
 .btn-pembayaran:hover {
     background-color: #CF5F15;
 }
+
+
+/* =====================================================
+   KARTU HUBUNGI ADMIN
+===================================================== */
+.order-admin-contact-wrapper {
+    padding: 0 24px 24px;
+}
+
+.order-admin-contact {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+
+    background: #ffffff;
+    border: 1px solid #e7e1da;
+    border-radius: 8px;
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.08);
+
+    text-decoration: none;
+    color: #333333;
+
+    transition:
+        transform 0.15s ease,
+        border-color 0.2s ease;
+}
+
+.order-admin-contact:hover {
+    transform: translateY(-2px);
+    border-color: #25d366;
+}
+
+.order-admin-contact > i {
+    flex-shrink: 0;
+    font-size: 34px;
+    color: #25d366;
+}
+
+.order-admin-contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.order-admin-contact-info b {
+    color: #333333;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.order-admin-contact-info span {
+    color: #777777;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+
+/* RESPONSIVE KARTU ADMIN */
+@media (max-width: 700px) {
+    .order-admin-contact-wrapper {
+        padding: 0 18px 18px;
+    }
+
+    .order-admin-contact {
+        gap: 12px;
+        padding: 14px;
+    }
+
+    .order-admin-contact > i {
+        font-size: 30px;
+    }
+}
+
+
+/* =====================================================
+   TOMBOL BATALKAN PESANAN
+===================================================== */
+.cancel-order-form {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    margin-top: 16px;
+}
+
+/* TULISAN PENGEMBALIAN DANA */
+.cancel-order-note {
+    order: 1;
+    flex: 1;
+    max-width: 450px;
+    margin: 0;
+    color: #777777;
+    font-size: 11px;
+    line-height: 1.7;
+}
+
+/* TOMBOL BATALKAN PESANAN */
+.btn-batalkan-pesanan {
+    order: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-shrink: 0;
+
+    padding: 11px 18px;
+
+    background: #ffffff;
+    border: 1px solid #dc2626;
+    border-radius: 8px;
+
+    color: #dc2626;
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: background-color 0.2s ease,
+                color 0.2s ease;
+}
+
+.btn-batalkan-pesanan:hover {
+    background: #dc2626;
+    color: #ffffff;
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+    .cancel-order-form {
+        gap: 12px;
+    }
+
+    .cancel-order-note {
+        font-size: 10px;
+    }
+
+    .btn-batalkan-pesanan {
+        padding: 9px 12px;
+        font-size: 11px;
+    }
+}
+
+
+
+/* =====================================================
+   MODAL KONFIRMASI DAN ALASAN PEMBATALAN
+===================================================== */
+.cancel-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.48);
+}
+
+.cancel-modal-overlay.active {
+    display: flex;
+}
+
+.cancel-modal {
+    width: 100%;
+    max-width: 500px;
+    padding: 36px 30px;
+
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.18);
+
+    text-align: center;
+    animation: cancelModalAppear 0.2s ease;
+}
+
+@keyframes cancelModalAppear {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* IKON MODAL */
+.cancel-modal-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 74px;
+    height: 74px;
+    margin: 0 auto 22px;
+
+    border-radius: 50%;
+    background: #fff0e7;
+    color: #f47721;
+    font-size: 30px;
+}
+
+/* JUDUL DAN DESKRIPSI */
+.cancel-modal h2 {
+    margin: 0 0 12px;
+    color: #292929;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.cancel-modal > p {
+    margin: 0 0 14px;
+    color: #858585;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.cancel-modal .cancel-modal-warning {
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #fff7ed;
+    color: #c2410c;
+    font-size: 12px;
+}
+
+/* TOMBOL MODAL */
+.cancel-modal-actions {
+    display: flex;
+    gap: 14px;
+    margin-top: 28px;
+}
+
+.cancel-modal-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+
+    min-height: 52px;
+    padding: 12px 16px;
+
+    border: none;
+    border-radius: 10px;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.cancel-modal-btn:hover {
+    transform: translateY(-1px);
+}
+
+.cancel-modal-back {
+    background: #f0f0f0;
+    color: #454545;
+}
+
+.cancel-modal-back:hover {
+    background: #e5e5e5;
+}
+
+.cancel-modal-continue,
+.cancel-modal-submit {
+    background: #f15a24;
+    color: #ffffff;
+}
+
+.cancel-modal-continue:hover,
+.cancel-modal-submit:hover {
+    background: #d94b19;
+}
+
+/* FORM ALASAN */
+.cancel-reason-modal {
+    text-align: left;
+}
+
+.cancel-reason-modal .cancel-modal-icon,
+.cancel-reason-modal h2,
+.cancel-reason-modal > p {
+    text-align: center;
+}
+
+.cancel-reason-modal label {
+    display: block;
+    margin: 20px 0 8px;
+    color: #333333;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.cancel-reason-modal textarea {
+    display: block;
+    width: 100%;
+    min-height: 110px;
+    padding: 12px 14px;
+
+    border: 1px solid #d9d9d9;
+    border-radius: 9px;
+    outline: none;
+
+    color: #333333;
+    background: #ffffff;
+    font: inherit;
+    font-size: 13px;
+
+    resize: vertical;
+}
+
+.cancel-reason-modal textarea:focus {
+    border-color: #f47721;
+    box-shadow: 0 0 0 3px rgba(244, 119, 33, 0.12);
+}
+
+.cancel-reason-modal textarea::placeholder {
+    color: #aaaaaa;
+}
+
+.cancel-reason-hint {
+    display: block;
+    margin-top: 6px;
+    color: #999999;
+    font-size: 11px;
+}
+
+/* RESPONSIVE MODAL */
+@media (max-width: 500px) {
+    .cancel-modal {
+        padding: 28px 20px;
+        border-radius: 16px;
+    }
+
+    .cancel-modal h2 {
+        font-size: 20px;
+    }
+
+    .cancel-modal-actions {
+        gap: 10px;
+    }
+
+    .cancel-modal-btn {
+        min-height: 46px;
+        padding: 10px;
+        font-size: 12px;
+    }
+}
+
+
 
 
 /* =====================================================

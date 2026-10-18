@@ -868,6 +868,112 @@ def kelola_pesanan():
     )
 
 
+# =========================================================
+# PEMBATALAN PESANAN OLEH PENGGUNA
+# =========================================================
+@bp.route(
+    '/detail-pesanan/<int:rental_id>/batalkan',
+    methods=['POST']
+)
+def batalkan_pesanan_user(rental_id):
+    # Pastikan pengguna sudah login.
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+
+    user = User.query.get(session['user_id'])
+
+    if not user:
+        session.clear()
+        return redirect(url_for('main.login'))
+
+    # Pengguna hanya boleh membatalkan pesanannya sendiri.
+    rental = Rental.query.filter_by(
+        id=rental_id,
+        user_id=user.id
+    ).first_or_404()
+
+    # Pembatalan hanya diperbolehkan sebelum kendaraan digunakan.
+    status_boleh_batal = [
+        Rental.STATUS_MENUNGGU_BAYAR,
+        Rental.STATUS_MENUNGGU_KONFIRMASI,
+        Rental.STATUS_PENGAMBILAN,
+    ]
+
+    if rental.status not in status_boleh_batal:
+        flash(
+            'Pesanan tidak dapat dibatalkan karena '
+            'kendaraan sudah memasuki tahap penggunaan.',
+            'error'
+        )
+        return redirect(
+            url_for('main.detail_pesanan', rental_id=rental.id)
+        )
+
+    # Status Menunggu Konfirmasi dan Dalam Pengambilan
+    # perlu mempertimbangkan kemungkinan pengembalian dana.
+    perlu_refund = (
+        rental.payment_status == 'Lunas'
+        or rental.status in [
+            Rental.STATUS_MENUNGGU_KONFIRMASI,
+            Rental.STATUS_PENGAMBILAN,
+        ]
+    )
+
+    # Ambil alasan pembatalan dari formulir.
+    cancellation_reason = request.form.get(
+        'cancellation_reason', ''
+    ).strip()
+
+    if not cancellation_reason:
+        flash('Alasan pembatalan wajib diisi.', 'error')
+        return redirect(
+            url_for('main.detail_pesanan', rental_id=rental.id)
+        )
+
+    if len(cancellation_reason) > 500:
+        flash('Alasan pembatalan maksimal 500 karakter.', 'error')
+        return redirect(
+            url_for('main.detail_pesanan', rental_id=rental.id)
+        )
+
+    # Simpan alasan pembatalan.
+    rental.cancellation_reason = cancellation_reason
+
+
+    # Gunakan method model agar efek perubahan status konsisten.
+    old_status = rental.change_status(Rental.STATUS_BATAL)
+
+    if not old_status:
+        flash('Pesanan gagal dibatalkan.', 'error')
+        return redirect(
+            url_for('main.detail_pesanan', rental_id=rental.id)
+        )
+
+    # Catat perubahan status pada notifikasi pengguna.
+    db.session.add(
+        Notification.status_changed(rental, old_status)
+    )
+
+    db.session.commit()
+
+    if perlu_refund:
+        flash(
+            'Pesanan berhasil dibatalkan. Untuk pengembalian dana, '
+            'silakan hubungi admin melalui kontak pada halaman '
+            'detail pesanan.',
+            'success'
+        )
+    else:
+        flash(
+            'Pesanan berhasil dibatalkan.',
+            'success'
+        )
+
+    return redirect(
+        url_for('main.detail_pesanan', rental_id=rental.id)
+    )
+
+
 @bp.route('/detail-pesanan/<int:rental_id>')
 def detail_pesanan(rental_id):
     if 'user_id' not in session:
