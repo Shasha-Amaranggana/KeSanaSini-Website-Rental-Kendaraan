@@ -57,19 +57,27 @@ Detail Pesanan - KeSanaSini
                         <div class="timeline-cancelled">
                             <i class="fa-solid fa-circle-xmark"></i>
                             Pesanan dibatalkan
+                            {% set waktu_batal = timeline_times.get('cancelled') %}
+                                {% if waktu_batal %}
+                                    <small class="timeline-cancelled-time">
+                                        {{ waktu_batal | tanggal_id }},
+                                        pukul {{ waktu_batal.strftime('%H:%M') }}
+                                    </small>
+                                {% endif %}
                         </div>
                     {% else %}
                         <div class="timeline-steps">
 
                             {% set steps = [
-                                ('fa-file-lines', 'Pesanan Dibuat'),
-                                ('fa-wallet', 'Pembayaran'),
-                                ('fa-car-side', 'Pengambilan'),
-                                ('fa-key', 'Sedang Disewa'),
-                                ('fa-circle-check', 'Selesai')
+                                ('fa-file-lines', 'Pesanan Dibuat', 'created'),
+                                ('fa-wallet', 'Pembayaran', 'payment'),
+                                ('fa-car-side', 'Pengambilan', 'pickup'),
+                                ('fa-key', 'Sedang Disewa', 'in_use'),
+                                ('fa-circle-check', 'Selesai', 'completed')
                             ] %}
 
-                            {% for icon, label in steps %}
+                            {% for icon, label, time_key in steps %}
+
                                 <div class="timeline-step
                                     {% if loop.index0 < current_step %}completed
                                     {% elif loop.index0 == current_step %}current
@@ -81,12 +89,18 @@ Detail Pesanan - KeSanaSini
 
                                     <span>{{ label }}</span>
 
-                                    {% if loop.first %}
-                                        <small>{{ rental.created_at | tanggal_id }}</small>
-                                    {% elif loop.last and current_step == 4 %}
-                                        <small>{{ rental.end_date | tanggal_id }}</small>
+                                    {% set waktu = timeline_times.get(time_key) %}
+
+                                    {% if waktu %}
+                                        <small>
+                                            {{ waktu | tanggal_id }}
+                                            <br>
+                                            Pukul {{ waktu.strftime('%H:%M') }}
+                                        </small>
                                     {% endif %}
+
                                 </div>
+
                             {% endfor %}
 
                         </div>

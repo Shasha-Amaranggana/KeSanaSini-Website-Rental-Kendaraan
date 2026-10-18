@@ -160,6 +160,12 @@
    ⤷ Mengubah latar dan garis tepi kiri sebagai penanda.
    ════════════════════════════════════════════════════════ */
 .notification-card.unread {
+    /* Penanda belum dibaca tidak menimpa warna utama kategori kartu. */
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.07), 0 0 0 1px rgba(244, 119, 33, 0.18);
+}
+
+/* Notifikasi status lama tetap memakai penanda oranye ketika belum dibaca. */
+.notification-card.card-status.unread {
     background: #fffaf5;
     border-left: 4px solid #f47721;
 }
@@ -393,6 +399,91 @@
     border-left-color: #DC2626;
 }
 
+
+/* K.5. Membuat kartu pembayaran.
+   ════════════════════════════════════════════════════════ */
+/* Warnanya Hijau */
+.notification-card.card-payment {
+    background: #F0FDF4;
+    border: 1px solid #BBF7D0;
+}
+
+/* Garis hijau hanya muncul jika belum dibaca. */
+.notification-card.card-payment.unread {
+    border-left: 4px solid #16A34A;
+}
+/* Pengingat pembayaran darurat tetap memakai garis kuning. */
+.notification-card.card-payment.tone-warning {
+    border-left-color: #D97706;
+}
+
+/* Garis merah untuk pembatalan pembayaran. */
+.notification-card.card-payment.unread.tone-danger {
+    border-left-color: #DC2626;
+}
+
+
+/* K.6. Membuat kartu penyewaan/pengembalian.
+   ════════════════════════════════════════════════════════ */
+/* Warnanya Biru */
+.notification-card.card-rental {
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+}
+
+/* Garis biru hanya muncul jika belum dibaca. */
+.notification-card.card-rental.unread {
+    border-left: 4px solid #2563EB;
+}
+
+/* Garis kuning untuk pengingat pengembalian yang mendesak. */
+.notification-card.card-rental.unread.tone-warning {
+    border-left-color: #D97706;
+}
+
+/* Garis merah untuk keterlambatan dan denda. */
+.notification-card.card-rental.unread.tone-danger {
+    border-left-color: #DC2626;
+}
+
+/* Kartu status menggunakan tampilan netral. */
+.notification-card.card-status:not(.unread) {
+    background: #FFFFFF;
+    border-color: #E7E1DA;
+}
+
+
+/* K.6. Mengatur label kecil di kartu notifikasi.
+   ════════════════════════════════════════════════════════ */
+/* Notifikasi baru. */
+.notification-badge.badge-new {
+    background: #E5E7EB;
+    color: #374151;
+}
+
+/* Notifikasi info. */
+.notification-badge.badge-info {
+    background: #DBEAFE;
+    color: #1D4ED8;
+}
+
+/* Notifikasi peringatan. */
+.notification-badge.badge-warning {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+/* Notifikasi darurat. */
+.notification-badge.badge-danger {
+    background: #FEE2E2;
+    color: #B91C1C;
+}
+
+/* Notifikasi sukses. */
+.notification-badge.badge-success {
+    background: #DCFCE7;
+    color: #166534;
+}
 
 
 /* ═════════════════════════════════════════════════════════════
