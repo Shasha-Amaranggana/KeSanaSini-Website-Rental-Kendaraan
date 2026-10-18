@@ -252,6 +252,7 @@ def run_seed():
             accessories="bantal,selimut" if idx % 2 == 0 else "",
             insurance="lengkap" if idx % 3 == 0 else "dasar",
             destination_city="Samarinda" if idx % 2 == 0 else "Balikpapan",
+            special_request="Mohon kendaraan sudah dicuci bersih dan bensin terisi penuh saat diambil." if idx % 2 == 1 else None,
             created_at=now - timedelta(days=days_ago, minutes=idx)
         ))
     db.session.add_all(rentals)

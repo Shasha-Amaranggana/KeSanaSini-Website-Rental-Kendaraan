@@ -54,7 +54,12 @@
         <tbody>
             {% for r in pagination.items %}
             <tr>
-                <td style="font-weight: 600;">#{{ r.booking_code }}</td>
+                <td style="font-weight: 600;">
+                    #{{ r.booking_code }}
+                    {% if r.special_request %}
+                    <i class="fa-solid fa-note-sticky" style="color:#F07F2A; margin-left:4px; font-size:11px;" title="Permintaan khusus: {{ r.special_request }}"></i>
+                    {% endif %}
+                </td>
                 <td>{{ r.user.name }}</td>
                 <td>
                     <i class="fa-solid {{ 'fa-motorcycle' if r.vehicle.vehicle_type|lower == 'motor' else 'fa-car-side' }}" style="color:#777; margin-right:6px; font-size:12px;" title="{{ r.vehicle.vehicle_type }}"></i>{{ r.vehicle.full_name }}

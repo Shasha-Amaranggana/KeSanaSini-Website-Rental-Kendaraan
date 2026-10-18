@@ -141,6 +141,13 @@ Detail Pesanan - KeSanaSini
                             <i class="fa-solid fa-car-side"></i>
                             {{ 'Dengan Sopir' if rental.with_driver else 'Lepas Kunci' }}
                         </p>
+
+                        {% if rental.special_request %}
+                        <p>
+                            <i class="fa-solid fa-note-sticky"></i>
+                            Permintaan khusus: <em>"{{ rental.special_request }}"</em>
+                        </p>
+                        {% endif %}
                     </div>
 
                     <!-- RINCIAN BIAYA -->

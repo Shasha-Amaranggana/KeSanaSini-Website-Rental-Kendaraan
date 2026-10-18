@@ -66,7 +66,12 @@
         <tbody>
             {% for r in pagination.items %}
             <tr>
-                <td>#{{ r.booking_code }}</td>
+                <td>
+                    #{{ r.booking_code }}
+                    {% if r.special_request %}
+                    <i class="fa-solid fa-note-sticky" style="color:#F07F2A; margin-left:4px; font-size:11px;" title="Permintaan khusus: {{ r.special_request }}"></i>
+                    {% endif %}
+                </td>
                 <td>{{ r.user.name }}</td>
                 <td>
                     <i class="fa-solid {{ 'fa-motorcycle' if r.vehicle.vehicle_type|lower == 'motor' else 'fa-car-side' }}" style="color:#777; margin-right:6px; font-size:12px;" title="{{ r.vehicle.vehicle_type }}"></i>{{ r.vehicle.full_name }}
@@ -87,6 +92,7 @@
                         data-days="{{ r.duration_days }}"
                         data-total="Rp {{ '{:,.0f}'.format(r.total_price).replace(',', '.') }}"
                         data-status="{{ r.status }}"
+                        data-special-request="{{ r.special_request or '' }}"
                         data-cancel-reason="{{ r.cancellation_reason or '' }}">View</button>
                     <button class="btn-sm" type="button"
                         onclick="openEdit(this)"
@@ -180,6 +186,9 @@
             ['Total Biaya', d.total],
             ['Status', '<span class="badge badge-' + d.status + '">' + d.status + '</span>']
         ];
+        if (d.specialRequest) {
+            rows.push(['Permintaan Khusus', '<span style="color:#C2410C;font-style:italic;">"' + d.specialRequest + '"</span>']);
+        }
         if (d.status === 'Batal' && d.cancelReason) {
             rows.push(['Alasan Batal', '<span style="color:#DC2626;font-weight:500;">' + d.cancelReason + '</span>']);
         }
