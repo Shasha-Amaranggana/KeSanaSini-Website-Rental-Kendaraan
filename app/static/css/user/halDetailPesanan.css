@@ -277,8 +277,19 @@
 }
 
 .timeline-step small {
-    color: #aaaaaa;
+    display: block;
+    color: #888888;
+    font-size: 10px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.timeline-cancelled-time {
+    display: block;
+    margin-top: 8px;
+    color: #888888;
     font-size: 11px;
+    text-align: center;
 }
 
 .timeline-cancelled {

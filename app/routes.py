@@ -19,13 +19,20 @@ from html import escape
 bp = Blueprint('main', __name__)
 
 @bp.before_app_request
-def batalkan_pesanan_kedaluwarsa():
-    # Jangan jalankan pengecekan untuk file statis seperti CSS,
-    # JavaScript, dan gambar.
+def periksa_notifikasi_otomatis():
+    """Memeriksa notifikasi otomatis pada setiap request non-statis."""
     if request.endpoint == 'static' or (
         request.endpoint and request.endpoint.endswith('.static')
     ):
         return
+
+    try:
+        periksa_pengingat_dan_denda()
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception(
+            'Gagal memproses notifikasi otomatis KeSanaSini.'
+        )
 
     # Batas waktu pembayaran adalah 24 jam sejak pesanan dibuat.
     batas_waktu = datetime.now() - timedelta(hours=24)
@@ -585,39 +592,36 @@ def pesanan():
     return redirect(url_for('main.pembayaran', rental_id=rental.id))
 
 
-def batalkan_pesanan_kedaluwarsa(rental):
-    """
-    Membatalkan pesanan yang melewati batas pembayaran 24 jam
-    dan membuat notifikasi pembatalan untuk pengguna.
-
-    Notifikasi hanya dibuat satu kali karena pesanan yang
-    sudah dibatalkan tidak diproses kembali.
-    """
+def batalkan_pesanan_kedaluwarsa(rental, commit=True):
+    """Membatalkan pesanan lewat tenggat pembayaran 24 jam."""
     if rental.status != Rental.STATUS_MENUNGGU_BAYAR:
         return False
 
     deadline = rental.created_at + timedelta(hours=24)
 
-    if datetime.now() <= deadline:
+    if datetime.now() < deadline or rental.payment_status == 'Lunas':
         return False
 
     status_lama = rental.status
-    rental.status = Rental.STATUS_BATAL
 
-    notifikasi = Notification(
-        user_id=rental.user_id,
+    rental.change_status(Rental.STATUS_BATAL)
+
+    # Pastikan notifikasi pembatalan tidak dibuat berulang.
+    sudah_ada = Notification.query.filter_by(
         rental_id=rental.id,
-        title='Pesanan Dibatalkan',
-        message=(
-            f'Pesanan {rental.booking_code} dibatalkan '
-            'karena batas waktu pembayaran 24 jam telah habis.'
-        ),
-        old_status=status_lama,
-        new_status=Rental.STATUS_BATAL
-    )
+        category=Notification.CATEGORY_PAYMENT_CANCELLED,
+    ).first()
 
-    db.session.add(notifikasi)
-    db.session.commit()
+    if not sudah_ada:
+        db.session.add(
+            Notification.payment_cancelled(
+                rental,
+                status_lama
+            )
+        )
+
+    if commit:
+        db.session.commit()
 
     return True
 
@@ -695,8 +699,11 @@ def pembayaran_sukses(rental_id):
         return redirect(url_for('main.index'))
 
     # Ubah status jika pembayaran masih menunggu dan belum kedaluwarsa.
+    # Catat pembayaran saat pelanggan menyelesaikan pembayaran.
     if rental.status == Rental.STATUS_MENUNGGU_BAYAR:
-        rental.status = Rental.STATUS_MENUNGGU_KONFIRMASI
+        rental.change_status(
+            Rental.STATUS_MENUNGGU_KONFIRMASI
+        )
         db.session.commit()
 
     return render_template(
@@ -879,24 +886,91 @@ def detail_pesanan(rental_id):
         user_id=user.id
     ).first_or_404()
 
-    # Tahap timeline untuk setiap status penyewaan
+    # Tahap timeline untuk setiap status penyewaan.
+    # Pengembalian dipisahkan dari status Selesai.
+    # =====================================================
+    # PEMETAAN TAHAP TIMELINE
+    # =====================================================
     status_steps = {
         Rental.STATUS_MENUNGGU_BAYAR: 0,
         Rental.STATUS_MENUNGGU_KONFIRMASI: 1,
         Rental.STATUS_PENGAMBILAN: 2,
         Rental.STATUS_DIPAKAI: 3,
-        Rental.STATUS_PENGEMBALIAN: 4,
+
+        # Pengembalian tetap berada pada tahap sedang disewa.
+        Rental.STATUS_PENGEMBALIAN: 3,
+
         Rental.STATUS_SELESAI: 4,
         Rental.STATUS_BATAL: -1,
     }
 
     current_step = status_steps.get(rental.status, 0)
 
+
+    # =====================================================
+    # AMBIL WAKTU RIWAYAT STATUS
+    # =====================================================
+    status_waktu = {}
+
+    # Ambil waktu dari tabel riwayat perubahan status.
+    for riwayat in rental.status_history:
+        status_waktu.setdefault(
+            riwayat.new_status,
+            riwayat.changed_at
+        )
+
+    # Fallback untuk waktu perubahan status yang sudah
+    # tercatat sebagai notifikasi sebelumnya.
+    notifikasi_status = (
+        Notification.query
+        .filter_by(
+            rental_id=rental.id,
+            category=Notification.CATEGORY_STATUS
+        )
+        .order_by(Notification.created_at.asc())
+        .all()
+    )
+
+    for notifikasi in notifikasi_status:
+        status_waktu.setdefault(
+            notifikasi.new_status,
+            notifikasi.created_at
+        )
+
+
+    # =====================================================
+    # WAKTU UNTUK MASING-MASING TAHAP
+    # =====================================================
+    timeline_times = {
+        'created': rental.created_at,
+
+        # Pelanggan menyelesaikan pembayaran.
+        'payment': status_waktu.get(
+            Rental.STATUS_MENUNGGU_KONFIRMASI
+        ),
+
+        # Admin mengonfirmasi pembayaran.
+        'pickup': status_waktu.get(
+            Rental.STATUS_PENGAMBILAN
+        ),
+
+        # Admin mengubah status menjadi sedang disewa.
+        'in_use': status_waktu.get(
+            Rental.STATUS_DIPAKAI
+        ),
+
+        # Admin mengonfirmasi bahwa penyewaan selesai.
+        'completed': status_waktu.get(
+            Rental.STATUS_SELESAI
+        ),
+    }
+
     return render_template(
         'user/halDetailPesanan.html',
         user=user,
         rental=rental,
-        current_step=current_step
+        current_step=current_step,
+        timeline_times=timeline_times
     )
 
 @bp.route('/riwayat-pesanan')
@@ -934,48 +1008,145 @@ def riwayat_pesanan():
 #    (Notification.overdue_warning & Notification.return_reminder) untuk
 #    membuat objek notifikasi tanpa menyusun string pesan secara manual.
 # ---------------------------------------------------------
-def periksa_pengingat_dan_denda(user_id):
-    """
-    Sistem Pengingat H-3 & Peringatan Denda Keterlambatan Otomatis (OOP Service).
-      1. Jika kendaraan sedang dipakai dan sisa waktu <= 3 hari -> Buat Notifikasi H-3 (1x).
-      2. Jika kendaraan melewati batas waktu -> Buat Notifikasi Denda (maks 1x per hari).
-    """
-    rentals = Rental.query.filter_by(
-        user_id=user_id,
-        status=Rental.STATUS_DIPAKAI
-    ).all()
+def _notifikasi_sudah_ada(rental, category):
+    """Memeriksa apakah kategori notifikasi sudah dibuat untuk pesanan."""
+    return Notification.query.filter_by(
+        user_id=rental.user_id,
+        rental_id=rental.id,
+        category=category,
+    ).first() is not None
 
+
+def periksa_pengingat_dan_denda(user_id=None):
+    """
+    Memeriksa pengingat pembayaran, pengembalian, dan denda.
+    Pengingat H-3 hari yang sudah ada tetap dipertahankan.
+    """
     now = datetime.now()
-    today_start = datetime(now.year, now.month, now.day)
+    today_start = datetime(
+        now.year,
+        now.month,
+        now.day
+    )
+
     jumlah_baru = 0
 
-    for rental in rentals:
-        # [OOP - ENKAPSULASI]: rental.is_overdue mengevaluasi keterlambatan secara otomatis
-        if rental.is_overdue:
-            # Cek apakah hari ini sudah pernah dikirimkan peringatan denda
-            sudah_ada = Notification.query.filter(
-                Notification.user_id == user_id,
-                Notification.rental_id == rental.id,
-                Notification.category == Notification.CATEGORY_OVERDUE,
-                Notification.created_at >= today_start
-            ).first()
+    # =====================================================
+    # 1. PEMBAYARAN
+    #    H-1 jam, H-30 menit, dan pembatalan otomatis
+    # =====================================================
+    pembayaran_query = Rental.query.filter(
+        Rental.status == Rental.STATUS_MENUNGGU_BAYAR,
+        Rental.payment_status != 'Lunas',
+    )
 
-            if not sudah_ada:
-                # [OOP - FACTORY PATTERN]: Memanggil factory method untuk instansiasi notifikasi
-                db.session.add(Notification.overdue_warning(rental))
+    if user_id is not None:
+        pembayaran_query = pembayaran_query.filter(
+            Rental.user_id == user_id
+        )
+
+    for rental in pembayaran_query.all():
+        deadline = rental.created_at + timedelta(hours=24)
+
+        # Batalkan pesanan yang sudah melewati tenggat.
+        if now >= deadline:
+            if batalkan_pesanan_kedaluwarsa(
+                rental,
+                commit=False
+            ):
                 jumlah_baru += 1
 
-        # [OOP - ENKAPSULASI]: rental.is_due_soon mengevaluasi jendela pengingat H-3
-        elif rental.is_due_soon:
-            sudah_ada = Notification.query.filter_by(
-                user_id=user_id,
-                rental_id=rental.id,
-                category=Notification.CATEGORY_REMINDER
+            continue
+
+        sisa = deadline - now
+        kategori = None
+
+        # Pengingat dalam rentang 1 jam hingga 30 menit.
+        if timedelta(minutes=30) < sisa <= timedelta(hours=1):
+            kategori = Notification.CATEGORY_PAYMENT_1H
+
+        # Pengingat saat tersisa maksimal 30 menit.
+        elif timedelta(0) < sisa <= timedelta(minutes=30):
+            kategori = Notification.CATEGORY_PAYMENT_30M
+
+        if (
+            kategori
+            and not _notifikasi_sudah_ada(rental, kategori)
+        ):
+            db.session.add(
+                Notification.payment_reminder(
+                    rental,
+                    kategori
+                )
+            )
+            jumlah_baru += 1
+
+    # =====================================================
+    # 2. PENGEMBALIAN KENDARAAN
+    #    H-24 jam dan H-3 jam
+    # =====================================================
+    pemakaian_query = Rental.query.filter_by(
+        status=Rental.STATUS_DIPAKAI
+    )
+
+    if user_id is not None:
+        pemakaian_query = pemakaian_query.filter(
+            Rental.user_id == user_id
+        )
+
+    for rental in pemakaian_query.all():
+        sisa = rental.return_deadline - now
+
+        if sisa > timedelta(0):
+            kategori = None
+
+            # Pengingat dalam rentang 24 jam hingga 3 jam.
+            if timedelta(hours=3) < sisa <= timedelta(hours=24):
+                kategori = Notification.CATEGORY_RETURN_24H
+
+            # Pengingat saat tersisa maksimal 3 jam.
+            elif timedelta(0) < sisa <= timedelta(hours=3):
+                kategori = Notification.CATEGORY_RETURN_3H
+
+            if (
+                kategori
+                and not _notifikasi_sudah_ada(rental, kategori)
+            ):
+                db.session.add(
+                    Notification.return_deadline_reminder(
+                        rental,
+                        kategori
+                    )
+                )
+                jumlah_baru += 1
+
+            # Pengingat lama H-3 hari tetap berjalan.
+            if (
+                rental.is_due_soon
+                and not _notifikasi_sudah_ada(
+                    rental,
+                    Notification.CATEGORY_REMINDER
+                )
+            ):
+                db.session.add(
+                    Notification.return_reminder(rental)
+                )
+                jumlah_baru += 1
+
+        # Kendaraan belum dikembalikan setelah tenggat.
+        elif rental.is_overdue:
+            sudah_ada_hari_ini = Notification.query.filter(
+                Notification.user_id == rental.user_id,
+                Notification.rental_id == rental.id,
+                Notification.category == Notification.CATEGORY_OVERDUE,
+                Notification.created_at >= today_start,
             ).first()
 
-            if not sudah_ada:
-                # [OOP - FACTORY PATTERN]: Memanggil factory method untuk instansiasi pengingat H-3
-                db.session.add(Notification.return_reminder(rental))
+            # Pertahankan aturan lama: maksimal satu peringatan per hari.
+            if not sudah_ada_hari_ini:
+                db.session.add(
+                    Notification.overdue_warning(rental)
+                )
                 jumlah_baru += 1
 
     if jumlah_baru:
@@ -1012,6 +1183,40 @@ def notifikasi():
         user=user,
         notifications=notifications,
         unread_count=unread_count
+    )
+
+# =========================================================
+# MENANDAI NOTIFIKASI SUDAH DIBACA SAAT DIBUKA
+# =========================================================
+@bp.route('/notifikasi/<int:notification_id>/lihat-pesanan')
+def buka_notifikasi(notification_id):
+    # Pastikan pengguna sudah login.
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+
+    user = User.query.get(session['user_id'])
+
+    if not user:
+        session.clear()
+        return redirect(url_for('main.login'))
+
+    # Ambil notifikasi milik pengguna yang sedang login.
+    notification = Notification.query.filter_by(
+        id=notification_id,
+        user_id=user.id
+    ).first_or_404()
+
+    # Tandai notifikasi sebagai sudah dibaca.
+    if not notification.is_read:
+        notification.is_read = True
+        db.session.commit()
+
+    # Buka halaman detail pesanan terkait.
+    return redirect(
+        url_for(
+            'main.detail_pesanan',
+            rental_id=notification.rental_id
+        )
     )
 
 

@@ -331,6 +331,14 @@ class Rental(db.Model):
     user = db.relationship('User', backref=db.backref('rentals', lazy=True))
     vehicle = db.relationship('Vehicle', backref=db.backref('rentals', lazy=True))
     driver = db.relationship('Driver', backref=db.backref('rentals', lazy=True))
+    # Riwayat perubahan status penyewaan.
+    status_history = db.relationship(
+        'RentalStatusHistory',
+        back_populates='rental',
+        cascade='all, delete-orphan',
+        order_by='RentalStatusHistory.changed_at',
+        lazy=True
+    )
 
     # ---- Aturan bisnis pengingat & denda ----
     REMINDER_DAYS = 3                 # pengingat mulai H-3 sebelum batas kembali
@@ -499,9 +507,51 @@ class Rental(db.Model):
             else:
                 self.lock_fine()
 
+        # Simpan status terbaru.
         self.status = new_status
+
+        # Catat waktu perubahan status.
+        self.status_history.append(
+            RentalStatusHistory(
+                old_status=old_status,
+                new_status=new_status,
+                changed_at=datetime.now()
+            )
+        )
+
         return old_status
 
+
+# =========================================================
+# RENTAL STATUS HISTORY
+# Riwayat setiap perubahan status penyewaan.
+# =========================================================
+class RentalStatusHistory(db.Model):
+    __tablename__ = 'rental_status_history'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    rental_id = db.Column(
+        db.Integer,
+        db.ForeignKey('rental.id'),
+        nullable=False,
+        index=True
+    )
+
+    old_status = db.Column(db.String(50), nullable=True)
+    new_status = db.Column(db.String(50), nullable=False)
+
+    changed_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.now,
+        index=True
+    )
+
+    rental = db.relationship(
+        'Rental',
+        back_populates='status_history'
+    )
 
 # =========================================================
 # REVIEW MODEL (Ulasan Pengguna)
@@ -569,6 +619,16 @@ class Notification(db.Model):
     CATEGORY_REMINDER = 'reminder'    # pengingat H-3 pengembalian
     CATEGORY_OVERDUE = 'overdue'      # peringatan terlambat + denda berjalan
     CATEGORY_FINE = 'fine'            # denda final saat kendaraan dikembalikan
+
+    # Notifikasi pembayaran
+    CATEGORY_PAYMENT_1H = 'payment_1h'
+    CATEGORY_PAYMENT_30M = 'payment_30m'
+    CATEGORY_PAYMENT_CANCELLED = 'payment_cancelled'
+
+    # Notifikasi pengembalian kendaraan
+    CATEGORY_RETURN_24H = 'return_24h'
+    CATEGORY_RETURN_3H = 'return_3h'
+
     category = db.Column(db.String(20), nullable=False, default=CATEGORY_STATUS)
 
     user = db.relationship(
@@ -583,21 +643,102 @@ class Notification(db.Model):
 
     # ---- Tampilan per kategori (ikon Font Awesome + kelas warna) ----
     _STYLE = {
-        CATEGORY_STATUS:   ('fa-solid fa-bell', 'tone-info'),
-        CATEGORY_REMINDER: ('fa-solid fa-clock', 'tone-warning'),
-        CATEGORY_OVERDUE:  ('fa-solid fa-triangle-exclamation', 'tone-danger'),
-        CATEGORY_FINE:     ('fa-solid fa-file-invoice-dollar', 'tone-danger'),
+        CATEGORY_STATUS: (
+            'fa-solid fa-bell',
+            'tone-info'
+        ),
+        CATEGORY_REMINDER: (
+            'fa-solid fa-clock',
+            'tone-warning'
+        ),
+        CATEGORY_OVERDUE: (
+            'fa-solid fa-triangle-exclamation',
+            'tone-danger'
+        ),
+        CATEGORY_FINE: (
+            'fa-solid fa-file-invoice-dollar',
+            'tone-danger'
+        ),
+        CATEGORY_PAYMENT_1H: (
+            'fa-solid fa-credit-card',
+            'tone-warning'
+        ),
+        CATEGORY_PAYMENT_30M: (
+            'fa-solid fa-hourglass-half',
+            'tone-warning'
+        ),
+        CATEGORY_PAYMENT_CANCELLED: (
+            'fa-solid fa-ban',
+            'tone-danger'
+        ),
+        CATEGORY_RETURN_24H: (
+            'fa-solid fa-car-side',
+            'tone-info'
+        ),
+        CATEGORY_RETURN_3H: (
+            'fa-solid fa-clock',
+            'tone-warning'
+        ),
+    }
+
+    # Warna kartu berdasarkan jenis urusan.
+    _CARD_STYLE = {
+        CATEGORY_STATUS: 'card-status',
+        CATEGORY_REMINDER: 'card-rental',
+        CATEGORY_OVERDUE: 'card-rental',
+        CATEGORY_FINE: 'card-rental',
+        CATEGORY_PAYMENT_1H: 'card-payment',
+        CATEGORY_PAYMENT_30M: 'card-payment',
+        CATEGORY_PAYMENT_CANCELLED: 'card-payment',
+        CATEGORY_RETURN_24H: 'card-rental',
+        CATEGORY_RETURN_3H: 'card-rental',
+    }
+
+    # Teks dan warna badge berdasarkan jenis notifikasi.
+    _BADGE_STYLE = {
+        CATEGORY_STATUS: ('Status Pesanan', 'info'),
+        CATEGORY_REMINDER: ('Pengingat', 'warning'),
+        CATEGORY_OVERDUE: ('Denda', 'danger'),
+        CATEGORY_FINE: ('Denda', 'danger'),
+        CATEGORY_PAYMENT_1H: ('Pengingat Pembayaran', 'warning'),
+        CATEGORY_PAYMENT_30M: ('Segera Bayar', 'warning'),
+        CATEGORY_PAYMENT_CANCELLED: ('Dibatalkan', 'danger'),
+        CATEGORY_RETURN_24H: ('Pengingat Pengembalian', 'info'),
+        CATEGORY_RETURN_3H: ('Segera Dikembalikan', 'warning'),
     }
 
     # [OOP - ENKAPSULASI (Property)]: Menentukan ikon visual berdasarkan kategori
     @property
     def icon(self):
-        return self._STYLE.get(self.category, self._STYLE[self.CATEGORY_STATUS])[0]
+        return self._STYLE.get(
+            self.category, self._STYLE[self.CATEGORY_STATUS])[0]
 
     # [OOP - ENKAPSULASI (Property)]: Menentukan tone warna badge berdasarkan kategori
     @property
     def tone(self):
-        return self._STYLE.get(self.category, self._STYLE[self.CATEGORY_STATUS])[1]
+        return self._STYLE.get(
+            self.category, self._STYLE[self.CATEGORY_STATUS])[1]
+
+    @property
+    def card_tone(self):
+        return self._CARD_STYLE.get(
+            self.category,
+            self._CARD_STYLE[self.CATEGORY_STATUS]
+        )
+
+    @property
+    def badge_label(self):
+        return self._BADGE_STYLE.get(
+            self.category,
+            self._BADGE_STYLE[self.CATEGORY_STATUS]
+        )[0]
+
+    @property
+    def badge_tone(self):
+        return self._BADGE_STYLE.get(
+            self.category,
+            self._BADGE_STYLE[self.CATEGORY_STATUS]
+        )[1]
 
     # ---------------------------------------------------------
     # [OOP - ABSTRAKSI & FACTORY PATTERN]
@@ -620,6 +761,86 @@ class Notification(db.Model):
         )
 
     @classmethod
+    def payment_reminder(cls, rental, category):
+        """Membuat pengingat pembayaran H-1 jam atau H-30 menit."""
+        deadline = rental.created_at + timedelta(hours=24)
+        batas = deadline.strftime('%d-%m-%Y pukul %H:%M')
+
+        if category == cls.CATEGORY_PAYMENT_1H:
+            title = 'Pembayaran Akan Berakhir dalam 1 Jam'
+            detail_waktu = 'Batas pembayaran tinggal sekitar 1 jam lagi.'
+        else:
+            title = 'Pembayaran Berakhir dalam 30 Menit'
+            detail_waktu = 'Batas pembayaran tinggal sekitar 30 menit lagi.'
+
+        return cls(
+            user_id=rental.user_id,
+            rental_id=rental.id,
+            category=category,
+            title=title,
+            message=(
+                f'{detail_waktu} Segera selesaikan pembayaran untuk pesanan '
+                f'{rental.booking_code}. Batas pembayaran: {batas}. '
+                'Jika sampai batas waktu belum dibayar, '
+                'pesanan akan dibatalkan otomatis.'
+            ),
+            old_status=rental.status,
+            new_status=rental.status,
+        )
+
+    @classmethod
+    def payment_cancelled(cls, rental, old_status=None):
+        """Membuat notifikasi pembatalan otomatis akibat pembayaran."""
+        deadline = rental.created_at + timedelta(hours=24)
+        batas = deadline.strftime('%d-%m-%Y pukul %H:%M')
+
+        return cls(
+            user_id=rental.user_id,
+            rental_id=rental.id,
+            category=cls.CATEGORY_PAYMENT_CANCELLED,
+            title='Pesanan Dibatalkan karena Belum Dibayar',
+            message=(
+                f'Pesanan {rental.booking_code} dibatalkan otomatis karena '
+                'pembayaran tidak diselesaikan dalam 24 jam sejak pemesanan. '
+                f'Batas pembayaran: {batas}.'
+            ),
+            old_status=old_status or Rental.STATUS_MENUNGGU_BAYAR,
+            new_status=Rental.STATUS_BATAL,
+        )
+
+    @classmethod
+    def return_deadline_reminder(cls, rental, category):
+        """Membuat pengingat menjelang batas pengembalian kendaraan."""
+        batas = rental.return_deadline.strftime('%d-%m-%Y pukul %H:%M')
+
+        if category == cls.CATEGORY_RETURN_24H:
+            title = 'Pengingat Pengembalian Kendaraan dalam 24 Jam'
+            keterangan = (
+                'Waktu pengembalian sudah memasuki 24 jam terakhir.'
+            )
+        else:
+            title = 'Pengingat: 3 Jam Menuju Pengembalian Kendaraan'
+            keterangan = (
+                'Waktu pengembalian tinggal sekitar 3 jam lagi.'
+            )
+
+        return cls(
+            user_id=rental.user_id,
+            rental_id=rental.id,
+            category=category,
+            title=title,
+            message=(
+                f'{keterangan} Mohon kembalikan kendaraan untuk pesanan '
+                f'{rental.booking_code} tepat waktu. '
+                f'Batas pengembalian: {batas}. '
+                f'Keterlambatan dikenakan denda '
+                f'{cls._rp(rental.fine_per_day)} per hari.'
+            ),
+            old_status=rental.status,
+            new_status=rental.status,
+        )
+
+    @classmethod
     def return_reminder(cls, rental):
         batas = rental.return_deadline.strftime('%d-%m-%Y pukul %H:%M')
         return cls(
@@ -636,16 +857,25 @@ class Notification(db.Model):
 
     @classmethod
     def overdue_warning(cls, rental):
-        batas = rental.return_deadline.strftime('%d-%m-%Y pukul %H:%M')
+        batas = rental.return_deadline.strftime(
+            '%d-%m-%Y pukul %H:%M'
+        )
+
         return cls(
-            user_id=rental.user_id, rental_id=rental.id,
+            user_id=rental.user_id,
+            rental_id=rental.id,
             category=cls.CATEGORY_OVERDUE,
-            title='Peringatan: Pengembalian Terlambat',
-            message=(f'Pesanan {rental.booking_code} melewati batas pengembalian '
-                     f'({batas}). Anda terlambat {rental.late_days} hari dengan '
-                     f'denda berjalan {cls._rp(rental.active_fine)}. Segera '
-                     f'kembalikan kendaraan agar denda tidak bertambah.'),
-            old_status=rental.status, new_status=rental.status,
+            title='Pesanan Dikenakan Denda karena Belum Dikembalikan',
+            message=(
+                f'Kendaraan untuk pesanan {rental.booking_code} belum '
+                f'dikembalikan melewati batas pengembalian ({batas}). '
+                f'Saat ini keterlambatan dihitung {rental.late_days} hari '
+                f'dengan denda berjalan '
+                f'{cls._rp(rental.active_fine)}. '
+                'Segera kembalikan kendaraan agar denda tidak bertambah.'
+            ),
+            old_status=rental.status,
+            new_status=rental.status,
         )
 
     @classmethod

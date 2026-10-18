@@ -97,8 +97,9 @@ notifications-page
                         {% for notification in notifications %}
 
                             <!--  KARTU NOTIFIKASI  -->
-                            <article class="notification-card
-                                {% if not notification.is_read %}unread{% endif %} {{ notification.tone }}">
+                            <article
+                                class="notification-card {{ notification.card_tone }}
+                                {{ notification.tone }}{% if not notification.is_read %} unread{% endif %}">
 
                                 <!--  IKON NOTIFIKASI  -->
                                 <div class="notification-icon {{ notification.tone }}">
@@ -115,13 +116,11 @@ notifications-page
                                         </h3>
 
                                         {% if not notification.is_read %}
-                                            <span class="notification-badge">Baru</span>
+                                            <span class="notification-badge badge-new">Baru</span>
                                         {% endif %}
-                                        {% if notification.category == 'overdue' or notification.category == 'fine' %}
-                                            <span class="notification-badge" style="background:#FEE2E2; color:#B91C1C;">Denda</span>
-                                        {% elif notification.category == 'reminder' %}
-                                            <span class="notification-badge" style="background:#FEF3C7; color:#92400E;">Pengingat</span>
-                                        {% endif %}
+                                        <span class="notification-badge badge-{{ notification.badge_tone }}">
+                                            {{ notification.badge_label }}
+                                        </span>
                                     </div>
 
                                     <!-- PESAN NOTIFIKASI -->
@@ -141,7 +140,7 @@ notifications-page
 
                                     <!-- TOMBOL DETAIL PESANAN -->
                                     <a
-                                        href="{{ url_for('main.detail_pesanan', rental_id=notification.rental_id) }}"
+                                        href="{{ url_for('main.buka_notifikasi', notification_id=notification.id) }}"
                                         class="notification-detail-button">
                                         Lihat Pesanan
                                     </a>
