@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 
+<!--=============================================
+        A. PENGATURAN HALAMAN
+==============================================-->
+
+<!-- 1. JUDUL HALAMAN -->
 {% block title %}
 KeSanaSini - Form Sewa
 {% endblock %}
@@ -8,6 +13,10 @@ KeSanaSini - Form Sewa
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user/formsewauser.css') }}">
 {% endblock %}
+
+<!--=============================================
+        B. BODY / ISI HALAMAN
+==============================================-->
 
 {% block content %}
 
@@ -19,7 +28,7 @@ KeSanaSini - Form Sewa
 <section class="order-section">
 
     <div class="order-container">
-        <!-- ================= HEADER ================= -->
+        <!-- 2. HEADER DAN IDENTITAS KENDARAAN -->
         <div class="order-top">
             <div>
                 <a class="order-back"
@@ -40,7 +49,7 @@ KeSanaSini - Form Sewa
             </div>
         </div>
 
-        <!-- Pesan error / info -->
+        <!-- 3.  PESAN ERROR DAN NOTIFIKASI -->
         {% with messages = get_flashed_messages() %}
         {% if messages %}
         <div class="order-alert">
@@ -51,7 +60,9 @@ KeSanaSini - Form Sewa
         {% endif %}
         {% endwith %}
 
-        <!-- ================= FORM ================= -->
+        <!-- 4. FORM PENYEWAAN
+            mengirim data pilihan penyewaaan dan dokumen ke
+            server menggunakan metode POST -->
         <form id="formSewa"
             class="order-layout"
             method="POST"
@@ -64,10 +75,10 @@ KeSanaSini - Form Sewa
             data-has-ktp="{{ 1 if has_ktp else 0 }}"
             data-has-sim="{{ 1 if has_sim else 0 }}">
 
-            <!-- ========== KOLOM 1 ========== -->
+            <!-- 4.1. KOLOM PERTAMA -->
             <div class="order-col">
 
-                <!-- 1. Jenis penyewaan -->
+                <!-- 4.1.1 Jenis penyewaan -->
                 <div class="order-card">
                     <h3><b class="num">1</b> Jenis Penyewaan</h3>
 
@@ -94,7 +105,7 @@ KeSanaSini - Form Sewa
                         </label>
                     </div>
 
-                    <!-- Dokumen: ambil dari Kelola Akun kalau sudah ada -->
+                    <!-- 4.1.2 DOKUMEN PERSYARATAN (SIM DAN KTP) -->
                     <div class="doc-box" id="docBox">
 
                         <div class="doc-item">
@@ -143,7 +154,7 @@ KeSanaSini - Form Sewa
                     </div>
                 </div>
 
-                <!-- 3. Tujuan pemakaian -->
+                <!-- 4.1.3 TUJUAN PEMAKAIAN -->
                 <div class="order-card">
                     <h3><b class="num">3</b> Tujuan pemakaian</h3>
 
@@ -166,6 +177,8 @@ KeSanaSini - Form Sewa
                         </div>
                     </div>
 
+                    <!-- MENGATUR AGAR KOLOM KOTA TUJUAN WAJIB DIISI
+                        JIKA KENDARAAN DIGUNAKAN KE LUAR KOTA -->
                     <div class="field" id="cityField" hidden>
                         <label for="destination_city">Kota tujuan</label>
                         <input type="text" id="destination_city" name="destination_city"
@@ -174,7 +187,7 @@ KeSanaSini - Form Sewa
                     </div>
                 </div>
 
-                <!-- 5. Asuransi -->
+                <!-- 4.1.4. PILIHAN ASURANSI -->
                 <div class="order-card">
                     <h3><b class="num">5</b> Asuransi</h3>
 
@@ -195,10 +208,10 @@ KeSanaSini - Form Sewa
 
             </div>
 
-            <!-- ========== KOLOM 2 ========== -->
+            <!-- 4.2. KOLOM KEDUA -->
             <div class="order-col">
 
-                <!-- 2. Aksesoris -->
+                <!-- 4.2.1. AKSESORIS TAMBAHAN -->
                 <div class="order-card">
                     <h3>
                         <b class="num">2</b> Aksesoris tambahan
@@ -220,7 +233,7 @@ KeSanaSini - Form Sewa
                     </div>
                 </div>
 
-                <!-- 4. Lokasi -->
+                <!-- 4.2.2. LOKASI PENGAMBILAN DAN PENGEMBALIAN -->
                 <div class="order-card">
                     <h3><b class="num">4</b> Lokasi Pengambilan dan kembali</h3>
 
@@ -244,7 +257,7 @@ KeSanaSini - Form Sewa
                     </div>
                 </div>
 
-                <!-- 6. Permintaan khusus -->
+                <!-- 4.2.3. PERMINTAAN KHUSUS -->
                 <div class="order-card">
                     <h3>
                         <b class="num">6</b> Permintaan khusus
@@ -256,13 +269,16 @@ KeSanaSini - Form Sewa
 
             </div>
 
+            <!-- 4.3 RINGKASAN SEWA -->
             <aside class="order-summary">
                 <div class="order-card">
                     <h3 class="summary-title">Ringkasan sewa</h3>
 
+                    <!-- 4.3.1. MENAMPILKAN JADWAL PENGAMBILAN DAN PENGEMBALIAN KENDARAAN-->
                     <div class="sum-date"><b>{{ pickup_date|tanggal_id }}, {{ pickup_time }}</b><span>Ambil</span></div>
                     <div class="sum-date"><b>{{ end_date|tanggal_id }}, {{ return_time }}</b><span>Kembali</span></div>
 
+                    <!-- 4.3.2. MENAMPILKAN RINCIAN BIAYA -->
                     <div class="sum-list">
                         <div><span>{{ vehicle.vehicle_type }}, {{ duration }} hari</span><b id="sumVehicle">Rp0</b></div>
                         <div id="rowDriver" hidden><span>Sopir</span><b id="sumDriver">Rp0</b></div>
@@ -270,20 +286,24 @@ KeSanaSini - Form Sewa
                         <div><span>Asuransi</span><b id="sumIns">Rp0</b></div>
                     </div>
 
+                    <!-- 4.3.3. MENAMPILKAN TOTAL BIAYA -->
                     <div class="sum-total">
                         <span>Total</span>
                         <b id="sumTotal">Rp0</b>
                     </div>
 
+                    <!-- 4.3.4. PERSETUJUAN PENGGUNA TERHADAP SYARAT PENYEWAAN -->
                     <label class="terms">
                         <input type="checkbox" name="agree" id="agree" value="1">
                         <span>Saya menyetujui syarat dan ketentuan penyewaan.</span>
                     </label>
 
+                    <!-- 4.3.5. MEMBERIKAN PETUNJUK JIKA PERSYARATAN BELUM TERPENUHI -->
                     <p class="order-hint" id="orderHint" hidden>
                         Unggah dokumen yang diperlukan dan setujui syarat untuk melanjutkan.
                     </p>
 
+                    <!-- TOMBOL DINONAKTIFKAN SAMPAI PERSYARATAN PENYEWAAN TERPENUHI -->
                     <button type="submit" class="order-submit" id="btnSubmit" disabled>
                         Lanjutkan Penyewaan
                     </button>
@@ -294,53 +314,64 @@ KeSanaSini - Form Sewa
     </div>
 </section>
 
+<!--=============================================
+        B. JAVASCRIPT
+==============================================-->
 
 <script>
 (function () {
+    // 5. INISIALISASI DATA
     const form = document.getElementById('formSewa');
     const days = Number(form.dataset.days);
     const basePrice = Number(form.dataset.price);
     const driverFee = Number(form.dataset.driver);
 
+    // 6. FUNGSI BANTU
+    // mengubah angka menjadi format rupiah
     const rp = n => 'Rp' + n.toLocaleString('id-ID');
     const $ = id => document.getElementById(id);
 
+    // 7. MEMBACA JENIS PENYEWAAN
     function selectedType() {
         const r = form.querySelector('input[name="rental_type"]:checked');
         return r ? r.value : 'lepas_kunci';
     }
 
+    // 8. MEMPERBARUI RINGKASAN DAN VALIDASI FORM
     function update() {
         const withDriver = selectedType() === 'sopir';
 
-        // ----- Harga -----
+        // 8.1. PERHITUNGAN BIAYA
         const vehicleCost = basePrice * days;
         const driverCost = withDriver ? driverFee * days : 0;
         $('rowDriver').hidden = !withDriver;
         $('sumDriver').textContent = rp(driverCost);
 
+        // 8.2. MENGHITUNG TOTAL HARGA AKSESORIS 
         let accCost = 0;
         form.querySelectorAll('input[name="accessories"]:checked').forEach(c => {
             accCost += Number(c.dataset.price);
         });
 
+        //8.3. MENGHITUNG BIAYA ASURANSI
         const ins = form.querySelector('input[name="insurance"]:checked');
         const insCost = ins ? Number(ins.dataset.price) * days : 0;
 
+        //8.4. MEMPERBARUI RINCIAN BIAYA DAN TOTAL PEMBAYARAN
         $('sumVehicle').textContent = rp(vehicleCost);
         $('sumAcc').textContent = rp(accCost);
         $('sumIns').textContent = rp(insCost);
         $('sumTotal').textContent = rp(vehicleCost + driverCost + accCost + insCost);
 
-        // ----- SIM hanya untuk lepas kunci (KTP selalu wajib) -----
+        // SIM hanya untuk lepas kunci (KTP selalu wajib)
         $('simItem').hidden = withDriver;
 
-        // ----- Kota tujuan hanya untuk luar kota -----
+        // Kota tujuan hanya untuk luar kota 
         const luarKota = $('region').value === 'Luar kota';
         $('cityField').hidden = !luarKota;
         $('destination_city').required = luarKota;
 
-        // ----- Tombol aktif hanya jika semua syarat terpenuhi -----
+        // Tombol aktif hanya jika semua syarat terpenuhi
         const ktpOk = form.dataset.hasKtp === '1' || $('ktp').files.length > 0;
         const simOk = withDriver || form.dataset.hasSim === '1' || $('sim').files.length > 0;
         const agreeOk = $('agree').checked;
@@ -350,6 +381,7 @@ KeSanaSini - Form Sewa
         $('orderHint').hidden = ready;
     }
 
+    // 9. PERBARUAN STATUS DOKUMEN
     ['ktp', 'sim'].forEach(id => {
         $(id).addEventListener('change', function () {
             const label = form.querySelector('.doc-status[data-for="' + id + '"]');
@@ -361,6 +393,8 @@ KeSanaSini - Form Sewa
         });
     });
 
+    // 10. PERBARUAN OTOMATIS FORM
+    // menghitung ulang biaya dan memeriksa persyaratan setiap kali pengguna mengubah pilihan
     form.addEventListener('change', update);
     update();
 })();
