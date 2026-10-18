@@ -10,7 +10,7 @@ from app import db, oauth
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 import os
 import shutil
-
+import uuid
 import smtplib
 import ssl
 from email.message import EmailMessage
@@ -1838,21 +1838,38 @@ def admin_update_rental_status(rental_id):
 @admin_required
 def admin_kendaraan():
     # ---------- KARTU STATISTIK ----------
+    # Semua angka dihitung ulang dari database di setiap request.
     total_vehicles = Vehicle.query.count()
+    # ID unit yang punya penyewaan berstatus "berjalan". Memakai set
+    # agar tiap ID hanya dihitung sekali.
     rented_vehicle_ids = {r.vehicle_id for r in
                           Rental.query.filter_by(status=Rental.STATUS_BERJALAN).all()}
+    # Unit yang dinonaktifkan admin (is_active = False).
+    inactive_vehicles = Vehicle.query.filter_by(is_active=False).count()
+    # Tersedia = aktif DAN tidak sedang disewa.
+    available_vehicles = Vehicle.query.filter(
+        Vehicle.is_active.is_(True),
+        ~Vehicle.id.in_(list(rented_vehicle_ids))
+    ).count()
 
+    # q    : kata kunci pencarian (merek, tipe, atau plat).
+    # page : nomor halaman, default 1.
     q = request.args.get('q', '').strip()
     page = request.args.get('page', 1, type=int)
 
+    # Pencarian memakai ilike (tidak membedakan huruf besar/kecil),
+    # dengan pola %kata% sehingga cocok di bagian mana pun teks.
     query = Vehicle.query
     if q:
         pattern = f'%{q}%'
         query = query.filter(or_(
             Vehicle.brand.ilike(pattern),
             Vehicle.model.ilike(pattern),
+            Vehicle.vehicle_number.ilike(pattern),
         ))
 
+    # Urut dari data terbaru, 5 unit per halaman. error_out=False:
+    # halaman di luar jangkauan menghasilkan daftar kosong, bukan 404.
     pagination = query.order_by(Vehicle.id.desc()).paginate(
         page=page, per_page=5, error_out=False)
     
@@ -1861,11 +1878,175 @@ def admin_kendaraan():
         active_menu='kendaraan',
         total_vehicles=total_vehicles,
         rented_vehicle_ids=rented_vehicle_ids,
+        inactive_vehicles=inactive_vehicles,
+        available_vehicles=available_vehicles,
         pagination=pagination,
         q=q,
-        statuses=Rental.ALL_STATUS,
+        search=q,
         **admin_context()
     )
+
+# ========================================================
+# HELPER FUNCTIONS UNTUK HALAMAN TAMBAH / EDIT KENDARAAN
+# ========================================================
+# Batas unggah foto. Aturan ini diperiksa ulang di server karena
+# validasi di browser (accept dan 2 MB) mudah dilewati.
+ALLOWED_IMAGE_EXT = {'jpg', 'jpeg', 'png', 'webp'}
+MAX_IMAGE_BYTES = 2 * 1024 * 1024
+
+# Pilihan dropdown yang sah. Harus sama dengan <option> di kendaraan_tambah.html dan kendaraan_edit.html.
+VEHICLE_TYPES = ('SUV', 'MPV', 'Sedan', 'Motor')
+TRANSMISSIONS = ('Otomatis', 'Manual')
+FUELS = ('Bensin', 'Solar', 'Listrik')
+RENTAL_TYPES = ('Sopir & Tanpa Sopir', 'Tanpa Sopir', 'Dengan Sopir')
+
+# PEMBERSIH & PENGUBAH NILAI
+# ---------------------------------------------------------
+def _to_int(value, default=None):
+    """'12' -> 12, '' / None / 'abc' -> default."""
+    try:
+        return int(str(value).strip())
+    except (TypeError, ValueError):
+        return default
+
+
+def _clean(value):
+    """Teks kosong menjadi None. Wajib untuk kolom unik: dua '' dianggap duplikat."""
+    value = (value or '').strip()
+    return value or None
+
+
+def _allowed(options, current, attr):
+    """Opsi standar + nilai lama milik unit ini (mis. 'Mobil', 'Automatic').
+    Tanpa ini, menyimpan unit dari data seed akan ditolak atau memaksa nilainya berubah."""
+    old = getattr(current, attr, None) if current is not None else None
+    return tuple(options) + ((old,) if old else ())
+
+# PEMBACAAN & VALIDASI FORM
+# ---------------------------------------------------------
+# Kunci form berbahasa Indonesia (merek, tipe, ...) dipetakan ke
+# nama kolom model (brand, model, ...). Mengembalikan (data, error);
+# error berisi None bila seluruh validasi lolos.
+def _read_vehicle_form(form, current=None):
+    """Ambil dan bersihkan isi form. `current` = unit yang sedang diubah (None saat tambah).
+    Return (data, pesan_error)."""
+    # Plat: huruf besar dan spasi ganda dirapikan menjadi satu spasi.
+    # No. mesin & rangka: huruf besar, atau None bila kosong.
+    # Bagasi default 0 karena kolom tidak boleh NULL.
+    data = {
+        'brand': (form.get('merek') or '').strip(),
+        'model': (form.get('tipe') or '').strip(),
+        'year': _to_int(form.get('tahun')),
+        'color': _clean(form.get('warna')),
+        'vehicle_number': ' '.join((form.get('plat_nomor') or '').upper().split()),
+        'vehicle_type': form.get('kategori'),
+        'transmission': form.get('transmisi'),
+        'fuel': form.get('bahan_bakar'),
+        'engine_cc': _to_int(form.get('cc_mesin')),
+        'engine_number': (_clean(form.get('no_mesin')) or '').upper() or None,
+        'chassis_number': (_clean(form.get('no_rangka')) or '').upper() or None,
+        'price_per_day': _to_int(form.get('harga_sewa')),
+        'rental_type': form.get('jenis_penyewaan'),
+        'seats': _to_int(form.get('jumlah_penumpang')),
+        'luggage': _to_int(form.get('jumlah_bagasi'), 0),  # kolom NOT NULL, default 0
+        'facilities': _clean(form.get('fasilitas')),
+        'notes': _clean(form.get('catatan_kondisi')),
+    }
+
+    # Validasi berurutan; berhenti di kesalahan pertama.
+    if not data['brand'] or not data['model']:
+        return data, 'Merek dan tipe wajib diisi.'
+    if not data['vehicle_number']:
+        return data, 'Plat nomor wajib diisi.'
+    if data['year'] is None or not (1980 <= data['year'] <= datetime.now().year + 1):
+        return data, 'Tahun tidak valid.'
+    if data['vehicle_type'] not in _allowed(VEHICLE_TYPES, current, 'vehicle_type'):
+        return data, 'Pilih kategori kendaraan.'
+    if (data['transmission'] not in _allowed(TRANSMISSIONS, current, 'transmission')
+            or data['fuel'] not in _allowed(FUELS, current, 'fuel')):
+        return data, 'Transmisi atau bahan bakar tidak valid.'
+    if data['rental_type'] not in _allowed(RENTAL_TYPES, current, 'rental_type'):
+        return data, 'Jenis penyewaan tidak valid.'
+    if data['price_per_day'] is None or data['price_per_day'] <= 0:
+        return data, 'Harga sewa harus lebih dari 0.'
+    if data['seats'] is None or data['seats'] < 1:
+        return data, 'Jumlah penumpang minimal 1.'
+    if data['luggage'] < 0 or (data['engine_cc'] is not None and data['engine_cc'] < 0):
+        return data, 'Bagasi dan CC mesin tidak boleh negatif.'
+    return data, None
+
+# DATA AWAL FORM UBAH
+# ---------------------------------------------------------
+def _vehicle_to_form(v):
+    """Nilai awal form ubah, dari database. Kuncinya = atribut name di form."""
+    s = lambda x: '' if x is None else str(x)
+    return {
+        'merek': s(v.brand), 'tipe': s(v.model), 'tahun': s(v.year), 'warna': s(v.color),
+        'kategori': s(v.vehicle_type), 'plat_nomor': s(v.vehicle_number),
+        'transmisi': s(v.transmission), 'bahan_bakar': s(v.fuel),
+        'cc_mesin': s(v.engine_cc), 'no_mesin': s(v.engine_number), 'no_rangka': s(v.chassis_number),
+        'harga_sewa': s(v.price_per_day), 'jenis_penyewaan': s(v.rental_type),
+        'jumlah_penumpang': s(v.seats), 'jumlah_bagasi': s(v.luggage),
+        'fasilitas': s(v.facilities), 'catatan_kondisi': s(v.notes),
+        'is_active': '1' if v.is_active else '',
+    }
+
+# PENCEGAHAN DUPLIKAT
+# ---------------------------------------------------------
+# exclude_id diisi saat mengubah, supaya unit tidak dianggap
+# duplikat dirinya sendiri.
+def _find_duplicate(data, exclude_id=None):
+    """Cek plat / no. rangka / no. mesin yang sudah dipakai unit lain. Return pesan atau None."""
+    for field, label in (('vehicle_number', 'Plat nomor'),
+                         ('chassis_number', 'No. rangka'),
+                         ('engine_number', 'No. mesin')):
+        value = data[field]
+        if not value:
+            continue
+        q = Vehicle.query.filter(getattr(Vehicle, field) == value)
+        if exclude_id:
+            q = q.filter(Vehicle.id != exclude_id)
+        if q.first():
+            return f'{label} "{value}" sudah terdaftar.'
+    return None
+
+# PENGELOLAAN FILE FOTO
+# ---------------------------------------------------------
+def _images_dir():
+    # root_path = folder paket app/, jadi tidak bergantung pada folder tempat server dijalankan
+    return os.path.join(current_app.root_path, 'static', 'images')
+
+
+def _save_vehicle_photo(file_storage):
+    """Validasi lalu simpan foto dengan nama unik. Return nama file; raise ValueError bila ditolak."""
+    ext = os.path.splitext(file_storage.filename or '')[1].lower().lstrip('.')
+    if ext not in ALLOWED_IMAGE_EXT:
+        raise ValueError('Format foto harus JPG, PNG, atau WebP.')
+
+    file_storage.stream.seek(0, os.SEEK_END)
+    size = file_storage.stream.tell()
+    file_storage.stream.seek(0)
+    if size > MAX_IMAGE_BYTES:
+        raise ValueError('Ukuran foto maksimal 2 MB.')
+
+    # Nama acak (UUID) mencegah foto unit lain tertimpa.
+    # Ukuran dicek dengan seek ke akhir stream, tanpa membaca file.
+    filename = f'{uuid.uuid4().hex}.{ext}'
+    os.makedirs(_images_dir(), exist_ok=True)
+    file_storage.save(os.path.join(_images_dir(), filename))
+    return filename
+
+
+def _delete_vehicle_photo(filename):
+    """Hanya dipakai untuk membatalkan foto BARU yang gagal disimpan. Foto lama tidak pernah dihapus
+    otomatis: bisa jadi masih dirujuk unit lain atau kolom gallery."""
+    if not filename:
+        return
+    try:
+        os.remove(os.path.join(_images_dir(), filename))
+    except OSError:
+        pass
+
 
 # =========================================================
 # HALAMAN ADMIN: TAMBAH KENDARAAN
@@ -1873,89 +2054,123 @@ def admin_kendaraan():
 @bp.route('/admin/kendaraan/tambah', methods=['GET', 'POST'])
 @admin_required
 def tambah_kendaraan():
-    if request.method == 'POST':
-        foto = request.files.get('photo')
-        filename = "default.png"
-        if foto and foto.filename != '':
-            filename = secure_filename(foto.filename)
-            foto.save(os.path.join('app', 'static', 'images', filename))
+    error = None
 
-        new_vehicle = Vehicle(
-            photo=filename,
-            brand=request.form.get('merek'),
-            model=request.form.get('tipe'),
-            year=request.form.get('tahun'),
-            color=request.form.get('warna'),
-            vehicle_number=request.form.get('plat_nomor'),
-            rental_type=request.form.get('jenis_penyewaan'),
-            fuel=request.form.get('bahan_bakar'),
-            transmission=request.form.get('transmisi'),
-            vehicle_type=request.form.get('kategori'),
-            price_per_day=request.form.get('harga_sewa'),
-            seats=request.form.get('jumlah_penumpang'),
-            luggage=request.form.get('jumlah_bagasi'),
-            chassis_number=request.form.get('no_rangka'),
-            engine_number=request.form.get('no_mesin'),
-            engine_cc=request.form.get('cc_mesin'),
-            facilities=request.form.get('fasilitas'),
-            is_active=True # Default aktif
-        )
-        db.session.add(new_vehicle)
-        try:
-            db.session.commit()
-            flash('Kendaraan berhasil ditambahkan.')
-            return redirect(url_for('main.admin_kendaraan'))
-        except Exception as e:
-            db.session.rollback()
-            flash('Gagal menambahkan kendaraan. Pastikan Plat/Rangka/Mesin tidak duplikat.')
-            
-    return render_template('admin/kendaraan_tambah.html', active_menu='kendaraan', **admin_context())
+    # POST: tiap tahap hanya dijalankan bila tahap sebelumnya tidak menghasilkan error.
+    if request.method == 'POST':
+        data, error = _read_vehicle_form(request.form)
+
+        if not error:
+            error = _find_duplicate(data)
+
+        # Foto wajib saat menambah unit baru.
+        photo_name = None
+        if not error:
+            foto = request.files.get('photo')
+            if not foto or not foto.filename:
+                error = 'Foto kendaraan wajib diunggah.'
+            else:
+                try:
+                    photo_name = _save_vehicle_photo(foto)
+                except ValueError as e:
+                    error = str(e)
+
+        if not error:
+            # Simpan data. Foto sudah tertulis di disk, jadi bila commit gagal, file itu harus dihapus agar tidak jadi sampah.
+            db.session.add(Vehicle(
+                photo=photo_name,
+                is_active=bool(request.form.get('is_active')),
+                **data
+            ))
+            try:
+                db.session.commit()
+            # Race condition: admin lain menyimpan plat yang sama di antara pengecekan dan commit. Dijaga oleh constraint unik.
+            except IntegrityError:
+                db.session.rollback()
+                _delete_vehicle_photo(photo_name)
+                error = 'Plat nomor, no. rangka, atau no. mesin sudah dipakai unit lain.'
+            else:
+                flash('Kendaraan berhasil ditambahkan.')
+                return redirect(url_for('main.admin_kendaraan'))
+
+    # GET, atau POST yang gagal: tampilkan form. Isian lama dikirim kembali lewat `form` agar tidak perlu mengetik ulang.
+    return render_template(
+        'admin/kendaraan_tambah.html',
+        active_menu='kendaraan',
+        form=request.form if request.method == 'POST' else None,
+        error=error,
+        **admin_context()
+    )
+
 
 # =========================================================
-# HALAMAN ADMIN: EDIT KENDARAAN
+# HALAMAN ADMIN: UBAH KENDARAAN
 # =========================================================
 @bp.route('/admin/kendaraan/edit/<int:id>', methods=['GET', 'POST'])
 @admin_required
 def edit_kendaraan(id):
     vehicle = Vehicle.query.get_or_404(id)
-    
+    # Unit yang sedang disewa dikunci statusnya (tidak boleh dinonaktifkan).
+    unit_out = vehicle.current_status == 'Disewa'
+    error = None
+    form = _vehicle_to_form(vehicle)
+
+    # Checkbox yang disabled tidak ikut terkirim oleh browser. Karena itu, bila unit sedang disewa, status aktif TIDAK dibaca dari form dan tetap memakai nilai di database. Ini juga menjadi pengaman sebenarnya, sebab atribut disabled bisa dibuang lewat DevTools.
     if request.method == 'POST':
-        foto = request.files.get('photo')
-        if foto and foto.filename != '':
-            filename = secure_filename(foto.filename)
-            foto.save(os.path.join('app', 'static', 'images', filename))
-            vehicle.photo = filename
+        form = request.form.to_dict()
+        # Saat unit disewa, saklar status dikunci di tampilan (checkbox disabled tidak ikut terkirim).
+        # Jadi status tidak boleh dibaca dari form, tetap pakai nilai di database.
+        if unit_out:
+            form['is_active'] = '1' if vehicle.is_active else ''
+            wants_active = vehicle.is_active
+        else:
+            wants_active = bool(request.form.get('is_active'))
 
-        vehicle.brand = request.form.get('merek')
-        vehicle.model = request.form.get('tipe')
-        vehicle.year = request.form.get('tahun')
-        vehicle.color = request.form.get('warna')
-        vehicle.vehicle_number = request.form.get('plat_nomor')
-        vehicle.rental_type = request.form.get('jenis_penyewaan')
-        vehicle.fuel = request.form.get('bahan_bakar')
-        vehicle.transmission = request.form.get('transmisi')
-        vehicle.vehicle_type = request.form.get('kategori')
-        vehicle.price_per_day = request.form.get('harga_sewa')
-        vehicle.seats = request.form.get('jumlah_penumpang')
-        vehicle.luggage = request.form.get('jumlah_bagasi')
-        vehicle.chassis_number = request.form.get('no_rangka')
-        vehicle.engine_number = request.form.get('no_mesin')
-        vehicle.notes = request.form.get('catatan_kondisi')
-        vehicle.engine_cc = request.form.get('cc_mesin')
-        vehicle.facilities = request.form.get('fasilitas')
-        
-        # Checkbox aktif
-        vehicle.is_active = True if request.form.get('is_active') else False
+        # current=vehicle: nilai lama unit (mis. data seed) tetap dianggap sah.
+        data, error = _read_vehicle_form(request.form, current=vehicle)
 
-        try:
-            db.session.commit()
-            flash('Data kendaraan berhasil diperbarui.')
-            return redirect(url_for('main.admin_kendaraan'))
-        except Exception as e:
-            db.session.rollback()
-            flash('Gagal mengedit kendaraan. Data duplikat.')
+        if not error:
+            error = _find_duplicate(data, exclude_id=vehicle.id)
 
-    return render_template('admin/kendaraan_edit.html', active_menu='kendaraan', vehicle=vehicle, **admin_context())
+        # Foto: bila ada file baru -> simpan. Bila tidak ada -> pastikan foto lama masih ada di disk.
+        new_photo = None
+        if not error:
+            foto = request.files.get('photo')
+            if foto and foto.filename:
+                try:
+                    new_photo = _save_vehicle_photo(foto)
+                except ValueError as e:
+                    error = str(e)
+            elif not vehicle.photo or not os.path.exists(os.path.join(_images_dir(), vehicle.photo)):
+                error = 'File foto lama tidak ditemukan. Unggah foto baru.'
+
+        if not error:
+            # Terapkan seluruh perubahan ke objek, lalu commit.
+            for key, value in data.items():
+                setattr(vehicle, key, value)
+            vehicle.is_active = wants_active
+            if new_photo:
+                vehicle.photo = new_photo
+            try:
+                db.session.commit()
+            # Foto baru dibatalkan; foto lama sengaja tidak pernah dihapus otomatis karena bisa dirujuk unit lain.
+            except IntegrityError:
+                db.session.rollback()
+                _delete_vehicle_photo(new_photo)
+                error = 'Plat nomor, no. rangka, atau no. mesin sudah dipakai unit lain.'
+            else:
+                flash('Data kendaraan berhasil diperbarui.')
+                return redirect(url_for('main.admin_kendaraan'))
+
+    return render_template(
+        'admin/kendaraan_edit.html',
+        active_menu='kendaraan',
+        vehicle=vehicle,
+        form=form,
+        error=error,
+        vehicle_out=unit_out,
+        **admin_context()
+    )
 
 
 @bp.route('/admin/penyewaan')

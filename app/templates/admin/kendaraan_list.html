@@ -1,5 +1,17 @@
-{% extends 'admin/base_admin.html' %} <!-- Sesuaikan nama file base Anda -->
+{% extends 'admin/base_admin.html' %}
 
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--     HALAMAN  : DAFTAR KENDARAAN (PANEL ADMIN)                   -->
+<!--     Fungsi   : Menampilkan ringkasan statistik, pencarian,      -->
+<!--                dan tabel kendaraan berhalaman.                  -->
+<!--     Layout   : Mewarisi admin/base_admin.html                   -->
+<!--     Endpoint : main.admin_kendaraan (GET, parameter: q, page)   -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--     1.     PENGATURAN HEAD HALAMAN                              -->
+<!--            Judul tab browser, stylesheet halaman, dan font.     -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
 {% block title %}Daftar Kendaraan{% endblock %}
 
 {% block css %}
@@ -7,29 +19,45 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 {% endblock %}
 
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--     KONTEN UTAMA                                                -->
+<!--     Berisi kartu statistik dan panel tabel daftar kendaraan.    -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
 {% block content %}
-<!-- ================= KARTU STATISTIK ================= -->
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--     2.     KARTU STATISTIK                                      -->
+<!--            Tiga ringkasan: total unit, sedang disewa, tersedia. -->
+<!--            Variabel dari view: total_vehicles,                  -->
+<!--            inactive_vehicles, rented_vehicle_ids,               -->
+<!--            available_vehicles.                                  -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
 <section class="stats">
+
+    <!-- 2.1. KARTU TOTAL KENDARAAN                                     -->
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <!-- Jumlah seluruh unit terdaftar, termasuk yang nonaktif.         -->
+    <!-- Keterangan nonaktif hanya tampil bila inactive_vehicles > 0.   -->
     <div class="stat-card">
         <div class="stat-top">
             <div>
-                <div class="stat-title">Total Kendaraan</div>
+                <div class="stat-title">Kendaraan</div>
                 <div class="stat-total">Total: {{ total_vehicles }}</div>
             </div>
             <div class="stat-icon" style="color: #F07F2A;"><i class="fa-solid fa-car-side"></i></div>
         </div>
-        <div class="stat-sub">Semua unit terdaftar di sistem</div>
+        <div class="stat-sub">Semua unit terdaftar di sistem{% if inactive_vehicles %} · {{ inactive_vehicles }}
+            nonaktif{% endif %}</div>
     </div>
 
+    <!-- 2.2. KARTU SEDANG DISEWA                                       -->
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <!-- Jumlah unit yang sedang disewa, dihitung dari panjang daftar   -->
+    <!-- ID kendaraan (rented_vehicle_ids) hasil query di view.         -->
     <div class="stat-card">
         <div class="stat-top">
             <div>
                 <div class="stat-title">Sedang Disewa</div>
-                <!-- Menghitung manual via Jinja untuk keperluan visual -->
-                {% set disewa = [] %}
-                {% for v in vehicles if v.current_status == 'Disewa' %}
-                    {% set _ = disewa.append(1) %}
-                {% endfor %}
                 <div class="stat-total">Total: {{ rented_vehicle_ids|length }}</div>
             </div>
             <div class="stat-icon" style="color: #F07F2A;"><i class="fa-solid fa-file-contract"></i></div>
@@ -37,11 +65,15 @@
         <div class="stat-sub">Kendaraan di luar garasi</div>
     </div>
 
+    <!-- 2.3. KARTU DI GARASI (TERSEDIA)                                -->
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <!-- Jumlah unit yang siap disewakan (aktif dan tidak sedang        -->
+    <!-- disewa), dihitung di view.                                     -->
     <div class="stat-card">
         <div class="stat-top">
             <div>
                 <div class="stat-title">Di Garasi (Tersedia)</div>
-                <div class="stat-total">Total: {{ total_vehicles - rented_vehicle_ids|length }}</div>
+                <div class="stat-total">Total: {{ available_vehicles }}</div>
             </div>
             <div class="stat-icon" style="color: #F07F2A;"><i class="fa-regular fa-circle-check"></i></div>
         </div>
@@ -49,15 +81,61 @@
     </div>
 </section>
 
-<!-- ================= TABEL KENDARAAN ================= -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--     3.     PANEL DAFTAR KENDARAAN                               -->
+<!--            Berisi pencarian, tombol tambah, tabel data,         -->
+<!--            dan pagination.                                      -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
 <section class="panel">
-    <div class="panel-head" style="display: flex; justify-content: space-between; align-items: center;">
-        <div class="panel-title">Daftar Kendaraan</div>
-        <a href="{{ url_for('main.tambah_kendaraan') }}" class="btn-primary" style="width: max-content; text-decoration: none; padding: 10px 20px; border-radius: 6px; background-color: #F07F2A; color: white; font-weight: 600;">
-            <i class="fa-solid fa-plus"></i> Tambah Kendaraan
-        </a>
+
+    <!-- 3.1. HEADER PANEL                                              -->
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <!-- Judul + jumlah hasil, form pencarian, dan tombol tambah.       -->
+    <!-- Kata "cocok" muncul bila sedang memfilter dengan kata kunci.   -->
+    <div class="panel-head">
+        <div class="panel-title">
+            Daftar Kendaraan
+            <span class="vh-count">{{ pagination.total }} unit{% if search %} cocok{% endif %}</span>
+        </div>
+        <div class="vh-head-tools">
+            <!-- Form pencarian memakai metode GET agar kata kunci tersimpan di URL (bisa di-bookmark). Mencari merek, tipe, atau plat lewat parameter q. -->
+            <form class="vh-search" action="{{ url_for('main.admin_kendaraan') }}" method="GET" role="search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" name="q" value="{{ search or '' }}" placeholder="Cari merek, tipe, atau plat…"
+                    autocomplete="off" aria-label="Cari kendaraan">
+                <!-- Tombol "x" untuk menghapus pencarian; hanya tampil saat ada kata kunci aktif. -->
+                {% if search %}
+                <a class="vh-search-clear" href="{{ url_for('main.admin_kendaraan') }}" title="Hapus pencarian"><i
+                        class="fa-solid fa-xmark"></i></a>
+                {% endif %}
+            </form>
+            <!-- Tautan ke halaman form penambahan kendaraan baru. -->
+            <a href="{{ url_for('main.tambah_kendaraan') }}" class="vh-btn-primary">
+                <i class="fa-solid fa-plus"></i> Tambah Kendaraan
+            </a>
+        </div>
     </div>
 
+    <!-- 3.2. TABEL DATA KENDARAAN                                      -->
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <!-- Kolom: Plat, Merek/Tipe, Tahun, Harga/Hari, Jenis, Status,     -->
+    <!-- Aksi. Baris dibuat dari data halaman aktif saja               -->
+    <!-- (pagination.items), bukan seluruh data.                        -->
+    <!--                                                                -->
+    <!-- Keterangan tiap baris:                                         -->
+    <!-- - Merek/Tipe : foto kecil dari static/images/(v.photo), nama,  -->
+    <!--   dan spesifikasi singkat. Bila v.photo sudah berformat        -->
+    <!--   'uploads/...', sesuaikan prefix 'images/'. Gambar gagal      -->
+    <!--   dimuat akan disembunyikan (onerror). Jumlah kursi hanya      -->
+    <!--   untuk Mobil; warna hanya bila terisi; nilai kosong = '-'.    -->
+    <!-- - Harga/Hari : pemisah ribuan diubah dari koma ke titik        -->
+    <!--   (contoh: 350000 -> 350.000).                                 -->
+    <!-- - Status     : badge mengikuti current_status; unit nonaktif   -->
+    <!--   memakai kelas badge-nonaktif.                                -->
+    <!-- - Aksi       : tautan ke halaman edit berdasarkan ID unit.     -->
+    <!--                                                                -->
+    <!-- Bila data kosong (tabel kosong atau pencarian tanpa hasil),    -->
+    <!-- satu baris pesan "Tidak ada data kendaraan." ditampilkan.      -->
     <table style="width: 100%; text-align: left; border-collapse: collapse; margin-top: 15px;">
         <thead>
             <tr style="background-color: #e2e8f0;">
@@ -74,42 +152,65 @@
             {% for v in pagination.items %}
             <tr style="border-bottom: 1px solid #e2e8f0;">
                 <td style="padding: 12px;">{{ v.vehicle_number }}</td>
-                <td>{{ v.full_name }}</td>
+                <td>
+                    <div class="vh-unit">
+                        <img class="vh-thumb" src="{{ url_for('static', filename='images/' ~ v.photo) }}"
+                            alt="{{ v.brand }} {{ v.model }}" loading="lazy" onerror="this.style.visibility='hidden'">
+                        <div>
+                            <div class="vh-name">{{ v.brand }} {{ v.model }}</div>
+                            <div class="vh-meta">
+                                {{ v.transmission or '-' }} · {{ v.fuel or '-' }}{% if v.vehicle_type != 'Motor' %} · {{
+                                v.seats }} kursi{% endif %}{% if v.color %} · {{ v.color }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </td>
                 <td>{{ v.year }}</td>
                 <td>Rp {{ '{:,.0f}'.format(v.price_per_day).replace(',', '.') }}</td>
                 <td>{{ v.vehicle_type }}</td>
-                <td class="center"><span class="badge badge-{{ v.current_status }}">{{ v.current_status }}</span></td>
+                <td class="center"><span class="badge badge-{{ v.current_status if v.is_active else 'nonaktif' }}">{{
+                        v.current_status if v.is_active else 'Non-Aktif' }}</span></td>
                 <td class="center">
-                    <a href="{{ url_for('main.edit_kendaraan', id=v.id) }}" class="btn-sm" style="text-decoration: none; border: 1px solid #ccc; padding: 5px 10px; border-radius: 4px; color: #333;">Edit</a>
+                    <a href="{{ url_for('main.edit_kendaraan', id=v.id) }}" class="btn-sm"
+                        style="text-decoration: none; border: 1px solid #ccc; padding: 5px 10px; border-radius: 4px; color: #333;">Edit</a>
                 </td>
             </tr>
             {% else %}
-            <tr><td colspan="7" class="center" style="padding: 20px;">Tidak ada data kendaraan.</td></tr>
+            <tr>
+                <td colspan="7" class="center" style="padding: 20px;">Tidak ada data kendaraan.</td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <!-- Pagination -->
+    <!-- 3.3. PAGINATION                                                -->
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <!-- Hanya dirender bila ada data (pagination.pages > 0).           -->
+    <!-- Urutan tombol: awal, sebelumnya, nomor halaman, berikutnya,    -->
+    <!-- akhir. Kata kunci pencarian dibawa lewat parameter q.          -->
     {% if pagination.pages > 0 %}
     <div class="pagination">
+        <!-- Tombol ke halaman pertama dan halaman sebelumnya (nonaktif di halaman 1). -->
         <a class="page-btn {{ 'disabled' if pagination.page == 1 }}"
-           href="{{ url_for('main.admin_kendaraan', page=1, q=q or None) }}">|&lsaquo;</a>
+            href="{{ url_for('main.admin_kendaraan', page=1, q=q or None) }}">|&lsaquo;</a>
         <a class="page-btn {{ 'disabled' if not pagination.has_prev }}"
-           href="{{ url_for('main.admin_kendaraan', page=pagination.prev_num or 1, q=q or None) }}">&lsaquo;</a>
+            href="{{ url_for('main.admin_kendaraan', page=pagination.prev_num or 1, q=q or None) }}">&lsaquo;</a>
 
+        <!-- Nomor halaman ringkas: 1 halaman di tepi kiri/kanan dan 1 halaman di sekitar halaman aktif. Nilai None dari iter_pages ditampilkan sebagai elipsis (…). -->
         {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=1) %}
-            {% if p %}
-                <a class="page-btn {{ 'active' if p == pagination.page }}"
-                   href="{{ url_for('main.admin_kendaraan', page=p, q=q or None) }}">{{ p }}</a>
-            {% else %}
-                <span class="page-btn disabled">…</span>
-            {% endif %}
+        {% if p %}
+        <a class="page-btn {{ 'active' if p == pagination.page }}"
+            href="{{ url_for('main.admin_kendaraan', page=p, q=q or None) }}">{{ p }}</a>
+        {% else %}
+        <span class="page-btn disabled">…</span>
+        {% endif %}
         {% endfor %}
 
+        <!-- Tombol ke halaman berikutnya dan halaman terakhir (nonaktif di halaman terakhir). -->
         <a class="page-btn {{ 'disabled' if not pagination.has_next }}"
-           href="{{ url_for('main.admin_kendaraan', page=pagination.next_num or pagination.pages, q=q or None) }}">&rsaquo;</a>
+            href="{{ url_for('main.admin_kendaraan', page=pagination.next_num or pagination.pages, q=q or None) }}">&rsaquo;</a>
         <a class="page-btn {{ 'disabled' if pagination.page == pagination.pages }}"
-           href="{{ url_for('main.admin_kendaraan', page=pagination.pages, q=q or None) }}">&rsaquo;|</a>
+            href="{{ url_for('main.admin_kendaraan', page=pagination.pages, q=q or None) }}">&rsaquo;|</a>
     </div>
     {% endif %}
 </section>
