@@ -11,7 +11,7 @@
 <form method="get" style="margin-bottom:14px"><input class="f" name="q" value="{{ q }}" placeholder="Cari sopir (nama / no. HP)" style="max-width:360px"></form>
 <div class="card"><h2>Penyewaan Terbaru</h2>
   <div class="tw"><table>
-    <tr><th>ID Sopir</th><th>Nama Sopir</th><th>Mobil</th><th>Tanggal Sewa</th><th>Tanggal Kembali</th><th>Status</th><th>Aksi</th></tr>
+    <tr><th>ID Sopir</th><th>Nama Sopir</th><th>Kendaraan</th><th>Tanggal Sewa</th><th>Tanggal Kembali</th><th>Status</th><th>Aksi</th></tr>
     {% for d in pagination.items %}{% set r = d.current_rental %}
     <tr>
       <td>#{{ d.code }}</td>

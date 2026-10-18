@@ -508,6 +508,10 @@ class Rental(db.Model):
             else:
                 self.lock_fine()
 
+        # Bersihkan alasan pembatalan jika pesanan yang sempat batal diaktifkan kembali.
+        if old_status == self.STATUS_BATAL and new_status != self.STATUS_BATAL:
+            self.cancellation_reason = None
+
         # Simpan status terbaru.
         self.status = new_status
 
@@ -752,12 +756,15 @@ class Notification(db.Model):
 
     @classmethod
     def status_changed(cls, rental, old_status):
+        msg = (f'Status pesanan {rental.booking_code} berubah dari '
+               f'"{old_status}" menjadi "{rental.status}".')
+        if rental.status == Rental.STATUS_BATAL and rental.cancellation_reason:
+            msg += f' Alasan: {rental.cancellation_reason}'
         return cls(
             user_id=rental.user_id, rental_id=rental.id,
             category=cls.CATEGORY_STATUS,
             title='Status Pesanan Diperbarui',
-            message=(f'Status pesanan {rental.booking_code} berubah dari '
-                     f'"{old_status}" menjadi "{rental.status}".'),
+            message=msg,
             old_status=old_status, new_status=rental.status,
         )
 

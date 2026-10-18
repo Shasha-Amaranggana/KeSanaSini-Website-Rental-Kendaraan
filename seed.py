@@ -246,6 +246,7 @@ def run_seed():
             status=status,
             payment_method=p_method,
             payment_status=p_status,
+            cancellation_reason="Ada perubahan jadwal perjalanan mendadak." if status == Rental.STATUS_BATAL else None,
             driver_id=sopir.id if sopir else None,
             with_driver=True if sopir else False,
             accessories="bantal,selimut" if idx % 2 == 0 else "",

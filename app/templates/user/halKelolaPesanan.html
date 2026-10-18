@@ -136,6 +136,10 @@ Kelola Pesanan - KeSanaSini
                                 <div style="margin-top:6px; display:inline-flex; align-items:center; gap:6px; padding:3px 10px; background:#FEF3C7; border:1px solid #FCD34D; color:#92400E; border-radius:4px; font-size:11px; font-weight:600;">
                                     <i class="fa-solid fa-clock"></i> Sisa waktu: {{ rental.remaining_label }}
                                 </div>
+                            {% elif rental.status == 'Batal' and rental.cancellation_reason %}
+                                <div style="margin-top:6px; display:inline-flex; align-items:center; gap:6px; padding:3px 10px; background:#FEF2F2; border:1px solid #FECACA; color:#991B1B; border-radius:4px; font-size:11px; font-weight:500;">
+                                    <i class="fa-solid fa-circle-info"></i> Alasan: {{ rental.cancellation_reason }}
+                                </div>
                             {% endif %}
                         </div>
 

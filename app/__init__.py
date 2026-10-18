@@ -50,8 +50,50 @@ def create_app():
     with app.app_context():
         db.create_all()
         
-        # --- SISTEM AUTO-HEAL (PERBAIKAN OTOMATIS) ---
-        # Mencegah error "no such column" ketika teman kelompok melakukan push
-        print("==================================================================\n")
+        # --- SISTEM AUTO-HEAL (MIGRASI SKEMA NON-DESTRUKTIF) ---
+        # Menambahkan kolom baru secara otomatis (ALTER TABLE) tanpa menghapus
+        # data akun/pesanan yang sudah ada ketika anggota tim melakukan git pull.
+        from sqlalchemy import inspect, text
+        inspector = inspect(db.engine)
+        existing_tables = inspector.get_table_names()
+
+        migrations = {
+            'rental': [
+                ('cancellation_reason', 'VARCHAR(500)'),
+                ('fine_days', 'INTEGER NOT NULL DEFAULT 0'),
+                ('fine_amount', 'INTEGER NOT NULL DEFAULT 0'),
+                ('fine_paid', 'BOOLEAN NOT NULL DEFAULT 0'),
+                ('pickup_time', "VARCHAR(5) NOT NULL DEFAULT '10:00'"),
+                ('return_time', "VARCHAR(5) NOT NULL DEFAULT '10:00'"),
+            ],
+            'user': [
+                ('is_active', 'BOOLEAN NOT NULL DEFAULT 1'),
+                ('profile_photo', 'VARCHAR(255)'),
+                ('ktp_number', 'VARCHAR(20)'),
+                ('sim_number', 'VARCHAR(20)'),
+            ],
+            'vehicle': [
+                ('current_lat', 'FLOAT'),
+                ('current_lng', 'FLOAT'),
+                ('is_active', 'BOOLEAN NOT NULL DEFAULT 1'),
+            ],
+            'driver': [
+                ('address', 'VARCHAR(255)'),
+                ('description', 'TEXT'),
+                ('sim_photo', 'VARCHAR(255)'),
+            ],
+        }
+
+        for table_name, columns in migrations.items():
+            if table_name in existing_tables:
+                existing_cols = {c['name'] for c in inspector.get_columns(table_name)}
+                for col_name, col_def in columns:
+                    if col_name not in existing_cols:
+                        db.session.execute(
+                            text(f'ALTER TABLE {table_name} ADD COLUMN {col_name} {col_def}')
+                        )
+                        print(f"[AUTO-MIGRATE] Kolom '{col_name}' berhasil ditambahkan ke tabel '{table_name}'.")
+        db.session.commit()
 
     return app
+

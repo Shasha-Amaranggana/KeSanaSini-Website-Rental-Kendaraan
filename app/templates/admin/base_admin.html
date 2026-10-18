@@ -106,6 +106,27 @@
         {% block content %}{% endblock %}
     </main>
 
+    <!-- ================= MODAL KONFIRMASI LOGOUT ================= -->
+    <div id="logoutModal" class="logout-modal">
+        <div class="logout-modal-content">
+            <div class="logout-modal-icon">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <h3>Konfirmasi Logout</h3>
+            <p>Apakah kamu yakin ingin keluar dari akunmu?</p>
+            <div class="logout-modal-actions">
+                <button type="button" id="cancelLogout" class="btn-cancel-logout">
+                    Batalkan
+                </button>
+                <form action="{{ url_for('main.logout') }}" method="POST">
+                    <button type="submit" class="btn-confirm-logout">
+                        Ya, Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Buka/tutup dropdown notifikasi & profil
         function toggleDropdown(id) {
@@ -121,6 +142,39 @@
                 document.getElementById('notif').classList.remove('open');
                 document.getElementById('profile').classList.remove('open');
             }
+        });
+
+        // Modal Konfirmasi Logout (Sinkron dengan User)
+        document.addEventListener('DOMContentLoaded', function () {
+            var logoutModal = document.getElementById('logoutModal');
+            var cancelLogout = document.getElementById('cancelLogout');
+            if (!logoutModal || !cancelLogout) return;
+
+            var logoutLinks = document.querySelectorAll('a[href*="/logout"], a[data-logout]');
+            logoutLinks.forEach(function (link) {
+                link.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    var profileDropdown = document.getElementById('profile');
+                    if (profileDropdown) profileDropdown.classList.remove('open');
+                    logoutModal.classList.add('show');
+                });
+            });
+
+            cancelLogout.addEventListener('click', function () {
+                logoutModal.classList.remove('show');
+            });
+
+            logoutModal.addEventListener('click', function (event) {
+                if (event.target === logoutModal) {
+                    logoutModal.classList.remove('show');
+                }
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    logoutModal.classList.remove('show');
+                }
+            });
         });
     </script>
     {% block scripts %}{% endblock %}

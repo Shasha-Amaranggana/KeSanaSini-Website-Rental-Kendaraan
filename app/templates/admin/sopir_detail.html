@@ -21,7 +21,7 @@
 </div>
 <div class="card" style="margin-top:20px"><h2>Status</h2>
   <div class="tw"><table>
-    <tr><th>ID Booking</th><th>Nama Pelanggan</th><th>Mobil</th><th>Tanggal Sewa</th><th>Tanggal Kembali</th><th>Status</th><th></th></tr>
+    <tr><th>ID Booking</th><th>Nama Pelanggan</th><th>Kendaraan</th><th>Tanggal Sewa</th><th>Tanggal Kembali</th><th>Status</th><th></th></tr>
     {% for r in rentals %}
     <tr>
       <td>#{{ r.booking_code }}</td><td>{{ r.user.name }}</td><td>{{ r.vehicle.full_name }}</td>

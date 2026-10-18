@@ -438,3 +438,125 @@ tbody td:first-child, thead th:first-child { padding-left: 16px; }
 /* ---------- Responsif ---------- */
 @media (max-width:1150px) { .kp-grid-3 { grid-template-columns:1fr 1fr; } }
 @media (max-width:800px)  { .kp-grid-3, .kp-grid-2, .kp-grid-form, .kp-two, .kp-doc-grid { grid-template-columns:1fr; } }
+
+/* =========================================================
+   MODAL KONFIRMASI LOGOUT ADMIN (Sinkron dengan User)
+   ========================================================= */
+.logout-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    padding: 20px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.logout-modal.show {
+    display: flex;
+}
+
+.logout-modal-content {
+    width: 100%;
+    max-width: 400px;
+    padding: 30px 25px;
+    background: #fff;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+    animation: logoutModalIn 0.2s ease-out;
+}
+
+.logout-modal-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #fff0e8;
+    color: #e85d26;
+    font-size: 25px;
+}
+
+.logout-modal-content h3 {
+    margin: 0 0 10px;
+    color: #252525;
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.logout-modal-content p {
+    margin: 0 0 25px;
+    color: #777;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.logout-modal-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.logout-modal-actions > button,
+.logout-modal-actions > form {
+    flex: 1 1 0;
+    min-width: 0;
+    width: 0;
+    margin: 0;
+}
+
+.logout-modal-actions > form {
+    display: flex;
+}
+
+.logout-modal-actions .btn-cancel-logout,
+.logout-modal-actions .btn-confirm-logout {
+    flex: 1;
+    width: 100%;
+    padding: 12px 10px;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.btn-cancel-logout {
+    background: #f0f0f0;
+    color: #444;
+}
+
+.btn-cancel-logout:hover {
+    background: #e5e5e5;
+}
+
+.btn-confirm-logout {
+    background: #e85d26;
+    color: #fff;
+}
+
+.btn-confirm-logout:hover {
+    background: #cf4d1b;
+}
+
+@keyframes logoutModalIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+

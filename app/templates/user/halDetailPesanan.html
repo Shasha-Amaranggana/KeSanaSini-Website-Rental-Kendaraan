@@ -56,15 +56,23 @@ Detail Pesanan - KeSanaSini
                     {% if rental.status == rental.STATUS_BATAL %}
                         <div class="timeline-cancelled">
                             <i class="fa-solid fa-circle-xmark"></i>
-                            Pesanan dibatalkan
-                            {% set waktu_batal = timeline_times.get('cancelled') %}
+                            <div>
+                                <div>Pesanan dibatalkan</div>
+                                {% set waktu_batal = timeline_times.get('cancelled') %}
                                 {% if waktu_batal %}
                                     <small class="timeline-cancelled-time">
                                         {{ waktu_batal | tanggal_id }},
                                         pukul {{ waktu_batal.strftime('%H:%M') }}
                                     </small>
                                 {% endif %}
+                            </div>
                         </div>
+                        {% if rental.cancellation_reason %}
+                        <div class="timeline-cancelled-reason">
+                            <strong><i class="fa-solid fa-comment-dots"></i> Alasan Pembatalan:</strong>
+                            <span>{{ rental.cancellation_reason }}</span>
+                        </div>
+                        {% endif %}
                     {% else %}
                         <div class="timeline-steps">
 
@@ -365,6 +373,7 @@ Detail Pesanan - KeSanaSini
                                 </form>
                             </div>
                         </div>
+                        {% endif %}
 
                     </div>
 

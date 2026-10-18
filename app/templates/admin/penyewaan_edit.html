@@ -74,7 +74,7 @@
         <div class="card-detail">
             <div class="card-title">Pembayaran</div>
             <div class="flex-between">
-                <span>Biaya Sewa Mobil ({{ rental.duration_days }}x)</span>
+                <span>Biaya Sewa {{ rental.vehicle.vehicle_type or 'Kendaraan' }} ({{ rental.duration_days }}x)</span>
                 <span>Rp {{ rental.vehicle_cost|rupiah }}</span>
             </div>
             {% if rental.with_driver %}
@@ -131,13 +131,13 @@
     <div>
         <div class="card-detail" style="margin-bottom: 20px;">
             <div class="card-title">Kendaraan</div>
-            <img src="{{ url_for('static', filename='images/' + rental.vehicle.photo) }}" alt="Mobil" style="width: 100%; height: 140px; object-fit: contain; background: #2A2F3D; border-radius: 6px; margin-bottom: 15px;">
+            <img src="{{ url_for('static', filename='images/' + rental.vehicle.photo) }}" alt="{{ rental.vehicle.full_name }}" style="width: 100%; height: 140px; object-fit: contain; background: #2A2F3D; border-radius: 6px; margin-bottom: 15px;">
             
             <div class="info-label">Tipe</div>
             <div class="info-val">{{ rental.vehicle.vehicle_type }} {{ rental.vehicle.full_name }}</div>
             
-            <div class="info-label">Kapasitas Kursi</div>
-            <div class="info-val">{{ rental.vehicle.seats }} Kursi</div>
+            <div class="info-label">Kapasitas</div>
+            <div class="info-val">{{ rental.vehicle.seats }} {{ 'Penumpang' if rental.vehicle.vehicle_type|lower == 'motor' else 'Kursi' }}</div>
             
             <div class="info-label">Nomor Plat</div>
             <div class="info-val" style="margin-bottom:0;">{{ rental.vehicle.vehicle_number }}</div>
@@ -178,10 +178,21 @@
                 {% endif %}
             </div>
             
+            {% if rental.status == 'Batal' %}
+            <div style="margin-bottom: 18px; padding: 12px 14px; background: #FEF2F2; border-left: 4px solid #DC2626; border-radius: 6px; color: #991B1B; font-size: 13px; line-height: 1.5;">
+                <div style="font-weight: 700; margin-bottom: 4px;">
+                    <i class="fa-solid fa-circle-xmark"></i> Pesanan Dibatalkan
+                </div>
+                <div>
+                    <strong>Alasan:</strong> {{ rental.cancellation_reason or 'Tidak ada alasan pembatalan yang tercatat.' }}
+                </div>
+            </div>
+            {% endif %}
+            
             <form method="POST" action="{{ url_for('main.admin_penyewaan_edit', id=rental.id) }}">
                 <div style="margin-bottom: 20px;">
                     <label class="info-label" style="font-weight: 600; color: #333;">Ubah Status</label>
-                    <select name="status" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px;">
+                    <select name="status" id="statusSelect" onchange="toggleCancelReasonField()" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px;">
                         {% for s in statuses %}
                             <option value="{{ s }}" {% if rental.status == s %}selected{% endif %}>{{ s }}</option>
                         {% endfor %}
@@ -198,7 +209,7 @@
                 {% endif %}
 
                 {% if rental.with_driver %}
-                <div style="margin-bottom: 30px;">
+                <div style="margin-bottom: 20px;">
                     <label class="info-label" style="font-weight: 600; color: #333;">Tugaskan Sopir</label>
                     <select name="driver_id" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px;">
                         <option value="none">-- Belum Ada Sopir --</option>
@@ -211,14 +222,18 @@
                 </div>
                 {% endif %}
 
+                {% set show_tolak = rental.status in ['Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Kendaraan Dalam Pengambilan'] %}
+                <div id="cancelReasonWrapper" style="margin-bottom: 20px; {% if rental.status != 'Batal' and not show_tolak %}display: none;{% endif %}">
+                    <label class="info-label" style="font-weight: 600; color: #333;">
+                        Alasan Pembatalan / Penolakan <span style="font-weight: 400; color: #888;">(Opsional saat tolak/batal)</span>
+                    </label>
+                    <textarea name="cancellation_reason" rows="3" maxlength="500" placeholder="Tuliskan alasan jika pesanan ditolak atau dibatalkan..." style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 13px; font-family: inherit; resize: vertical;">{{ rental.cancellation_reason or '' }}</textarea>
+                </div>
+
                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
                     <!-- Tombol Tolak hanya muncul jika belum sampai tahap dipakai/selesai/batal -->
-                    {% if rental.status in [
-                        'Menunggu Pembayaran', 
-                        'Menunggu Konfirmasi', 
-                        'Kendaraan Dalam Pengambilan'
-                    ] %}
-                    <button type="submit" name="btn_tolak" value="1" style="padding: 10px 24px; border: 1px solid #ccc; background: #fff; border-radius: 4px; cursor: pointer; font-weight: 600;" onclick="return confirm('Yakin ingin menolak/membatalkan pesanan ini?');">
+                    {% if show_tolak %}
+                    <button type="submit" name="btn_tolak" value="1" style="padding: 10px 24px; border: 1px solid #DC2626; color: #DC2626; background: #fff; border-radius: 4px; cursor: pointer; font-weight: 600;" onclick="return confirm('Yakin ingin menolak/membatalkan pesanan ini?');">
                         Tolak
                     </button>
                     {% endif %}
@@ -232,5 +247,20 @@
         </div>
     </div>
 </div>
+
+<script>
+function toggleCancelReasonField() {
+    var sel = document.getElementById('statusSelect');
+    var wrapper = document.getElementById('cancelReasonWrapper');
+    var showTolak = {{ 'true' if show_tolak else 'false' }};
+    if (sel && wrapper) {
+        if (sel.value === 'Batal' || showTolak) {
+            wrapper.style.display = 'block';
+        } else {
+            wrapper.style.display = 'none';
+        }
+    }
+}
+</script>
 
 {% endblock %}

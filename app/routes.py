@@ -604,6 +604,11 @@ def batalkan_pesanan_kedaluwarsa(rental, commit=True):
 
     status_lama = rental.status
 
+    if not rental.cancellation_reason:
+        rental.cancellation_reason = (
+            'Dibatalkan otomatis karena pembayaran melewati batas waktu 24 jam.'
+        )
+
     rental.change_status(Rental.STATUS_BATAL)
 
     # Pastikan notifikasi pembatalan tidak dibuat berulang.
@@ -1799,6 +1804,13 @@ def admin_update_rental_status(rental_id):
             request.referrer or url_for('main.admin_dashboard')
         )
 
+    if new_status == Rental.STATUS_BATAL:
+        reason = request.form.get('cancellation_reason', '').strip()[:500]
+        if reason:
+            rental.cancellation_reason = reason
+        elif not rental.cancellation_reason:
+            rental.cancellation_reason = 'Dibatalkan oleh Admin.'
+
     old_status = rental.change_status(new_status)
 
     if old_status:
@@ -1999,8 +2011,13 @@ def admin_penyewaan_edit(id):
         drivers.append(rental.driver)
 
     if request.method == 'POST':
+        reason = request.form.get('cancellation_reason', '').strip()[:500]
+
         # Proses Tolak
         if 'btn_tolak' in request.form:
+            rental.cancellation_reason = (
+                reason or rental.cancellation_reason or 'Pesanan ditolak/dibatalkan oleh Admin.'
+            )
             old_status = rental.change_status(Rental.STATUS_BATAL)
             if old_status:
                 db.session.add(Notification.status_changed(rental, old_status))
@@ -2011,6 +2028,11 @@ def admin_penyewaan_edit(id):
         # Proses Simpan
         new_status = request.form.get('status')
         driver_id = request.form.get('driver_id')
+
+        if new_status == Rental.STATUS_BATAL:
+            rental.cancellation_reason = (
+                reason or rental.cancellation_reason or 'Dibatalkan oleh Admin.'
+            )
 
         old_status = rental.change_status(new_status)
 
