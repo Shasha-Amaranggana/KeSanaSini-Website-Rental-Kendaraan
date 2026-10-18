@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 
+<!--=============================================
+        A. PENGATURAN HALAMAN
+==============================================-->
+
+<!-- 1. JUDUL HALAMAN -->
 {% block title %}
 KeSanaSini - Detail Kendaraan
 {% endblock %}
@@ -10,8 +15,13 @@ KeSanaSini - Detail Kendaraan
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 {% endblock %}
 
+<!--=============================================
+        B. BODY/ ISI HALAMAN
+==============================================-->
+
 {% block content %}
 
+<!-- 2. BAGIAN HERO DAN JUDUL -->
 <section class="result-hero detail-hero">
 </section>
 
@@ -20,6 +30,9 @@ KeSanaSini - Detail Kendaraan
 
 <section class="result-vehicle-section">
 
+    <!-- 3. TOMBOL KEMBALI 
+        kembali ke halaman sebelumnya -->
+    
     <div class="detail-back-wrap">
 
         {% if from_page == 'home' %}
@@ -48,14 +61,18 @@ KeSanaSini - Detail Kendaraan
 
     <div class="detail-wrapper">
 
-        <!-- ================= KOLOM KIRI ================= -->
+        <!--=============================================
+                C. KOLOM KIRI - INFORMASI KENDARAAN
+        ==============================================-->
         <div class="detail-left">
 
+            <!-- 4. FOTO DAN IDENTITAS KENDARAAN -->
             <div class="detail-card">
                 <img class="detail-photo"
                     src="{{ url_for('static', filename='images/' + vehicle.photo_list[foto]) }}"
                     alt="{{ vehicle.brand }} {{ vehicle.model }}">
 
+            <!-- 4.1. GALERI FOTO -->
             <div class="detail-thumbs">
                 {% for p in vehicle.photo_list %}
                 <a href="{{ url_for('main.detail_kendaraan', vehicle_id=vehicle.id, date=pickup_date, time=pickup_time, duration=duration, foto=loop.index0) }}">
@@ -66,6 +83,7 @@ KeSanaSini - Detail Kendaraan
                 {% endfor %}
             </div>
 
+            <!-- 4.2. NAMA, NOMOR PLAT, DAN STATUS -->
                 <div class="detail-name-row">
                     <div>
                         <h3>{{ vehicle.brand }} {{ vehicle.model }}</h3>
@@ -76,6 +94,8 @@ KeSanaSini - Detail Kendaraan
                     </span>
                 </div>
 
+            <!-- 4.3. SPESIFIKASI KENDARAAN 
+                menampilkan kapasitas penumpang, bagasi, tahun, bahan bakar, transmisi, dan kapasitas mesin -->
                 <div class="detail-spec-grid">
                     <span><i class="fa-solid fa-user-group"></i> {{ vehicle.seats }} Penumpang</span>
                     <span><i class="fa-solid fa-suitcase"></i> {{ vehicle.luggage }} Bagasi</span>
@@ -86,6 +106,7 @@ KeSanaSini - Detail Kendaraan
                 </div>
             </div>
 
+            <!-- 5. FASILITAS KENDARAAN -->
             <div class="detail-card">
                 <h4>Fasilitas kendaraan</h4>
                 <ul class="detail-facility">
@@ -95,6 +116,7 @@ KeSanaSini - Detail Kendaraan
                 </ul>
             </div>
 
+            <!-- 6. KONTAK ADMIN WHATSAAP -->
             <div class="detail-card">
             <a class="detail-wa"
                 target="_blank"
@@ -109,9 +131,12 @@ KeSanaSini - Detail Kendaraan
 
         </div>
 
-        <!-- ================= KOLOM KANAN ================= -->
+        <!--=============================================
+                D. KOLOM KANAN - RINGKASAN DAN ULASAN
+        ==============================================-->
         <div class="detail-right">
 
+            <!-- 7. RINGKASAN SEWA -->
             <div class="detail-card">
                 <p class="detail-small">Ringkasan sewa</p>
                 <p class="detail-price">Rp{{ "{:,.0f}".format(vehicle.price_per_day).replace(',', '.') }}</p>
@@ -121,14 +146,16 @@ KeSanaSini - Detail Kendaraan
                 <div class="detail-row"><span>Tanggal pengembalian</span><b>{{ end_date|tanggal_id }}, {{ pickup_time }}</b></div>
                 <div class="detail-row"><span>Durasi</span><b>{{ duration }} hari</b></div>
 
+                <!-- 7.1. Menampilkan total biaya sewa sesuai hasil perhitungan server -->
                 <div class="detail-total">
                     <span>Total</span>
                     <b>Rp{{ "{:,.0f}".format(total).replace(',', '.') }}</b>
                 </div>
 
+                <!-- 7.2. TOMBOL PILIH KENDARAAN -->
                 {% if tersedia %}
                 <a class="detail-button"
-                   href="{{ url_for('main.pesanan', vehicle_id=vehicle.id,
+                    href="{{ url_for('main.pesanan', vehicle_id=vehicle.id,
                                     date=pickup_date, time=pickup_time, duration=duration) }}">
                     Pilih Kendaraan
                 </a>
@@ -137,6 +164,7 @@ KeSanaSini - Detail Kendaraan
                 {% endif %}
             </div>
 
+            <!-- 8. CATATAN KENDARAAN -->
             <div class="detail-card">
                 <h4>Catatan Kendaraan</h4>
                 <ul class="detail-notes">
@@ -148,6 +176,7 @@ KeSanaSini - Detail Kendaraan
                 </ul>
             </div>
 
+            <!-- 9. RINGKASAN ULASAN PENGGUNA -->
             <div class="detail-card">
                 <div class="review-head">
                     <h4>Ulasan Pengguna</h4>
@@ -156,6 +185,7 @@ KeSanaSini - Detail Kendaraan
 
                 {% if vehicle.review_count %}
 
+                <!-- 9.1. RATING RATA-RATA -->
                 <div class="review-summary">
                     <div class="review-score">
                         <b>{{ vehicle.avg_rating }}</b>
@@ -166,6 +196,8 @@ KeSanaSini - Detail Kendaraan
                         </div>
                     </div>
 
+                    <!-- 9.2. DISTRIBUSI RATING 
+                        menampilkan persentase ulasan untuk masing-masing bintang -->
                     <div class="review-bars">
                         {% for s in [5, 4, 3, 2, 1] %}
                         <div class="review-bar-row">
@@ -178,6 +210,7 @@ KeSanaSini - Detail Kendaraan
                     </div>
                 </div>
 
+                <!-- 9.3. ULASAN TERBARU -->
                 {% for r in vehicle.latest_reviews %}
                 <div class="review-item">
                     <div class="review-item-top">
@@ -188,11 +221,13 @@ KeSanaSini - Detail Kendaraan
                 </div>
                 {% endfor %}
 
+                <!-- 9.4. TAUTAN SEMUA ULASAN -->
                 <a class="review-all"
                     href="{{ url_for('main.detail_kendaraan', vehicle_id=vehicle.id, date=pickup_date, time=pickup_time, duration=duration, ulasan=1) }}">
                     Lihat semua ulasan
                 </a>
 
+                <!-- 9.5 DITAMPILKAN JIKA KENDARAAN BELUM ADA ULASAN -->
                 {% else %}
                 <p class="detail-small">Belum ada ulasan untuk kendaraan ini.</p>
                 {% endif %}
@@ -203,11 +238,13 @@ KeSanaSini - Detail Kendaraan
     </div>
 </section>
 
+<!-- 10. POP-UP ULASAN -->
 {% if show_reviews %}
 {% set base = {'vehicle_id': vehicle.id, 'date': pickup_date, 'time': pickup_time, 'duration': duration} %}
 <div class="modal-overlay">
     <div class="modal-box">
 
+        <!-- 10.1 JUDUL DAN TOMBOL TUTUP -->
         <div class="modal-head">
             <h3>Ulasan {{ vehicle.brand }} {{ vehicle.model }}</h3>
             <a class="modal-close"
@@ -216,10 +253,13 @@ KeSanaSini - Detail Kendaraan
             </a>
         </div>
 
+        <!-- 10.2 MENAMPILKAN NILAI RATA-RATA RATING DAN JUMLAH ULASAN -->
         <p class="detail-small">
             Rating {{ vehicle.avg_rating }} dari {{ vehicle.review_count }} ulasan
         </p>
 
+        <!-- 10.3 FILTER ULASAN 
+            memfilter ulasan berdasarkan jumlah bintang -->
         <div class="review-filter">
             <a href="{{ url_for('main.detail_kendaraan', ulasan=1, **base) }}"
                 class="{{ 'active' if not star else '' }}">
@@ -233,6 +273,7 @@ KeSanaSini - Detail Kendaraan
             {% endfor %}
         </div>
 
+        <!-- 10.4 DAFTAR ULASAN -->
         <div class="modal-list">
             {% for r in reviews %}
             <div class="review-item-full">
@@ -247,6 +288,7 @@ KeSanaSini - Detail Kendaraan
                 <p>{{ r.comment }}</p>
                 <small>{{ r.created_at|tanggal_id }}</small>
             </div>
+            <!-- ditampilkan jika belum ada ulasan pada bintang yang dipilih -->
             {% else %}
             <p class="detail-small">Belum ada ulasan dengan bintang ini.</p>
             {% endfor %}
