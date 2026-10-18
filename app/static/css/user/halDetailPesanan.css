@@ -1,6 +1,20 @@
-/* =====================================================
-        RESET
-===================================================== */
+/* ═════════════════════════════════════════════════════════════
+    CSS HALAMAN DETAIL PESANAN WEBSITE KeSanaSini
+    ⤷ Mengatur latar halaman, card detail pesanan, timeline,
+        informasi kendaraan, rincian biaya, kontak admin,
+        tombol pembatalan, modal, dan tampilan responsif.
+═════════════════════════════════════════════════════════════ */
+
+
+
+/* ═════════════════════════════════════════════════════════════
+   A.   RESET DAN PENGATURAN DASAR
+       ⤷ Mengatur ulang jarak, ukuran elemen, dan jenis font.
+═════════════════════════════════════════════════════════════ */
+
+/* A.1. Mengatur ulang margin, padding, ukuran elemen,
+   dan jenis font yang digunakan pada halaman.
+   ════════════════════════════════════════════════════════ */
 * {
     margin: 0;
     padding: 0;
@@ -8,9 +22,18 @@
     font-family: 'Poppins', sans-serif;
 }
 
-/* =====================================================
-   HALAMAN DETAIL PESANAN
-===================================================== */
+
+
+/* ═════════════════════════════════════════════════════════════
+   B.   HALAMAN DETAIL PESANAN
+       ⤷ Mengatur latar belakang halaman serta tata letak
+         sidebar dan konten utama.
+═════════════════════════════════════════════════════════════ */
+
+/* B.1. Mengatur area utama halaman detail pesanan
+   ⤷ Menentukan ukuran, jarak dalam, gradasi latar,
+     dan posisi elemen dekoratif.
+   ════════════════════════════════════════════════════════ */
 .account-page {
     width: 100%;
     min-height: 525px;
@@ -27,6 +50,11 @@
     isolation: isolate;
 }
 
+
+/* B.2. Menambahkan pola kendaraan pada latar halaman
+   ⤷ Menempatkan gambar dekoratif di belakang konten
+     tanpa mengganggu interaksi pengguna.
+   ════════════════════════════════════════════════════════ */
 .account-page::before {
     content: "";
     position: absolute;
@@ -41,6 +69,11 @@
     pointer-events: none;
 }
 
+
+/* B.3. Mengatur susunan sidebar dan konten utama
+   ⤷ Menggunakan grid untuk menentukan lebar sidebar,
+     jarak antarkolom, dan posisi keseluruhan konten.
+   ════════════════════════════════════════════════════════ */
 .account-layout {
     display: grid;
     grid-template-columns: 250px minmax(0, 1fr);
@@ -51,13 +84,22 @@
 }
 
 
-/* =====================================================
-   KONTEN UTAMA
-===================================================== */
+
+/* ═════════════════════════════════════════════════════════════
+   C.   KONTEN UTAMA
+       ⤷ Mengatur area konten dan judul halaman detail pesanan.
+═════════════════════════════════════════════════════════════ */
+
+/* C.1. Mengatur area konten agar menyesuaikan lebar
+   kolom yang tersedia.
+   ════════════════════════════════════════════════════════ */
 .account-content {
     min-width: 0;
 }
 
+
+/* C.2. Mengatur tampilan judul halaman detail pesanan
+   ════════════════════════════════════════════════════════ */
 .account-content > h1 {
     margin: -3px 0 25px;
     color: #484848;
@@ -66,6 +108,10 @@
     font-weight: 800;
 }
 
+
+/* C.3. Mengatur susunan form secara vertikal
+   ⤷ Memberikan jarak yang konsisten antarelemen form.
+   ════════════════════════════════════════════════════════ */
 .account-form {
     display: flex;
     flex-direction: column;
@@ -73,17 +119,29 @@
 }
 
 
-/* =====================================================
-   CARD - DETAIL PESANAN
-===================================================== */
+
+/* ═════════════════════════════════════════════════════════════
+   D.   CARD DAN NAVIGASI DETAIL PESANAN
+       ⤷ Mengatur card dasar, header, isi card, dan navigasi
+         kembali ke daftar pesanan.
+═════════════════════════════════════════════════════════════ */
+
+/* D.1. Mengatur tampilan dasar card akun
+   ════════════════════════════════════════════════════════ */
 .account-card {
     overflow: hidden;
     background: #fff;
     border: 1px solid #dedede;
     border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.12);
 }
 
+
+/* D.2. Mengatur header card
+   ⤷ Menentukan posisi teks, jarak dalam, garis pemisah,
+     serta ukuran dan ketebalan tulisan.
+   ════════════════════════════════════════════════════════ */
 .card-heading {
     min-height: 33px;
     display: flex;
@@ -95,83 +153,84 @@
     font-weight: 800;
 }
 
+
+/* D.3. Mengatur jarak dalam isi card
+   ════════════════════════════════════════════════════════ */
 .card-body {
-    padding: 20px 25px 20px;
+    padding: 20px 25px;
 }
 
 
+/* D.4. Menyembunyikan elemen yang memiliki atribut hidden
+   ⤷ Berlaku untuk panel detail, daftar pesanan, tab,
+     dan kolom pencarian ketika tidak ditampilkan.
+   ════════════════════════════════════════════════════════ */
 .order-detail-panel[hidden],
-.order-list[hidden] {
+.order-list[hidden],
+.order-tabs[hidden],
+.order-search[hidden] {
     display: none !important;
 }
 
+
+/* D.5. Mengatur lebar panel detail pesanan
+   ════════════════════════════════════════════════════════ */
 .order-detail-panel {
     width: 100%;
 }
 
+
+/* D.6. Mengatur tampilan tombol kembali ke daftar pesanan
+   ════════════════════════════════════════════════════════ */
 .back-to-orders {
-    text-decoration: none;
     display: inline-block;
     margin-bottom: 10px;
+    color: #444;
     font-size: 16px;
     font-weight: 500;
-    color: #444;
+    text-decoration: none;
     cursor: pointer;
 }
 
+
+/* D.7. Mengubah warna tombol kembali ketika diarahkan kursor
+   ════════════════════════════════════════════════════════ */
 .back-to-orders:hover {
     color: #e87519;
-    border-color: #e87519;
 }
 
+
+/* D.8. Mengatur jarak ikon pada tombol kembali
+   ════════════════════════════════════════════════════════ */
 .back-to-orders i {
     margin-right: 5px;
 }
 
 
-.order-detail-pricing p {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 12px 0;
-    border-bottom: 1px solid #eee;
-}
 
-.order-detail-pricing p span {
-    color: #666;
-}
+/* ═════════════════════════════════════════════════════════════
+   E.   CARD DETAIL PESANAN GABUNGAN
+       ⤷ Mengatur card utama yang memuat identitas kendaraan,
+         timeline status, informasi sewa, dan rincian biaya.
+═════════════════════════════════════════════════════════════ */
 
-.order-detail-pricing .detail-total {
-    margin-top: 8px;
-    border-bottom: none;
-    font-size: 18px;
-}
-
-.detail-total strong {
-    color: #e87519;
-}
-
-.order-tabs[hidden],
-.order-search[hidden],
-.order-list[hidden],
-.order-detail-panel[hidden] {
-    display: none !important;
-}
-
-
-/* =====================================================
-   CARD DETAIL PESANAN GABUNGAN
-===================================================== */
+/* E.1. Mengatur tampilan dasar card detail pesanan
+   ════════════════════════════════════════════════════════ */
 .order-detail-combined {
     width: 100%;
     overflow: hidden;
     background: #ffffff;
     border: 1px solid #e7e1da;
     border-radius: 10px;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.07);
+    box-shadow:
+        0 3px 8px rgba(0, 0, 0, 0.07);
 }
 
-/* Header nama kendaraan dan nomor pesanan */
+
+/* E.2. Mengatur header kendaraan dan nomor pesanan
+   ⤷ Menempatkan identitas kendaraan dan status pesanan
+     pada sisi yang berlawanan.
+   ════════════════════════════════════════════════════════ */
 .combined-header {
     display: flex;
     justify-content: space-between;
@@ -181,6 +240,9 @@
     background: #ffffff;
 }
 
+
+/* E.3. Mengatur nama kendaraan
+   ════════════════════════════════════════════════════════ */
 .combined-vehicle h2 {
     margin-bottom: 5px;
     color: #303847;
@@ -188,11 +250,17 @@
     font-weight: 800;
 }
 
+
+/* E.4. Mengatur teks tambahan identitas kendaraan
+   ════════════════════════════════════════════════════════ */
 .combined-vehicle span {
     color: #777777;
     font-size: 12px;
 }
 
+
+/* E.5. Mengatur label status pesanan saat ini
+   ════════════════════════════════════════════════════════ */
 .timeline-current-status {
     flex-shrink: 0;
     padding: 8px 12px;
@@ -204,18 +272,36 @@
     text-align: center;
 }
 
-/* Bagian timeline */
+
+
+/* ═════════════════════════════════════════════════════════════
+   F.   TIMELINE STATUS PESANAN
+       ⤷ Mengatur tahapan status, ikon, garis penghubung,
+         serta tampilan ketika pesanan dibatalkan.
+═════════════════════════════════════════════════════════════ */
+
+/* F.1. Mengatur area timeline
+   ⤷ Memberikan jarak dalam dan garis pemisah dari header.
+   ════════════════════════════════════════════════════════ */
 .timeline-section {
     padding: 12px 18px 28px;
     border-top: 2px solid #cac1c1;
 }
 
+
+/* F.2. Mengatur susunan seluruh tahap timeline
+   ════════════════════════════════════════════════════════ */
 .timeline-steps {
     display: flex;
     align-items: flex-start;
     padding: 18px 0;
 }
 
+
+/* F.3. Mengatur susunan setiap tahap timeline
+   ⤷ Menempatkan ikon dan keterangan secara vertikal
+     serta membagi ruang secara merata.
+   ════════════════════════════════════════════════════════ */
 .timeline-step {
     position: relative;
     z-index: 0;
@@ -230,6 +316,9 @@
     text-align: center;
 }
 
+
+/* F.4. Mengatur tampilan ikon setiap tahap
+   ════════════════════════════════════════════════════════ */
 .timeline-icon {
     position: relative;
     z-index: 1;
@@ -245,7 +334,10 @@
     font-size: 22px;
 }
 
-/* Garis antar tahap */
+
+/* F.5. Membuat garis penghubung antartahap timeline
+   ⤷ Garis ditempatkan di belakang ikon setiap tahap.
+   ════════════════════════════════════════════════════════ */
 .timeline-step:not(:last-child)::after {
     content: "";
     position: absolute;
@@ -257,26 +349,42 @@
     background: #dddddd;
 }
 
+
+/* F.6. Menandai tahap yang telah selesai
+   ════════════════════════════════════════════════════════ */
 .timeline-step.completed .timeline-icon {
     border-color: #25bf5a;
     color: #25bf5a;
 }
 
+
+/* F.7. Mengubah warna garis setelah tahap yang selesai
+   ════════════════════════════════════════════════════════ */
 .timeline-step.completed:not(:last-child)::after {
     background: #25bf5a;
 }
 
+
+/* F.8. Menandai tahap yang sedang berlangsung
+   ⤷ Menggunakan latar hijau agar berbeda dari tahap lain.
+   ════════════════════════════════════════════════════════ */
 .timeline-step.current .timeline-icon {
     border-color: #25bf5a;
     background: #25bf5a;
     color: #ffffff;
 }
 
+
+/* F.9. Mengatur keterangan setiap tahap timeline
+   ════════════════════════════════════════════════════════ */
 .timeline-step span {
     max-width: 130px;
     line-height: 1.5;
 }
 
+
+/* F.10. Mengatur teks tambahan pada tahap timeline
+   ═══════════════════════════════════════════════════════ */
 .timeline-step small {
     display: block;
     color: #888888;
@@ -285,6 +393,9 @@
     text-align: center;
 }
 
+
+/* F.11. Mengatur waktu pembatalan pesanan
+   ═══════════════════════════════════════════════════════ */
 .timeline-cancelled-time {
     display: block;
     margin-top: 8px;
@@ -293,6 +404,10 @@
     text-align: center;
 }
 
+
+/* F.12. Mengatur pemberitahuan pesanan yang dibatalkan
+   ⤷ Menggunakan warna merah untuk membedakan status batal.
+   ═══════════════════════════════════════════════════════ */
 .timeline-cancelled {
     display: flex;
     align-items: center;
@@ -306,32 +421,18 @@
     font-weight: 700;
 }
 
+
+/* F.13. Mengatur ukuran ikon pemberitahuan pembatalan
+   ═══════════════════════════════════════════════════════ */
 .timeline-cancelled i {
     font-size: 22px;
 }
 
-.timeline-cancelled-reason {
-    margin-top: 10px;
-    padding: 12px 16px;
-    border-radius: 8px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #991b1b;
-    font-size: 13px;
-    line-height: 1.5;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
 
-.timeline-cancelled-reason strong {
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-/* Garis pemisah timeline dan informasi sewa */
+/* F.14. Membuat garis pemisah timeline dan informasi sewa
+   ⤷ Memberikan jarak dari sisi card agar garis tidak
+     memenuhi seluruh lebar card.
+   ═══════════════════════════════════════════════════════ */
 .detail-section-divider {
     height: 1px;
     margin-left: 25px;
@@ -339,11 +440,23 @@
     background: #e7e1da;
 }
 
-/* Bagian informasi kendaraan dan biaya */
+
+
+/* ═════════════════════════════════════════════════════════════
+   G.   INFORMASI KENDARAAN DAN RINCIAN BIAYA
+       ⤷ Mengatur informasi sewa, rincian harga, total biaya,
+         dan tombol pembayaran.
+═════════════════════════════════════════════════════════════ */
+
+/* G.1. Mengatur jarak dalam area informasi dan biaya
+   ════════════════════════════════════════════════════════ */
 .order-detail-body {
     padding: 24px;
 }
 
+
+/* G.2. Mengatur susunan informasi kendaraan dan penyewaan
+   ════════════════════════════════════════════════════════ */
 .order-detail-info {
     display: flex;
     flex-direction: column;
@@ -351,6 +464,9 @@
     margin-bottom: 38px;
 }
 
+
+/* G.3. Mengatur tampilan setiap baris informasi sewa
+   ════════════════════════════════════════════════════════ */
 .order-detail-info p {
     display: flex;
     align-items: center;
@@ -359,31 +475,45 @@
     font-size: 13px;
 }
 
+
+/* G.4. Mengatur lebar dan warna ikon informasi sewa
+   ════════════════════════════════════════════════════════ */
 .order-detail-info i {
     width: 15px;
     color: #888888;
 }
 
+
+/* G.5. Mengatur area rincian harga
+   ════════════════════════════════════════════════════════ */
 .order-detail-pricing {
     padding: 0;
 }
 
-.order-detail-pricing h3 {
-    margin: 0 0 12px;
-    margin-left: -30px;
-    margin-right: -30px;
 
+/* G.6. Mengatur judul bagian rincian biaya
+   ⤷ Garis oranye membentang hingga sisi card, sedangkan
+     padding menjaga teks tetap sejajar dengan isi card.
+   ════════════════════════════════════════════════════════ */
+.order-detail-pricing h3 {
+    margin: 0 -30px 12px;
     padding: 16px 30px 0;
     border-top: 3px solid #F47721;
-
     color: #303847;
     font-size: 20px;
 }
 
+
+/* G.7. Mengatur jarak judul rincian biaya berikutnya
+   ════════════════════════════════════════════════════════ */
 .order-detail-pricing h3:not(:first-child) {
     margin-top: 28px;
 }
 
+
+/* G.8. Mengatur susunan setiap baris rincian biaya
+   ⤷ Memisahkan keterangan biaya dan nominalnya.
+   ════════════════════════════════════════════════════════ */
 .order-detail-pricing p {
     display: flex;
     justify-content: space-between;
@@ -392,26 +522,42 @@
     border-bottom: 1px solid #eeeeee;
 }
 
+
+/* G.9. Mengatur tampilan keterangan biaya
+   ════════════════════════════════════════════════════════ */
 .order-detail-pricing p span {
     color: #666666;
     font-size: 13px;
 }
 
+
+/* G.10. Mengatur tampilan nominal biaya
+   ⤷ Meratakan nominal ke kanan agar mudah dibaca.
+   ═══════════════════════════════════════════════════════ */
 .order-detail-pricing p strong {
-    text-align: right;
     font-size: 15px;
+    text-align: right;
 }
 
+
+/* G.11. Menonjolkan baris total pembayaran
+   ═══════════════════════════════════════════════════════ */
 .order-detail-pricing .detail-total {
     margin-top: 8px;
     border-bottom: none;
     font-size: 18px;
 }
 
+
+/* G.12. Memberikan warna khusus pada nominal total
+   ═══════════════════════════════════════════════════════ */
 .detail-total strong {
     color: #e87519;
 }
 
+
+/* G.13. Mengatur tampilan tombol pembayaran
+   ═══════════════════════════════════════════════════════ */
 .btn-pembayaran {
     display: inline-flex;
     align-items: center;
@@ -428,18 +574,32 @@
     transition: background-color 0.2s ease;
 }
 
+
+/* G.14. Mengubah warna tombol pembayaran ketika diarahkan kursor
+   ═══════════════════════════════════════════════════════ */
 .btn-pembayaran:hover {
     background-color: #CF5F15;
 }
 
 
-/* =====================================================
-   KARTU HUBUNGI ADMIN
-===================================================== */
+
+/* ═════════════════════════════════════════════════════════════
+   H.   KARTU HUBUNGI ADMIN
+       ⤷ Mengatur kartu kontak admin dan informasi
+         yang ditampilkan di dalamnya.
+═════════════════════════════════════════════════════════════ */
+
+/* H.1. Mengatur jarak area kartu kontak admin
+   ════════════════════════════════════════════════════════ */
 .order-admin-contact-wrapper {
     padding: 0 24px 24px;
 }
 
+
+/* H.2. Mengatur tampilan dasar kartu kontak admin
+   ⤷ Menentukan susunan ikon dan teks, latar, garis tepi,
+     bayangan, dan efek transisi.
+   ════════════════════════════════════════════════════════ */
 .order-admin-contact {
     display: flex;
     align-items: center;
@@ -459,17 +619,26 @@
         border-color 0.2s ease;
 }
 
+
+/* H.3. Memberikan efek ketika kartu kontak diarahkan kursor
+   ════════════════════════════════════════════════════════ */
 .order-admin-contact:hover {
     transform: translateY(-2px);
     border-color: #25d366;
 }
 
+
+/* H.4. Mengatur tampilan ikon kontak admin
+   ════════════════════════════════════════════════════════ */
 .order-admin-contact > i {
     flex-shrink: 0;
     font-size: 34px;
     color: #25d366;
 }
 
+
+/* H.5. Mengatur susunan teks informasi kontak
+   ════════════════════════════════════════════════════════ */
 .order-admin-contact-info {
     display: flex;
     flex-direction: column;
@@ -477,12 +646,18 @@
     min-width: 0;
 }
 
+
+/* H.6. Mengatur judul informasi kontak
+   ════════════════════════════════════════════════════════ */
 .order-admin-contact-info b {
     color: #333333;
     font-size: 14px;
     font-weight: 700;
 }
 
+
+/* H.7. Mengatur keterangan tambahan kontak admin
+   ════════════════════════════════════════════════════════ */
 .order-admin-contact-info span {
     color: #777777;
     font-size: 12px;
@@ -490,26 +665,16 @@
 }
 
 
-/* RESPONSIVE KARTU ADMIN */
-@media (max-width: 700px) {
-    .order-admin-contact-wrapper {
-        padding: 0 18px 18px;
-    }
 
-    .order-admin-contact {
-        gap: 12px;
-        padding: 14px;
-    }
+/* ═════════════════════════════════════════════════════════════
+   I.   TOMBOL BATALKAN PESANAN
+       ⤷ Mengatur susunan keterangan pengembalian dana
+         dan tombol pembatalan pesanan.
+═════════════════════════════════════════════════════════════ */
 
-    .order-admin-contact > i {
-        font-size: 30px;
-    }
-}
-
-
-/* =====================================================
-   TOMBOL BATALKAN PESANAN
-===================================================== */
+/* I.1. Mengatur susunan form pembatalan pesanan
+   ⤷ Menempatkan keterangan dan tombol dalam satu baris.
+   ════════════════════════════════════════════════════════ */
 .cancel-order-form {
     display: flex;
     flex-direction: row;
@@ -520,7 +685,9 @@
     margin-top: 16px;
 }
 
-/* TULISAN PENGEMBALIAN DANA */
+
+/* I.2. Mengatur keterangan pengembalian dana
+   ════════════════════════════════════════════════════════ */
 .cancel-order-note {
     order: 1;
     flex: 1;
@@ -531,7 +698,9 @@
     line-height: 1.7;
 }
 
-/* TOMBOL BATALKAN PESANAN */
+
+/* I.3. Mengatur tampilan tombol pembatalan pesanan
+   ════════════════════════════════════════════════════════ */
 .btn-batalkan-pesanan {
     order: 2;
     display: inline-flex;
@@ -539,7 +708,6 @@
     justify-content: center;
     gap: 8px;
     flex-shrink: 0;
-
     padding: 11px 18px;
 
     background: #ffffff;
@@ -551,36 +719,30 @@
     font-weight: 600;
 
     cursor: pointer;
-    transition: background-color 0.2s ease,
-                color 0.2s ease;
+    transition:
+        background-color 0.2s ease,
+        olor 0.2s ease;
 }
 
+
+/* I.4. Mengubah tampilan tombol pembatalan ketika diarahkan kursor
+   ════════════════════════════════════════════════════════ */
 .btn-batalkan-pesanan:hover {
     background: #dc2626;
     color: #ffffff;
 }
 
-/* RESPONSIVE */
-@media (max-width: 600px) {
-    .cancel-order-form {
-        gap: 12px;
-    }
-
-    .cancel-order-note {
-        font-size: 10px;
-    }
-
-    .btn-batalkan-pesanan {
-        padding: 9px 12px;
-        font-size: 11px;
-    }
-}
 
 
+/* ═════════════════════════════════════════════════════════════
+   J.   MODAL KONFIRMASI DAN ALASAN PEMBATALAN
+       ⤷ Mengatur overlay, tampilan modal, animasi,
+         peringatan, tombol, dan form alasan pembatalan.
+═════════════════════════════════════════════════════════════ */
 
-/* =====================================================
-   MODAL KONFIRMASI DAN ALASAN PEMBATALAN
-===================================================== */
+/* J.1. Mengatur overlay di belakang modal
+   ⤷ Menutupi halaman dan memusatkan modal ketika ditampilkan.
+   ════════════════════════════════════════════════════════ */
 .cancel-modal-overlay {
     display: none;
     position: fixed;
@@ -594,10 +756,16 @@
     background: rgba(0, 0, 0, 0.48);
 }
 
+
+/* J.2. Menampilkan overlay ketika modal aktif
+   ════════════════════════════════════════════════════════ */
 .cancel-modal-overlay.active {
     display: flex;
 }
 
+
+/* J.3. Mengatur tampilan dasar modal
+   ════════════════════════════════════════════════════════ */
 .cancel-modal {
     width: 100%;
     max-width: 500px;
@@ -611,19 +779,24 @@
     animation: cancelModalAppear 0.2s ease;
 }
 
+
+/* J.4. Mengatur animasi kemunculan modal
+   ⤷ Modal muncul dengan perubahan opacity dan posisi.
+   ════════════════════════════════════════════════════════ */
 @keyframes cancelModalAppear {
     from {
         opacity: 0;
         transform: translateY(8px) scale(0.98);
     }
-
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
     }
 }
 
-/* IKON MODAL */
+
+/* J.5. Mengatur tampilan ikon modal
+   ════════════════════════════════════════════════════════ */
 .cancel-modal-icon {
     display: flex;
     align-items: center;
@@ -639,7 +812,9 @@
     font-size: 30px;
 }
 
-/* JUDUL DAN DESKRIPSI */
+
+/* J.6. Mengatur judul modal
+   ════════════════════════════════════════════════════════ */
 .cancel-modal h2 {
     margin: 0 0 12px;
     color: #292929;
@@ -647,6 +822,9 @@
     font-weight: 700;
 }
 
+
+/* J.7. Mengatur teks deskripsi modal
+   ════════════════════════════════════════════════════════ */
 .cancel-modal > p {
     margin: 0 0 14px;
     color: #858585;
@@ -654,6 +832,9 @@
     line-height: 1.7;
 }
 
+
+/* J.8. Menonjolkan peringatan pembatalan
+   ════════════════════════════════════════════════════════ */
 .cancel-modal .cancel-modal-warning {
     padding: 10px 12px;
     border-radius: 8px;
@@ -662,13 +843,19 @@
     font-size: 12px;
 }
 
-/* TOMBOL MODAL */
+
+/* J.9. Mengatur susunan tombol modal
+   ════════════════════════════════════════════════════════ */
 .cancel-modal-actions {
     display: flex;
     gap: 14px;
     margin-top: 28px;
 }
 
+
+/* J.10. Mengatur tampilan dasar tombol modal
+   ⤷ Membuat tombol memiliki ukuran dan transisi konsisten.
+   ═══════════════════════════════════════════════════════ */
 .cancel-modal-btn {
     display: inline-flex;
     align-items: center;
@@ -689,31 +876,50 @@
     transition: background 0.2s ease, transform 0.2s ease;
 }
 
+
+/* J.11. Memberikan efek ketika tombol modal diarahkan kursor
+   ═══════════════════════════════════════════════════════ */
 .cancel-modal-btn:hover {
     transform: translateY(-1px);
 }
 
+
+/* J.12. Mengatur tombol untuk kembali dari modal
+   ═══════════════════════════════════════════════════════ */
 .cancel-modal-back {
     background: #f0f0f0;
     color: #454545;
 }
 
+
+/* J.13. Mengubah latar tombol kembali ketika diarahkan kursor
+   ═══════════════════════════════════════════════════════ */
 .cancel-modal-back:hover {
     background: #e5e5e5;
 }
 
+
+/* J.14. Mengatur tombol untuk melanjutkan dan mengirim pembatalan
+   ═══════════════════════════════════════════════════════ */
 .cancel-modal-continue,
 .cancel-modal-submit {
     background: #f15a24;
     color: #ffffff;
 }
 
+
+/* J.15. Mengubah warna tombol konfirmasi ketika diarahkan kursor
+   ═══════════════════════════════════════════════════════ */
 .cancel-modal-continue:hover,
 .cancel-modal-submit:hover {
     background: #d94b19;
 }
 
-/* FORM ALASAN */
+
+/* J.16. Mengatur perataan isi modal alasan pembatalan
+   ⤷ Isi form rata kiri, sementara ikon, judul, dan deskripsi
+     tetap berada di tengah.
+   ═══════════════════════════════════════════════════════ */
 .cancel-reason-modal {
     text-align: left;
 }
@@ -724,6 +930,9 @@
     text-align: center;
 }
 
+
+/* J.17. Mengatur label kolom alasan pembatalan
+   ═══════════════════════════════════════════════════════ */
 .cancel-reason-modal label {
     display: block;
     margin: 20px 0 8px;
@@ -732,6 +941,9 @@
     font-weight: 600;
 }
 
+
+/* J.18. Mengatur kolom teks alasan pembatalan
+   ═══════════════════════════════════════════════════════ */
 .cancel-reason-modal textarea {
     display: block;
     width: 100%;
@@ -750,15 +962,24 @@
     resize: vertical;
 }
 
+
+/* J.19. Memberikan penanda ketika kolom alasan dipilih
+   ═══════════════════════════════════════════════════════ */
 .cancel-reason-modal textarea:focus {
     border-color: #f47721;
     box-shadow: 0 0 0 3px rgba(244, 119, 33, 0.12);
 }
 
+
+/* J.20. Mengatur warna teks petunjuk pada kolom alasan
+   ═══════════════════════════════════════════════════════ */
 .cancel-reason-modal textarea::placeholder {
     color: #aaaaaa;
 }
 
+
+/* J.21. Mengatur teks petunjuk tambahan pada form alasan
+   ═══════════════════════════════════════════════════════ */
 .cancel-reason-hint {
     display: block;
     margin-top: 6px;
@@ -766,35 +987,19 @@
     font-size: 11px;
 }
 
-/* RESPONSIVE MODAL */
-@media (max-width: 500px) {
-    .cancel-modal {
-        padding: 28px 20px;
-        border-radius: 16px;
-    }
-
-    .cancel-modal h2 {
-        font-size: 20px;
-    }
-
-    .cancel-modal-actions {
-        gap: 10px;
-    }
-
-    .cancel-modal-btn {
-        min-height: 46px;
-        padding: 10px;
-        font-size: 12px;
-    }
-}
 
 
+/* ═════════════════════════════════════════════════════════════
+   K.   RESPONSIVE DESIGN
+       ⤷ Menyesuaikan layout detail pesanan, timeline,
+         tombol pembatalan, kartu admin, dan modal pada
+         tablet serta layar ponsel.
+═════════════════════════════════════════════════════════════ */
 
-
-/* =====================================================
-   RESPONSIVE
-===================================================== */
-
+/* K.1. Menyesuaikan tata letak halaman pada layar maksimal 700px
+   ⤷ Mengubah layout menjadi satu kolom dan menyesuaikan
+     ukuran elemen timeline serta kartu kontak admin.
+   ════════════════════════════════════════════════════════ */
 @media (max-width: 700px) {
     .account-page {
         padding: 20px 4%;
@@ -809,37 +1014,17 @@
         font-size: 18px;
     }
 
-    .personal-row {
-        grid-template-columns: 1fr;
+    .order-admin-contact-wrapper {
+        padding: 0 18px 18px;
     }
 
-    .document-row {
-        grid-template-columns: 1fr;
+    .order-admin-contact {
         gap: 12px;
-    }
-}
-
-/* LAYAR KECIL */
-@media (max-width: 700px) {
-    .order-card-body {
-        flex-wrap: wrap;
-        gap: 12px;
+        padding: 14px;
     }
 
-    .order-vehicle-image {
-        width: 90px;
-        height: 70px;
-    }
-
-    .order-vehicle-info {
-        min-width: 140px;
-    }
-
-    .order-price {
-        width: 100%;
-        align-items: flex-start;
-        padding-top: 10px;
-        border-top: 1px dashed #e7e1da;
+    .order-admin-contact > i {
+        font-size: 30px;
     }
 
     .combined-header {
@@ -877,5 +1062,51 @@
 
     .order-detail-body {
         padding: 18px;
+    }
+}
+
+
+/* K.2. Menyesuaikan tombol pembatalan pada layar maksimal 600px
+   ⤷ Mengurangi jarak dan ukuran tulisan agar keterangan
+     serta tombol tetap muat pada layar kecil.
+   ════════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+    .cancel-order-form {
+        gap: 12px;
+    }
+
+    .cancel-order-note {
+        font-size: 10px;
+    }
+
+    .btn-batalkan-pesanan {
+        padding: 9px 12px;
+        font-size: 11px;
+    }
+}
+
+
+/* K.3. Menyesuaikan modal pada layar maksimal 500px
+   ⤷ Mengurangi padding, ukuran judul, dan jarak tombol
+     agar modal tetap nyaman digunakan di ponsel.
+   ════════════════════════════════════════════════════════ */
+@media (max-width: 500px) {
+    .cancel-modal {
+        padding: 28px 20px;
+        border-radius: 16px;
+    }
+
+    .cancel-modal h2 {
+        font-size: 20px;
+    }
+
+    .cancel-modal-actions {
+        gap: 10px;
+    }
+
+    .cancel-modal-btn {
+        min-height: 46px;
+        padding: 10px;
+        font-size: 12px;
     }
 }

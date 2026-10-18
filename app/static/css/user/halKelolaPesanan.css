@@ -1,6 +1,21 @@
-/* =====================================================
-        RESET
-===================================================== */
+
+/* ═════════════════════════════════════════════════════════════
+    CSS HALAMAN KELOLA PESANAN WEBSITE KeSanaSini
+    ⤷ Mengatur latar halaman, navigasi status pesanan,
+      kolom pencarian, daftar pesanan, rincian kendaraan,
+      total biaya, tombol detail, dan tampilan responsif.
+═════════════════════════════════════════════════════════════ */
+
+
+
+/* ═════════════════════════════════════════════════════════════
+   A.   RESET DAN PENGATURAN DASAR
+       ⤷ Mengatur ulang jarak, ukuran elemen, dan jenis font.
+═════════════════════════════════════════════════════════════ */
+
+/* A.1. Mengatur ulang margin, padding, ukuran elemen,
+   dan jenis font yang digunakan pada halaman.
+   ════════════════════════════════════════════════════════ */
 * {
     margin: 0;
     padding: 0;
@@ -8,9 +23,18 @@
     font-family: 'Poppins', sans-serif;
 }
 
-/* =====================================================
-   HALAMAN KELOLA AKUN
-===================================================== */
+
+
+/* ═════════════════════════════════════════════════════════════
+   B.   HALAMAN KELOLA PESANAN
+       ⤷ Mengatur latar belakang halaman serta tata letak
+         sidebar dan konten utama.
+═════════════════════════════════════════════════════════════ */
+
+/* B.1. Mengatur area utama halaman kelola pesanan
+   ⤷ Menentukan ukuran, jarak dalam, gradasi latar,
+     dan posisi elemen dekoratif.
+   ════════════════════════════════════════════════════════ */
 .account-page {
     width: 100%;
     min-height: 525px;
@@ -27,6 +51,11 @@
     isolation: isolate;
 }
 
+
+/* B.2. Menambahkan pola kendaraan pada latar halaman
+   ⤷ Menempatkan gambar dekoratif di belakang konten
+     tanpa mengganggu interaksi pengguna.
+   ════════════════════════════════════════════════════════ */
 .account-page::before {
     content: "";
     position: absolute;
@@ -41,6 +70,11 @@
     pointer-events: none;
 }
 
+
+/* B.3. Mengatur susunan sidebar dan konten utama
+   ⤷ Menggunakan grid untuk menentukan lebar sidebar,
+     jarak antarkolom, dan posisi keseluruhan konten.
+   ════════════════════════════════════════════════════════ */
 .account-layout {
     display: grid;
     grid-template-columns: 250px minmax(0, 1fr);
@@ -51,13 +85,22 @@
 }
 
 
-/* =====================================================
-   KONTEN UTAMA
-===================================================== */
+
+/* ═════════════════════════════════════════════════════════════
+   C.   KONTEN UTAMA
+       ⤷ Mengatur area konten, judul halaman, dan susunan form.
+═════════════════════════════════════════════════════════════ */
+
+/* C.1. Mengatur area konten agar menyesuaikan lebar
+   kolom yang tersedia.
+   ════════════════════════════════════════════════════════ */
 .account-content {
     min-width: 0;
 }
 
+
+/* C.2. Mengatur tampilan judul halaman kelola pesanan
+   ════════════════════════════════════════════════════════ */
 .account-content > h1 {
     margin: -3px 0 25px;
     color: #484848;
@@ -66,15 +109,27 @@
     font-weight: 800;
 }
 
+
+/* C.3. Mengatur susunan form secara vertikal
+   ⤷ Memberikan jarak yang konsisten antarelemen form.
+   ════════════════════════════════════════════════════════ */
 .account-form {
     display: flex;
     flex-direction: column;
     gap: 17px;
 }
 
-/* =====================================================
-   CARD
-===================================================== */
+
+
+/* ═════════════════════════════════════════════════════════════
+   D.   CARD DASAR
+       ⤷ Mengatur tampilan dasar card dan bagian header
+         serta isi card yang digunakan pada halaman.
+═════════════════════════════════════════════════════════════ */
+
+/* D.1. Mengatur tampilan dasar card
+   ⤷ Menentukan latar, garis tepi, sudut, dan bayangan card.
+   ════════════════════════════════════════════════════════ */
 .account-card {
     overflow: hidden;
     background: #fff;
@@ -83,6 +138,11 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
 }
 
+
+/* D.2. Mengatur header card
+   ⤷ Menentukan posisi teks, jarak dalam, garis pemisah,
+     serta ukuran dan ketebalan tulisan.
+   ════════════════════════════════════════════════════════ */
 .card-heading {
     min-height: 33px;
     display: flex;
@@ -94,14 +154,24 @@
     font-weight: 800;
 }
 
+
+/* D.3. Mengatur jarak dalam isi card
+   ════════════════════════════════════════════════════════ */
 .card-body {
     padding: 20px 25px 20px;
 }
 
-/* =====================================================
-   FORM
-===================================================== */
-/* NAVBAR STATUS PESANAN */
+
+
+/* ═════════════════════════════════════════════════════════════
+   E.   NAVIGASI STATUS PESANAN
+       ⤷ Mengatur tab kategori pesanan dan penanda tab aktif.
+═════════════════════════════════════════════════════════════ */
+
+/* E.1. Mengatur susunan tab status pesanan
+   ⤷ Menempatkan tab dalam satu baris dengan jarak,
+     latar putih, sudut membulat, dan bayangan.
+   ════════════════════════════════════════════════════════ */
 .order-tabs {
     display: flex;
     align-items: center;
@@ -112,6 +182,9 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.10);
 }
 
+
+/* E.2. Mengatur tampilan dasar setiap tab status
+   ════════════════════════════════════════════════════════ */
 .order-tab {
     position: relative;
     flex-shrink: 0;
@@ -123,15 +196,26 @@
     transition: color 0.2s ease;
 }
 
+
+/* E.3. Mengubah warna tab ketika diarahkan kursor
+   atau ketika tab sedang aktif.
+   ════════════════════════════════════════════════════════ */
 .order-tab:hover,
 .order-tab.active {
     color: #f58220;
 }
 
+
+/* E.4. Menegaskan tulisan pada tab yang sedang aktif
+   ════════════════════════════════════════════════════════ */
 .order-tab.active {
     font-weight: 600;
 }
 
+
+/* E.5. Menambahkan garis penanda pada tab aktif
+   ⤷ Garis oranye ditempatkan di bagian bawah tab.
+   ════════════════════════════════════════════════════════ */
 .order-tab.active::after {
     content: "";
     position: absolute;
@@ -143,7 +227,17 @@
     border-radius: 3px 3px 0 0;
 }
 
-/* KOLOM PENCARIAN */
+
+
+/* ═════════════════════════════════════════════════════════════
+   F.   KOLOM PENCARIAN PESANAN
+       ⤷ Mengatur tampilan kolom pencarian dan interaksi
+         ketika kolom input sedang digunakan.
+═════════════════════════════════════════════════════════════ */
+
+/* F.1. Mengatur tampilan wadah kolom pencarian
+   ⤷ Menentukan susunan ikon dan input, jarak, serta latar.
+   ════════════════════════════════════════════════════════ */
 .order-search {
     display: flex;
     align-items: center;
@@ -157,6 +251,11 @@
     box-sizing: border-box;
 }
 
+
+/* F.2. Mengatur kolom input pencarian
+   ⤷ Memungkinkan input mengisi ruang yang tersedia
+     tanpa melampaui lebar wadahnya.
+   ════════════════════════════════════════════════════════ */
 .order-search input {
     flex: 1;
     min-width: 0;
@@ -168,12 +267,24 @@
     color: #333;
 }
 
+
+/* F.3. Mengatur tampilan wadah ketika input difokuskan
+   ════════════════════════════════════════════════════════ */
 .order-search:focus-within {
     border-color: #f58220;
 }
 
-/* TEMPAT DAFTAR PESANAN */
-/* KONTENER DAFTAR PESANAN */
+
+
+/* ═════════════════════════════════════════════════════════════
+   G.   DAFTAR DAN KARTU PESANAN
+       ⤷ Mengatur susunan daftar, kartu pesanan, identitas
+         kendaraan, status, serta informasi penyewaan.
+═════════════════════════════════════════════════════════════ */
+
+/* G.1. Mengatur susunan daftar pesanan
+   ⤷ Menampilkan kartu secara vertikal dengan jarak konsisten.
+   ════════════════════════════════════════════════════════ */
 .order-list {
     display: flex;
     flex-direction: column;
@@ -181,7 +292,10 @@
     margin-top: 14px;
 }
 
-/* KARTU PESANAN */
+
+/* G.2. Mengatur tampilan dasar kartu pesanan
+   ⤷ Menentukan latar, garis tepi, sudut, dan bayangan.
+   ════════════════════════════════════════════════════════ */
 .order-card {
     background: #ffffff;
     border: 1px solid #e7e1da;
@@ -190,7 +304,11 @@
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.07);
 }
 
-/* HEADER */
+
+/* G.3. Mengatur header kartu pesanan
+   ⤷ Menempatkan identitas kendaraan dan status
+     pada sisi yang berlawanan.
+   ════════════════════════════════════════════════════════ */
 .order-card-header {
     display: flex;
     justify-content: space-between;
@@ -200,12 +318,19 @@
     border-bottom: 1px solid #e7e1da;
 }
 
+
+/* G.4. Mengatur nama kendaraan pada header kartu
+   ════════════════════════════════════════════════════════ */
 .order-vehicle-name h3 {
     color: #484848;
     font-size: 16px;
     font-weight: 700;
 }
 
+
+/* G.5. Mengatur tampilan kode pesanan
+   ⤷ Kode ditampilkan di bawah nama kendaraan.
+   ════════════════════════════════════════════════════════ */
 .order-code {
     display: block;
     margin-top: 4px;
@@ -213,7 +338,9 @@
     font-size: 11px;
 }
 
-/* STATUS */
+
+/* G.6. Mengatur label status pesanan
+   ════════════════════════════════════════════════════════ */
 .order-status {
     padding: 5px 9px;
     border-radius: 5px;
@@ -224,7 +351,18 @@
     text-align: center;
 }
 
-/* ISI KARTU */
+
+
+/* ═════════════════════════════════════════════════════════════
+   H.   INFORMASI KENDARAAN DALAM KARTU PESANAN
+       ⤷ Mengatur gambar kendaraan, informasi sewa,
+         dan tampilan harga pesanan.
+═════════════════════════════════════════════════════════════ */
+
+/* H.1. Mengatur susunan isi kartu pesanan
+   ⤷ Menempatkan gambar, informasi kendaraan, dan harga
+     dalam satu baris.
+   ════════════════════════════════════════════════════════ */
 .order-card-body {
     display: flex;
     align-items: center;
@@ -232,6 +370,11 @@
     padding: 5px 16px;
 }
 
+
+/* H.2. Mengatur area gambar kendaraan
+   ⤷ Menentukan ukuran area gambar dan posisi gambar
+     agar berada di tengah.
+   ════════════════════════════════════════════════════════ */
 .order-vehicle-image {
     width: 170px;
     height: 120px;
@@ -242,17 +385,29 @@
     justify-content: center;
 }
 
+
+/* H.3. Menyesuaikan gambar kendaraan dengan area
+   ⤷ Menggunakan object-fit agar gambar tidak terdistorsi.
+   ════════════════════════════════════════════════════════ */
 .order-vehicle-image img {
     width: 100%;
     height: 100%;
     object-fit: contain;
 }
 
+
+/* H.4. Mengatur ikon pengganti ketika gambar tidak tersedia
+   ════════════════════════════════════════════════════════ */
 .order-vehicle-image i {
     font-size: 42px;
     color: #d0d0d0;
 }
 
+
+/* H.5. Mengatur susunan informasi kendaraan
+   ⤷ Menempatkan informasi secara vertikal dan memberi
+     ruang bagi kolom informasi untuk melebar.
+   ════════════════════════════════════════════════════════ */
 .order-vehicle-info {
     display: flex;
     flex-direction: column;
@@ -260,6 +415,9 @@
     flex: 1;
 }
 
+
+/* H.6. Mengatur tampilan setiap baris informasi sewa
+   ════════════════════════════════════════════════════════ */
 .order-vehicle-info p {
     display: flex;
     align-items: center;
@@ -268,12 +426,18 @@
     font-size: 11px;
 }
 
+
+/* H.7. Mengatur ukuran dan warna ikon informasi kendaraan
+   ════════════════════════════════════════════════════════ */
 .order-vehicle-info i {
     width: 13px;
     color: #888888;
 }
 
-/* HARGA */
+
+/* H.8. Mengatur susunan informasi harga pesanan
+   ⤷ Menempatkan nominal di sisi kanan kartu.
+   ════════════════════════════════════════════════════════ */
 .order-price {
     display: flex;
     flex-direction: column;
@@ -282,19 +446,37 @@
     text-align: right;
 }
 
+
+/* H.9. Mengatur teks keterangan harga
+   ════════════════════════════════════════════════════════ */
 .order-price span,
 .order-price small {
     color: #888888;
     font-size: 10px;
 }
 
+
+/* H.10. Menonjolkan nominal harga kendaraan
+   ⤷ Mencegah nominal terpotong menjadi beberapa baris.
+   ════════════════════════════════════════════════════════ */
 .order-price strong {
     color: #f47721;
     font-size: 15px;
     white-space: nowrap;
 }
 
-/* FOOTER KARTU */
+
+
+/* ═════════════════════════════════════════════════════════════
+   I.   FOOTER DAN TOTAL PESANAN
+       ⤷ Mengatur rentang tanggal sewa, total biaya,
+         dan tombol untuk melihat detail pesanan.
+═════════════════════════════════════════════════════════════ */
+
+/* I.1. Mengatur susunan footer kartu pesanan
+   ⤷ Menggunakan grid untuk menempatkan tanggal,
+     total biaya, dan tombol detail.
+   ════════════════════════════════════════════════════════ */
 .order-card-footer {
     display: grid;
     grid-template-columns: 1fr auto;
@@ -307,6 +489,11 @@
     border-top: 1px solid #e7e1da;
 }
 
+
+/* I.2. Mengatur tampilan rentang tanggal penyewaan
+   ⤷ Menempatkan tanggal di kolom pertama dan
+     menyelaraskannya secara vertikal.
+   ════════════════════════════════════════════════════════ */
 .order-date-range {
     grid-column: 1;
     grid-row: 1 / 3;
@@ -317,7 +504,10 @@
     font-weight: 500;
 }
 
-/* TOTAL PESANAN */
+
+/* I.3. Mengatur susunan informasi total pesanan
+   ⤷ Menempatkan label dan nominal total secara sejajar.
+   ════════════════════════════════════════════════════════ */
 .order-total {
     grid-column: 2;
     grid-row: 1;
@@ -332,24 +522,36 @@
     white-space: nowrap;
 }
 
+
+/* I.4. Mengatur tampilan label total pesanan
+   ════════════════════════════════════════════════════════ */
 .order-total span {
     color: #f47721;
     font-size: 14px;
     font-weight: 600;
 }
 
+
+/* I.5. Mengatur tampilan nominal total pesanan
+   ════════════════════════════════════════════════════════ */
 .order-total strong {
     color: #f47721;
     font-size: 18px;
     font-weight: 700;
 }
 
+
+/* I.6. Mengatur teks tambahan pada footer kartu
+   ════════════════════════════════════════════════════════ */
 .order-card-footer > span {
     color: #888888;
     font-size: 10px;
 }
 
-/* TOMBOL LIHAT DETAIL */
+
+/* I.7. Mengatur tampilan tombol lihat detail pesanan
+   ⤷ Menempatkan tombol di kanan bawah footer kartu.
+   ════════════════════════════════════════════════════════ */
 .order-detail-button {
     grid-column: 2;
     grid-row: 2;
@@ -368,12 +570,25 @@
     transition: 0.2s ease;
 }
 
+
+/* I.8. Mengubah warna tombol detail ketika diarahkan kursor
+   ════════════════════════════════════════════════════════ */
 .order-detail-button:hover {
     border-color: #f47721;
     color: #f47721;
 }
 
-/* BELUM ADA PESANAN */
+
+
+/* ═════════════════════════════════════════════════════════════
+   J.   KONDISI DAFTAR PESANAN KOSONG
+       ⤷ Mengatur tampilan pemberitahuan ketika tidak ada
+         pesanan yang dapat ditampilkan.
+═════════════════════════════════════════════════════════════ */
+
+/* J.1. Mengatur tampilan wadah pemberitahuan pesanan kosong
+   ⤷ Memusatkan isi serta memberikan latar dan garis tepi.
+   ════════════════════════════════════════════════════════ */
 .empty-order {
     padding: 45px 20px;
     background: #ffffff;
@@ -382,24 +597,38 @@
     text-align: center;
 }
 
+
+/* J.2. Mengatur ikon pemberitahuan pesanan kosong
+   ════════════════════════════════════════════════════════ */
 .empty-order > i {
     margin-bottom: 12px;
     color: #f4a261;
     font-size: 38px;
 }
 
+
+/* J.3. Mengatur judul pemberitahuan pesanan kosong
+   ════════════════════════════════════════════════════════ */
 .empty-order h3 {
     margin-bottom: 8px;
     color: #444444;
     font-size: 16px;
 }
 
+
+/* J.4. Mengatur deskripsi pemberitahuan pesanan kosong
+   ════════════════════════════════════════════════════════ */
 .empty-order p {
     margin-bottom: 18px;
     color: #888888;
     font-size: 12px;
 }
 
+
+/* J.5. Mengatur tampilan tautan pada pemberitahuan pesanan kosong
+   ⤷ Tautan ditampilkan menyerupai tombol untuk kembali
+     menuju halaman yang relevan.
+   ════════════════════════════════════════════════════════ */
 .empty-order a {
     display: inline-block;
     padding: 9px 15px;
@@ -410,16 +639,35 @@
     font-size: 12px;
 }
 
+
+
+/* ═════════════════════════════════════════════════════════════
+   K.   PENGATURAN VISIBILITAS ELEMEN
+       ⤷ Menyembunyikan kartu atau pemberitahuan yang
+         ditandai dengan atribut hidden.
+═════════════════════════════════════════════════════════════ */
+
+/* K.1. Menyembunyikan kartu pesanan dan pemberitahuan hasil
+   ⤷ Aturan !important memastikan elemen hidden tidak
+     ditampilkan oleh aturan display lainnya.
+   ════════════════════════════════════════════════════════ */
 .order-card[hidden],
 #no-filter-results[hidden] {
     display: none !important;
 }
 
 
-/* =====================================================
-   RESPONSIVE
-===================================================== */
 
+/* ═════════════════════════════════════════════════════════════
+   L.   RESPONSIVE DESIGN
+       ⤷ Menyesuaikan tata letak halaman dan kartu pesanan
+         pada layar tablet serta ponsel.
+═════════════════════════════════════════════════════════════ */
+
+/* L.1. Menyesuaikan tata letak halaman pada layar maksimal 700px
+   ⤷ Mengubah layout menjadi satu kolom dan menyesuaikan
+     ukuran judul serta elemen form terkait.
+   ════════════════════════════════════════════════════════ */
 @media (max-width: 700px) {
     .account-page {
         padding: 20px 4%;
@@ -442,10 +690,7 @@
         grid-template-columns: 1fr;
         gap: 12px;
     }
-}
 
-/* LAYAR KECIL */
-@media (max-width: 700px) {
     .order-card-body {
         flex-wrap: wrap;
         gap: 12px;

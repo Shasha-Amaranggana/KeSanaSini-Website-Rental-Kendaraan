@@ -1,492 +1,629 @@
+<!-- ═════════════════════════════════════════════════════════════
+    HTML TAMPILAN HALAMAN DETAIL PESANAN WEBSITE KeSanaSini
+    ⤷ Menampilkan informasi penyewaan, timeline status pesanan,
+      rincian biaya, pembayaran, pembatalan, dan kontak admin.
+═════════════════════════════════════════════════════════════ -->
+
+
 {% extends "base.html" %}
 
+
+
+<!-- ═════════════════════════════════════════════════════════════
+    A.   INFORMASI HALAMAN
+═════════════════════════════════════════════════════════════ -->
 {% block title %}
 Detail Pesanan - KeSanaSini
 {% endblock %}
 
-{% block body_class %}orders-page{% endblock %}
 
-{% block css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/user/halDetailPesanan.css') }}">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- ═════════════════════════════════════════════════════════════
+    B.   KELAS BODY HALAMAN
+═════════════════════════════════════════════════════════════ -->
+{% block body_class %}
+orders-page
 {% endblock %}
 
 
-<!-- =================================================================================== -->
-<!-- KONTEN UTAMA DETAIL PESANAN -->
-<!-- =================================================================================== -->
+
+<!-- ═════════════════════════════════════════════════════════════
+    C.   CSS HALAMAN
+═════════════════════════════════════════════════════════════ -->
+{% block css %}
+
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     1.     CSS KHUSUS HALAMAN DETAIL PESANAN          -->
+    <!--            Mengatur tampilan informasi pesanan.      -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/user/halDetailPesanan.css') }}">
+
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     2.     FONT WEBSITE                               -->
+    <!--            Menyediakan font Inter dan Poppins.        -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+{% endblock %}
+
+
+
+<!-- ═════════════════════════════════════════════════════════════
+    D.   KONTEN UTAMA HALAMAN
+═════════════════════════════════════════════════════════════ -->
 {% block content %}
-<main class="account-page">
-    <div class="account-layout">
 
-        <!-- BAGIAN KIRI - AKSES SIDEBAR DI SIDEBAR HTML CSS -->
-        <!-- =================================================================================== -->
-        {% include 'user/sidebarKelola.html' %}
 
-        
-        <!-- BAGIAN KANAN - ISI UTAMA DETAIL PESANAN -->
-        <!-- =================================================================================== -->
-        <section class="account-content">
-            <h1>Detail Pesanan</h1>
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     1.     CSS KHUSUS HALAMAN DETAIL PESANAN          -->
+    <!--            Mengatur tampilan informasi pesanan.      -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <main class="account-page">
 
-            <a href="{{ url_for('main.kelola_pesanan') }}"
-               class="back-to-orders">
-                <i class="fa-solid fa-arrow-left"></i>
-                Kembali ke Daftar Pesanan
-            </a>
+        <div class="account-layout">
 
-            <article class="order-detail-combined">
 
-                <!-- HEADER -->
-                <!-- =================================================================================== -->
-                <div class="combined-header">
-                    <div class="combined-vehicle">
-                        <h2>{{ rental.vehicle.brand }} {{ rental.vehicle.model }}</h2>
-                        <span>NO. PESANAN: {{ rental.booking_code }}</span>
+            <!-- ════════════════════════════════════════════                -->
+            <!--     1.1.   SIDEBAR KELOLA AKUN                              -->
+            <!--            Menampilkan navigasi pengelolaan akun pelanggan. -->
+            <!-- ════════════════════════════════════════════                -->
+            {% include 'user/sidebarKelola.html' %}
+
+            
+            <!-- ════════════════════════════════════════════                       -->
+            <!--     1.2.   KONTEN DETAIL PESANAN                                   -->
+            <!--            Menampilkan informasi utama dari pesanan yang dipilih.  -->
+            <!-- ════════════════════════════════════════════                       -->
+            <section class="account-content">
+
+                <h1>Detail Pesanan</h1>
+
+                <!--     1.2.1. TOMBOL KEMBALI                  -->
+                <!-- ════════════════════════════════════════ -->
+                <a
+                    href="{{ url_for('main.kelola_pesanan') }}"
+                    class="back-to-orders">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Kembali ke Daftar Pesanan
+                </a>
+
+                <!--     1.2.2. KARTU DETAIL PESANAN            -->
+                <!-- ════════════════════════════════════════ -->
+                <article class="order-detail-combined">
+
+                    <!-- HEADER PESANAN (KENDARAAN, KODE, STATUS PESANAN) -->
+                    <div class="combined-header">
+                        <div class="combined-vehicle">
+                            <h2>
+                                {{ rental.vehicle.brand }} {{ rental.vehicle.model }}
+                            </h2>
+                            <span>
+                                NO. PESANAN: {{ rental.booking_code }}
+                            </span>
+                        </div>
+
+                        <span class="timeline-current-status">
+                            {{ rental.status }}
+                        </span>
                     </div>
 
-                    <span class="timeline-current-status">
-                        {{ rental.status }}
-                    </span>
-                </div>
+                    <!-- TIMELINE STATUS -->
+                    <div class="timeline-section">
 
-                <!-- TIMELINE STATUS -->
-                <!-- =================================================================================== -->
-                <div class="timeline-section">
-                    {% if rental.status == rental.STATUS_BATAL %}
-                        <div class="timeline-cancelled">
-                            <i class="fa-solid fa-circle-xmark"></i>
-                            <div>
-                                <div>Pesanan dibatalkan</div>
+                        <!-- PESANAN DIBATALKAN -->
+                        {% if rental.status == rental.STATUS_BATAL %}
+
+                            <div class="timeline-cancelled">
+                                <i class="fa-solid fa-circle-xmark"></i>
+                                Pesanan dibatalkan
                                 {% set waktu_batal = timeline_times.get('cancelled') %}
-                                {% if waktu_batal %}
-                                    <small class="timeline-cancelled-time">
-                                        {{ waktu_batal | tanggal_id }},
-                                        pukul {{ waktu_batal.strftime('%H:%M') }}
-                                    </small>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% if rental.cancellation_reason %}
-                        <div class="timeline-cancelled-reason">
-                            <strong><i class="fa-solid fa-comment-dots"></i> Alasan Pembatalan:</strong>
-                            <span>{{ rental.cancellation_reason }}</span>
-                        </div>
-                        {% endif %}
-                    {% else %}
-                        <div class="timeline-steps">
-
-                            {% set steps = [
-                                ('fa-file-lines', 'Pesanan Dibuat', 'created'),
-                                ('fa-wallet', 'Pembayaran', 'payment'),
-                                ('fa-car-side', 'Pengambilan', 'pickup'),
-                                ('fa-key', 'Sedang Disewa', 'in_use'),
-                                ('fa-circle-check', 'Selesai', 'completed')
-                            ] %}
-
-                            {% for icon, label, time_key in steps %}
-
-                                <div class="timeline-step
-                                    {% if loop.index0 < current_step %}completed
-                                    {% elif loop.index0 == current_step %}current
-                                    {% endif %}">
-
-                                    <div class="timeline-icon">
-                                        <i class="fa-solid {{ icon }}"></i>
-                                    </div>
-
-                                    <span>{{ label }}</span>
-
-                                    {% set waktu = timeline_times.get(time_key) %}
-
-                                    {% if waktu %}
-                                        <small>
-                                            {{ waktu | tanggal_id }}
-                                            <br>
-                                            Pukul {{ waktu.strftime('%H:%M') }}
+                                    {% if waktu_batal %}
+                                        <small class="timeline-cancelled-time">
+                                            {{ waktu_batal | tanggal_id }},
+                                            pukul {{ waktu_batal.strftime('%H:%M') }}
                                         </small>
                                     {% endif %}
+                            </div>
 
-                                </div>
+                        <!-- TIMELINE PESANAN -->
+                        {% else %}
+                            <div class="timeline-steps">
 
-                            {% endfor %}
+                                {% set steps = [
+                                    ('fa-file-lines', 'Pesanan Dibuat', 'created'),
+                                    ('fa-wallet', 'Pembayaran', 'payment'),
+                                    ('fa-car-side', 'Pengambilan', 'pickup'),
+                                    ('fa-key', 'Sedang Disewa', 'in_use'),
+                                    ('fa-circle-check', 'Selesai', 'completed')
+                                ] %}
 
-                        </div>
-                    {% endif %}
-                </div>
+                                {% for icon, label, time_key in steps %}
 
-                <div class="detail-section-divider"></div>
+                                    <!-- KARTU TAHAP TIMELINE PESANAN -->
+                                    <div
+                                        class="timeline-step
+                                        {% if loop.index0 < current_step %}completed
+                                        {% elif loop.index0 == current_step %}current
+                                        {% endif %}">
 
-                <!-- INFORMASI SEWA -->
-                <!-- =================================================================================== -->
-                <div class="order-detail-body">
+                                        <!-- IKON TIMELINE -->
+                                        <div class="timeline-icon">
+                                            <i class="fa-solid {{ icon }}"></i>
+                                        </div>
 
-                    <div class="order-detail-info">
-                        <p>
-                            <i class="fa-regular fa-calendar"></i>
-                            Mulai: {{ rental.start_date | tanggal_id }}, {{ rental.pickup_time }}
-                        </p>
+                                        <!-- NAMA TIMELINE -->
+                                        <span>{{ label }}</span>
 
-                        <p>
-                            <i class="fa-regular fa-calendar-check"></i>
-                            Pengembalian: {{ rental.end_date | tanggal_id }}, {{ rental.return_time }}
-                        </p>
+                                        <!-- WAKTU PERUBAHAN STATUS -->
+                                        {% set waktu = timeline_times.get(time_key) %}
 
-                        <p>
-                            <i class="fa-regular fa-clock"></i>
-                            Durasi: {{ rental.duration_days }} hari
-                        </p>
+                                        {% if waktu %}
+                                            <small>
+                                                {{ waktu | tanggal_id }}
+                                                <br>
+                                                Pukul {{ waktu.strftime('%H:%M') }}
+                                            </small>
+                                        {% endif %}
 
-                        <p>
-                            <i class="fa-solid fa-car-side"></i>
-                            {{ 'Dengan Sopir' if rental.with_driver else 'Lepas Kunci' }}
-                        </p>
+                                    </div>
 
-                        {% if rental.special_request %}
-                        <p>
-                            <i class="fa-solid fa-note-sticky"></i>
-                            Permintaan khusus: <em>"{{ rental.special_request }}"</em>
-                        </p>
+                                {% endfor %}
+
+                            </div>
+
                         {% endif %}
+
                     </div>
 
-                    <!-- RINCIAN BIAYA -->
-                    <!-- =================================================================================== -->
-                    <div class="order-detail-pricing">
-                        {% if rental.is_overdue %}
-                        <div style="margin-bottom:15px; padding:10px 14px; background:#FEE2E2; border-left:4px solid #DC2626; border-radius:6px; color:#991B1B; font-size:12px; line-height:1.5;">
-                            <strong><i class="fa-solid fa-triangle-exclamation"></i> Keterlambatan:</strong>
-                            Masa sewa telah melewati batas waktu pengembalian. Dikenakan denda keterlambatan berjalan sebesar <strong>Rp{{ "{:,.0f}".format(rental.active_fine).replace(",", ".") }}</strong> ({{ rental.late_days }} hari).
-                        </div>
-                        {% elif rental.is_due_soon %}
-                        <div style="margin-bottom:15px; padding:10px 14px; background:#FEF3C7; border-left:4px solid #D97706; border-radius:6px; color:#92400E; font-size:12px; line-height:1.5;">
-                            <strong><i class="fa-solid fa-clock"></i> Pengingat:</strong>
-                            Masa sewa tersisa <strong>{{ rental.remaining_label }}</strong>. Batas pengembalian: {{ rental.end_date | tanggal_id }}, {{ rental.return_time }}.
-                        </div>
-                        {% endif %}
+                    <!-- PEMISAH TIMELINE DAN INFORMASI PENYEWAAN -->
+                    <div class="detail-section-divider"></div>
 
-                        <h3>Rincian Biaya</h3>
+                    <!-- INFORMASI SEWA -->
+                   <div class="order-detail-body">
 
-                        <p>
-                            <span>Sewa kendaraan</span>
-                            <strong>
-                                Rp{{ "{:,.0f}".format(rental.vehicle_cost or 0).replace(",", ".") }}
-                            </strong>
-                        </p>
+                        <div class="order-detail-info">
 
-                        <p>
-                            <span>Biaya sopir</span>
-                            <strong>
-                                Rp{{ "{:,.0f}".format(rental.driver_cost or 0).replace(",", ".") }}
-                            </strong>
-                        </p>
+                            <!-- TANGGAL DAN WAKTU MULAI -->
+                            <p>
+                                <i class="fa-regular fa-calendar"></i>
+                                Mulai: {{ rental.start_date | tanggal_id }}, {{ rental.pickup_time }}
+                            </p>
 
-                        <p>
-                            <span>Aksesori</span>
-                            <strong>
-                                Rp{{ "{:,.0f}".format(rental.accessories_cost or 0).replace(",", ".") }}
-                            </strong>
-                        </p>
+                            <!-- TANGGAL DAN WAKTU PENGEMBALIAN -->
+                            <p>
+                                <i class="fa-regular fa-calendar-check"></i>
+                                Pengembalian: {{ rental.end_date | tanggal_id }}, {{ rental.return_time }}
+                            </p>
 
-                        <p>
-                            <span>Asuransi</span>
-                            <strong>
-                                Rp{{ "{:,.0f}".format(rental.insurance_cost or 0).replace(",", ".") }}
-                            </strong>
-                        </p>
+                            <!-- DURASI PENYEWAAN -->
+                            <p>
+                                <i class="fa-regular fa-clock"></i>
+                                Durasi: {{ rental.duration_days }} hari
+                            </p>
 
-                        {% if rental.has_fine %}
-                        <p style="color:#B91C1C; font-weight:600;">
-                            <span>Denda keterlambatan ({{ rental.late_days }} hari)</span>
-                            <strong>
-                                +Rp{{ "{:,.0f}".format(rental.active_fine).replace(",", ".") }}
-                            </strong>
-                        </p>
-
-                        <p class="detail-total" style="color:#B91C1C;">
-                            <span>Total tagihan akhir</span>
-                            <strong>
-                                Rp{{ "{:,.0f}".format(rental.final_total_price).replace(",", ".") }}
-                            </strong>
-                        </p>
-                        {% else %}
-                        <p class="detail-total">
-                            <span>Total pesanan</span>
-                            <strong>
-                                Rp{{ "{:,.0f}".format(rental.total_price or 0).replace(",", ".") }}
-                            </strong>
-                        </p>
-                        {% endif %}
-
-                        <h3>Informasi Pembayaran</h3>
-
-                        <p>
-                            <span>Status pembayaran</span>
-                            <strong>{{ rental.payment_status or 'Belum Lunas' }}</strong>
-                        </p>
-
-                        {% if rental.payment_status != 'Lunas'
-                        and rental.status == rental.STATUS_MENUNGGU_BAYAR %}
-
-                            <a href="{{ url_for('main.pembayaran', rental_id=rental.id) }}"
-                            class="btn-pembayaran">
-                                <i class="fa-solid fa-wallet"></i>
-                                Lakukan Pembayaran
-                            </a>
-
-                        {% endif %}
-
-                        <!-- =====================================================
-                            TOMBOL BATALKAN PESANAN
-                        ===================================================== -->
-                        {% if rental.status in [
-                            rental.STATUS_MENUNGGU_BAYAR,
-                            rental.STATUS_MENUNGGU_KONFIRMASI,
-                            rental.STATUS_PENGAMBILAN
-                        ] %}
-
-                        <div class="cancel-order-form">
-
-                            {% if rental.status != rental.STATUS_MENUNGGU_BAYAR %}
-                                <p class="cancel-order-note">
-                                    Jika pembayaran sudah dilakukan, hubungi admin
-                                    untuk mengurus pengembalian dana.
-                                </p>
-                            {% endif %}
-
-                            <button
-                                type="button"
-                                class="btn-batalkan-pesanan"
-                                onclick="bukaModalPembatalan()"
-                            >
-                                <i class="fa-solid fa-circle-xmark"></i>
-                                Batalkan Pesanan
-                            </button>
+                            <!-- JENIS LAYANAN PENYEWAAN -->
+                            <p>
+                                <i class="fa-solid fa-car-side"></i>
+                                {{ 'Dengan Sopir' if rental.with_driver else 'Lepas Kunci' }}
+                            </p>
 
                         </div>
 
-                        <!-- MODAL KONFIRMASI PEMBATALAN -->
-                        <div
-                            class="cancel-modal-overlay"
-                            id="cancelConfirmModal"
-                            aria-hidden="true"
-                        >
-                            <div
-                                class="cancel-modal"
-                                role="dialog"
-                                aria-modal="true"
-                                aria-labelledby="cancelConfirmTitle"
-                            >
-                                <div class="cancel-modal-icon">
-                                    <i class="fa-solid fa-circle-exclamation"></i>
+                        <!-- RINCIAN BIAYA -->
+                        <div class="order-detail-pricing">
+
+                            <!-- PERINGATAN SEWA -->
+                            {% if rental.is_overdue %}
+
+                                 <!-- PERINGATAN KETERLAMBATAN -->
+                                <div
+                                    style=
+                                    "margin-bottom:15px; padding:10px 14px;
+                                    background:#FEE2E2; border-left:4px solid #DC2626;
+                                    border-radius:6px; color:#991B1B;
+                                    font-size:12px; line-height:1.5;">
+                                    <strong>
+                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                        Keterlambatan:
+                                    </strong>
+                                    Masa sewa telah melewati batas waktu pengembalian. Dikenakan denda keterlambatan berjalan sebesar
+                                    <strong>
+                                        Rp{{ "{:,.0f}".format(rental.active_fine).replace(",", ".") }}
+                                    </strong>
+                                    ({{ rental.late_days }} hari).
                                 </div>
 
-                                <h2 id="cancelConfirmTitle">Konfirmasi Pembatalan</h2>
+                            {% elif rental.is_due_soon %}
+                                
+                                <!-- PENGINGAT BATAS PENGEMBALIAN -->
+                                <div
+                                    style=
+                                    "margin-bottom:15px; padding:10px 14px;
+                                    background:#FEF3C7; border-left:4px solid #D97706;
+                                    border-radius:6px; color:#92400E;
+                                    font-size:12px; line-height:1.5;">
+                                    <strong>
+                                        <i class="fa-solid fa-clock"></i>
+                                        Pengingat:
+                                    </strong>
+                                    Masa sewa tersisa
+                                    <strong>   
+                                        {{ rental.remaining_label }}
+                                    </strong>
+                                    . Batas pengembalian: {{ rental.end_date | tanggal_id }}, {{ rental.return_time }}.
+                                </div>
 
-                                <p>
-                                    Apakah kamu yakin ingin membatalkan pesanan ini?
+                            {% endif %}
+
+                            <!-- BIAYA PENYEWAAN -->
+                            <h3>Rincian Biaya</h3>
+
+                            <!-- BIAYA SEWA KENDARAAN -->
+                            <p>
+                                <span>Sewa kendaraan</span>
+                                <strong>
+                                    Rp{{ "{:,.0f}".format(rental.vehicle_cost or 0).replace(",", ".") }}
+                                </strong>
+                            </p>
+
+                            <!-- BIAYA SEWA SOPIR -->
+                            <p>
+                                <span>Biaya sopir</span>
+                                <strong>
+                                    Rp{{ "{:,.0f}".format(rental.driver_cost or 0).replace(",", ".") }}
+                                </strong>
+                            </p>
+
+                            <!-- BIAYA AKSESORI -->
+                            <p>
+                                <span>Aksesori</span>
+                                <strong>
+                                    Rp{{ "{:,.0f}".format(rental.accessories_cost or 0).replace(",", ".") }}
+                                </strong>
+                            </p>
+
+                            <!-- BIAYA ASURANSI -->
+                            <p>
+                                <span>Asuransi</span>
+                                <strong>
+                                    Rp{{ "{:,.0f}".format(rental.insurance_cost or 0).replace(",", ".") }}
+                                </strong>
+                            </p>
+
+                            <!-- TOTAL TAGIHAN -->
+                            {% if rental.has_fine %}
+
+                                <!-- TOTAL DENGAN DENDA -->
+                                <p style="color:#B91C1C; font-weight:600;">
+                                    <span>
+                                        Denda keterlambatan ({{ rental.late_days }} hari)
+                                    </span>
+                                    <strong>
+                                        +Rp{{ "{:,.0f}".format(rental.active_fine).replace(",", ".") }}
+                                    </strong>
                                 </p>
 
-                                {% if rental.payment_status == 'Lunas' %}
-                                    <p class="cancel-modal-warning">
-                                        Pengembalian dana harus dikoordinasikan
-                                        dengan admin.
+                                <p class="detail-total" style="color:#B91C1C;">
+                                    <span>
+                                        Total tagihan akhir
+                                    </span>
+                                    <strong>
+                                        Rp{{ "{:,.0f}".format(rental.final_total_price).replace(",", ".") }}
+                                    </strong>
+                                </p>
+
+                            {% else %}
+
+                                <!-- TOTAL TANPA DENDA -->
+                                <p class="detail-total">
+                                    <span>Total pesanan</span>
+                                    <strong>
+                                        Rp{{ "{:,.0f}".format(rental.total_price or 0).replace(",", ".") }}
+                                    </strong>
+                                </p>
+
+                            {% endif %}
+
+                            <!-- INFORMASI PEMBAYARAN -->
+                            <h3>Informasi Pembayaran</h3>
+
+                            <p>
+                                <span>Status pembayaran</span>
+                                <strong>
+                                    {{ rental.payment_status or 'Belum Lunas' }}
+                                </strong>
+                            </p>
+
+                            <!-- TOMBOL PEMBAYARAN -->
+                            {% if rental.payment_status != 'Lunas'
+                            and rental.status == rental.STATUS_MENUNGGU_BAYAR %}
+
+                                <a
+                                    href="{{ url_for('main.pembayaran', rental_id=rental.id) }}"
+                                    class="btn-pembayaran">
+                                    <i class="fa-solid fa-wallet"></i>
+                                    Lakukan Pembayaran
+                                </a>
+
+                            {% endif %}
+
+                            <!-- TOMBOL BATALKAN PESANAN -->
+                            {% if rental.status in [
+                                rental.STATUS_MENUNGGU_BAYAR,
+                                rental.STATUS_MENUNGGU_KONFIRMASI,
+                                rental.STATUS_PENGAMBILAN
+                            ] %}
+
+                            <div class="cancel-order-form">
+
+                                <!-- INFORMASI PEMBATALAN SETELAH PEMBAYARAN -->
+                                {% if rental.status != rental.STATUS_MENUNGGU_BAYAR %}
+                                    <p class="cancel-order-note">
+                                        Jika pembayaran sudah dilakukan, hubungi admin
+                                        untuk mengurus pengembalian dana.
                                     </p>
                                 {% endif %}
 
-                                <div class="cancel-modal-actions">
-                                    <button
-                                        type="button"
-                                        class="cancel-modal-btn cancel-modal-back"
-                                        onclick="tutupModalPembatalan()"
-                                    >
-                                        Kembali
-                                    </button>
+                                <!-- TOMBOL MEMBUKA MODAL PEMBATALAN -->
+                                <button
+                                    type="button"
+                                    class="btn-batalkan-pesanan"
+                                    onclick="bukaModalPembatalan()">
+                                    <i class="fa-solid fa-circle-xmark"></i>
+                                    Batalkan Pesanan
+                                </button>
 
-                                    <button
-                                        type="button"
-                                        class="cancel-modal-btn cancel-modal-continue"
-                                        onclick="bukaAlasanPembatalan()"
-                                    >
-                                        Lanjutkan
-                                    </button>
-                                </div>
                             </div>
-                        </div>
 
-                        <!-- MODAL ALASAN PEMBATALAN -->
-                        <div
-                            class="cancel-modal-overlay"
-                            id="cancelReasonModal"
-                            aria-hidden="true"
-                        >
+                            <!-- BENTUK KONFIRMASI PEMBATALAN -->
                             <div
-                                class="cancel-modal cancel-reason-modal"
-                                role="dialog"
-                                aria-modal="true"
-                                aria-labelledby="cancelReasonTitle"
-                            >
-                                <div class="cancel-modal-icon">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </div>
+                                class="cancel-modal-overlay"
+                                id="cancelConfirmModal"
+                                aria-hidden="true">
 
-                                <h2 id="cancelReasonTitle">Alasan Pembatalan</h2>
+                                <div
+                                    class="cancel-modal"
+                                    role="dialog"
+                                    aria-modal="true"
+                                    aria-labelledby="cancelConfirmTitle">
+                                
+                                    <!-- IKON KONFIRMASI -->
+                                    <div class="cancel-modal-icon">
+                                        <i class="fa-solid fa-circle-exclamation"></i>
+                                    </div>
 
-                                <p>
-                                    Beri tahu kami alasan kamu membatalkan pesanan ini.
-                                </p>
+                                    <h2 id="cancelConfirmTitle">
+                                        Konfirmasi Pembatalan
+                                    </h2>
 
-                                <form
-                                    method="POST"
-                                    action="{{ url_for(
-                                        'main.batalkan_pesanan_user',
-                                        rental_id=rental.id
-                                    ) }}"
-                                    id="cancelReasonForm"
-                                >
-                                    <label for="cancellation_reason">
-                                        Alasan pembatalan
-                                    </label>
+                                    <p>
+                                        Apakah kamu yakin ingin membatalkan pesanan ini?
+                                    </p>
 
-                                    <textarea
-                                        id="cancellation_reason"
-                                        name="cancellation_reason"
-                                        rows="4"
-                                        maxlength="500"
-                                        placeholder="Contoh: Ada keperluan mendadak..."
-                                        required
-                                    ></textarea>
+                                    <!-- PERINGATAN PENGEMBALIAN DANA -->
+                                    {% if rental.payment_status == 'Lunas' %}
+                                        <p class="cancel-modal-warning">
+                                            Pengembalian dana harus dikoordinasikan
+                                            dengan admin.
+                                        </p>
+                                    {% endif %}
 
-                                    <small class="cancel-reason-hint">
-                                        Maksimal 500 karakter.
-                                    </small>
-
+                                    <!-- TOMBOL AKSI KONFIRMASI -->
                                     <div class="cancel-modal-actions">
                                         <button
                                             type="button"
                                             class="cancel-modal-btn cancel-modal-back"
-                                            onclick="kembaliKeKonfirmasi()"
-                                        >
+                                            onclick="tutupModalPembatalan()">
                                             Kembali
                                         </button>
 
                                         <button
-                                            type="submit"
-                                            class="cancel-modal-btn cancel-modal-submit"
-                                        >
-                                            Kirim Pembatalan
+                                            type="button"
+                                            class="cancel-modal-btn cancel-modal-continue"
+                                            onclick="bukaAlasanPembatalan()">
+                                            Lanjutkan
                                         </button>
                                     </div>
-                                </form>
+
+                                </div>
+
                             </div>
+
+                            <!-- BENTUK ALASAN PEMBATALAN -->
+                            <div
+                                class="cancel-modal-overlay"
+                                id="cancelReasonModal"
+                                aria-hidden="true">
+
+                                <div
+                                    class="cancel-modal cancel-reason-modal"
+                                    role="dialog"
+                                    aria-modal="true"
+                                    aria-labelledby="cancelReasonTitle">
+
+                                    <!-- IKON ALASAN PEMBATALAN -->
+                                    <div class="cancel-modal-icon">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </div>
+
+                                    <h2 id="cancelReasonTitle">
+                                        Alasan Pembatalan
+                                    </h2>
+
+                                    <p>
+                                        Beri tahu kami alasan kamu membatalkan pesanan ini.
+                                    </p>
+
+                                    <!-- FORMULIR ALASAN PEMBATALAN -->
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for('main.batalkan_pesanan_user', rental_id=rental.id ) }}"
+                                        id="cancelReasonForm">
+
+                                        <label for="cancellation_reason">
+                                            Alasan pembatalan
+                                        </label>
+
+                                        <textarea
+                                            id="cancellation_reason"
+                                            name="cancellation_reason"
+                                            rows="4"
+                                            maxlength="500"
+                                            placeholder="Contoh: Ada keperluan mendadak..."
+                                            required
+                                        ></textarea>
+
+                                        <small class="cancel-reason-hint">
+                                            Maksimal 500 karakter.
+                                        </small>
+
+                                        <!-- TOMBOL AKSI FORMULIR -->
+                                        <div class="cancel-modal-actions">
+                                            <button
+                                                type="button"
+                                                class="cancel-modal-btn cancel-modal-back"
+                                                onclick="kembaliKeKonfirmasi()">
+                                                Kembali
+                                            </button>
+
+                                            <button
+                                                type="submit"
+                                                class="cancel-modal-btn cancel-modal-submit">
+                                                Kirim Pembatalan
+                                            </button>
+                                        </div>
+
+                                    </form>
+
+                                </div>
+
+                            </div>
+
                         </div>
-                        {% endif %}
 
                     </div>
 
-                </div>
+                    <!-- HUBUNGI ADMIN JIKA ADA PERTANYAAN -->
+                    <div class="order-admin-contact-wrapper">
 
-
-                <!-- =====================================================
-                    HUBUNGI ADMIN
-                ===================================================== -->
-                <div class="order-admin-contact-wrapper">
-
-                    {% set pesan_admin =
-                        'Halo Admin KeSanaSini, saya ingin bertanya mengenai pesanan '
-                        ~ rental.booking_code
-                        ~ ' untuk kendaraan '
-                        ~ rental.vehicle.brand
-                        ~ ' '
-                        ~ rental.vehicle.model
-                        ~ '. Status pesanan: '
-                        ~ rental.status
-                        ~ '. Status pembayaran: '
-                        ~ (rental.payment_status or 'Belum Lunas')
-                        ~ '.'
-                    %}
-
-                    {% if rental.status == rental.STATUS_BATAL
-                    and rental.payment_status == 'Lunas' %}
-                        {% set pesan_admin = pesan_admin
-                            ~ ' Saya ingin menanyakan proses pengembalian dana.'
+                        <!-- MENYUSUN PESAN OTOMATIS UNTUK ADMIN -->
+                        {% set pesan_admin =
+                            'Halo Admin KeSanaSini, saya ingin bertanya mengenai pesanan '
+                            ~ rental.booking_code
+                            ~ ' untuk kendaraan '
+                            ~ rental.vehicle.brand
+                            ~ ' '
+                            ~ rental.vehicle.model
+                            ~ '. Status pesanan: '
+                            ~ rental.status
+                            ~ '. Status pembayaran: '
+                            ~ (rental.payment_status or 'Belum Lunas')
+                            ~ '.'
                         %}
-                    {% endif %}
 
-                    <a
-                        class="order-admin-contact"
-                        href="https://wa.me/6281234567890?text={{ pesan_admin|urlencode }}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <i class="fa-brands fa-whatsapp"></i>
+                        <!-- TAMBAHAN PESAN UNTUK PESANAN BATAL DAN SUDAH LUNAS -->
+                        {% if rental.status == rental.STATUS_BATAL
+                        and rental.payment_status == 'Lunas' %}
+                            {% set pesan_admin = pesan_admin
+                                ~ ' Saya ingin menanyakan proses pengembalian dana.'
+                            %}
+                        {% endif %}
 
-                        <div class="order-admin-contact-info">
-                            <b>
-                                {% if rental.status == rental.STATUS_BATAL
-                                and rental.payment_status == 'Lunas' %}
-                                    Pengembalian Dana
-                                {% else %}
-                                    Ada Pertanyaan?
-                                {% endif %}
-                            </b>
+                        <!-- TAUTAN KONTAK WHATSAPP ADMIN -->
+                        <a
+                            class="order-admin-contact"
+                            href="https://wa.me/6281234567890?text={{ pesan_admin|urlencode }}"
+                            target="_blank"
+                            rel="noopener noreferrer">
 
-                            <span>
-                                {% if rental.status == rental.STATUS_BATAL
-                                and rental.payment_status == 'Lunas' %}
-                                    Hubungi admin untuk menanyakan pengembalian dana.
-                                {% else %}
-                                    Hubungi admin terkait pesanan ini.
-                                {% endif %}
-                            </span>
-                        </div>
-                    </a>
+                            <i class="fa-brands fa-whatsapp"></i>
 
-                </div>
+                            <div class="order-admin-contact-info">
+                                <b>
+                                    {% if rental.status == rental.STATUS_BATAL
+                                    and rental.payment_status == 'Lunas' %}
+                                        Pengembalian Dana
+                                    {% else %}
+                                        Ada Pertanyaan?
+                                    {% endif %}
+                                </b>
+
+                                <span>
+                                    {% if rental.status == rental.STATUS_BATAL
+                                    and rental.payment_status == 'Lunas' %}
+                                        Hubungi admin untuk menanyakan pengembalian dana.
+                                    {% else %}
+                                        Hubungi admin terkait pesanan ini.
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                        </a>
+
+                    </div>
+
+                </article>
+
+            </section>
+
+        </div>
+
+    </main>
 
 
-            </article>
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     2.     JAVASCRIPT MODAL PEMBATALAN                -->
+    <!--            Mengatur konfirmasi, alasan, dan          -->
+    <!--            interaksi modal pembatalan pesanan.       -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <script>
 
-        </section>
-    </div>
-</main>
+        // Membuka modal konfirmasi pembatalan.
+        function bukaModalPembatalan() {
+            document.getElementById('cancelConfirmModal').classList.add('active');
+            document.getElementById('cancelConfirmModal').setAttribute('aria-hidden', 'false');
+        }
 
-<script>
+        // Menutup modal konfirmasi pembatalan.
+        function tutupModalPembatalan() {
+            document.getElementById('cancelConfirmModal').classList.remove('active');
+            document.getElementById('cancelConfirmModal').setAttribute('aria-hidden', 'true');
+        }
 
-    function bukaModalPembatalan() {
-        document.getElementById('cancelConfirmModal').classList.add('active');
-        document.getElementById('cancelConfirmModal').setAttribute('aria-hidden', 'false');
-    }
+        // Membuka modal untuk mengisi alasan pembatalan.
+        function bukaAlasanPembatalan() {
+            tutupModalPembatalan();
 
-    function tutupModalPembatalan() {
-        document.getElementById('cancelConfirmModal').classList.remove('active');
-        document.getElementById('cancelConfirmModal').setAttribute('aria-hidden', 'true');
-    }
+            document.getElementById('cancelReasonModal').classList.add('active');
+            document.getElementById('cancelReasonModal').setAttribute('aria-hidden', 'false');
 
-    function bukaAlasanPembatalan() {
-        tutupModalPembatalan();
+            document.getElementById('cancellation_reason').focus();
+        }
 
-        document.getElementById('cancelReasonModal').classList.add('active');
-        document.getElementById('cancelReasonModal').setAttribute('aria-hidden', 'false');
+        // Menutup modal alasan dan kembali ke konfirmasi.
+        function kembaliKeKonfirmasi() {
+            document.getElementById('cancelReasonModal').classList.remove('active');
+            document.getElementById('cancelReasonModal').setAttribute('aria-hidden', 'true');
 
-        document.getElementById('cancellation_reason').focus();
-    }
+            bukaModalPembatalan();
+        }
 
-    function kembaliKeKonfirmasi() {
-        document.getElementById('cancelReasonModal').classList.remove('active');
-        document.getElementById('cancelReasonModal').setAttribute('aria-hidden', 'true');
-
-        bukaModalPembatalan();
-    }
-
-    // Tutup modal jika pengguna mengeklik area gelap di luarnya.
-    document.querySelectorAll('.cancel-modal-overlay').forEach(function (overlay) {
-        overlay.addEventListener('click', function (event) {
-            if (event.target === overlay) {
-                overlay.classList.remove('active');
-                overlay.setAttribute('aria-hidden', 'true');
-            }
+        // Menutup modal ketika area gelap di luar modal diklik.        document.querySelectorAll('.cancel-modal-overlay').forEach(function (overlay) {
+        document.querySelectorAll('.cancel-modal-overlay').forEach(function (overlay) {
+            overlay.addEventListener('click', function (event) {
+                if (event.target === overlay) {
+                    overlay.classList.remove('active');
+                    overlay.setAttribute('aria-hidden', 'true');
+                }
+            });
         });
-    });
-</script>
+
+    </script>
+    
 {% endblock %}
