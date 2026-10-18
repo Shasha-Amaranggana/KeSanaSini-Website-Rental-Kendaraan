@@ -1,5 +1,17 @@
 {% extends 'admin/base_admin.html' %}
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--     HALAMAN  : TAMBAH KENDARAAN BARU (PANEL ADMIN)              -->
+<!--     Fungsi   : Form input unit kendaraan baru beserta foto      -->
+<!--                dan status aktif.                                -->
+<!--     Layout   : Mewarisi admin/base_admin.html                   -->
+<!--     Endpoint : main.tambah_kendaraan                            -->
+<!--                (GET = tampilkan form, POST = simpan data)       -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
 
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--     1.     PENGATURAN HEAD HALAMAN                              -->
+<!--            Judul tab browser, stylesheet halaman, dan font.     -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
 {% block title %}Tambah Kendaraan Baru{% endblock %}
 
 {% block css %}
@@ -7,112 +19,364 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 {% endblock %}
 
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--     KONTEN UTAMA                                                -->
+<!--     Berisi header, notifikasi error, form, dan skrip halaman.   -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
 {% block content %}
-<section class="form-panel">
-    <h2 style="margin-bottom: 10px;">Tambah Kendaraan Baru</h2>
-    <form action="{{ url_for('main.tambah_kendaraan') }}" method="POST" enctype="multipart/form-data">
-        <div class="form-grid-2">
-            
-            <!-- KOLOM KIRI -->
-            <div>
-                <label class="photo-upload-box">
-                    <i class="fa-solid fa-arrow-up-from-bracket"></i>
-                    <p style="margin-bottom: 10px; color: #555;">Foto Kendaraan, Klik untuk unggah</p>
-                    <span style="background: #F07F2A; color: white; padding: 6px 15px; border-radius: 4px; display: inline-block;">Unggah Foto</span>
-                    <input type="file" name="photo" accept="image/*" style="display: none;" required>
-                </label>
+<!-- Data isian sebelumnya (jika validasi server gagal) ditampung di variabel f agar input tidak kosong lagi. Default: kosong. -->
+{% set f = form or {} %}
+<div class="vf-page">
 
-                <div class="form-group-horizontal">
-                    <label>Merek</label>
-                    <input type="text" name="merek" class="form-control" placeholder="Contoh: Toyota" required>
-                </div>
-                <div class="form-group-horizontal">
-                    <label>Tipe</label>
-                    <input type="text" name="tipe" class="form-control" placeholder="Contoh: Rush" required>
-                </div>
-                <div class="form-group-horizontal">
-                    <label>Tahun</label>
-                    <input type="number" name="tahun" class="form-control" placeholder="Contoh: 2024" required>
-                </div>
-                <div class="form-group-horizontal">
-                    <label>Warna</label>
-                    <input type="text" name="warna" class="form-control" placeholder="Contoh: Putih">
-                </div>
-                <div class="form-group-horizontal">
-                    <label>Plat Nomor</label>
-                    <input type="text" name="plat_nomor" class="form-control" placeholder="Contoh: KT 1234 AB" required>
-                </div>
-                <div class="form-group-horizontal">
-                    <label>CC Mesin</label>
-                    <input type="number" name="cc_mesin" class="form-control" placeholder="Contoh: 3000" required>
-                </div>
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!--     2.     HEADER HALAMAN                                       -->
+    <!--            Breadcrumb navigasi, judul, dan deskripsi singkat.   -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <header class="vf-head">
+        <nav class="vf-crumb"><a href="{{ url_for('main.admin_kendaraan') }}">Kendaraan</a> / Tambah</nav>
+        <h1 class="vf-title">Tambah Kendaraan Baru</h1>
+        <p class="vf-sub">Isi data unit selengkap mungkin agar mudah dikenali dan disewakan.</p>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!--     3.     PESAN KESALAHAN                                      -->
+    <!--            Tampil hanya jika server mengirim variabel error.    -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    {% if error %}
+    <div class="vf-alert" role="alert">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span>{{ error }}</span>
+    </div>
+    {% endif %}
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!--     4.     FORM TAMBAH KENDARAAN                                -->
+    <!--            Dikirim via POST dengan multipart/form-data agar     -->
+    <!--            file foto bisa ikut diunggah.                        -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <form action="{{ url_for('main.tambah_kendaraan') }}" method="POST" enctype="multipart/form-data" id="vehicleForm">
+        <!-- Layout dua kolom: vf-main (data kendaraan) dan vf-side (foto & status). -->
+        <div class="vf-layout">
+            <!-- 4.1. KOLOM KIRI : DATA KENDARAAN                                -->
+            <!-- ═══════════════════════════════════════════════════════════════ -->
+            <div class="vf-main">
+                <!-- 4.1.1. IDENTITAS KENDARAAN                                     -->
+                <!-- ─────────────────────────────────────────────────────────────  -->
+                <!-- Merek, tipe, tahun, warna, kategori, dan plat nomor.           -->
+                <!-- Kolom bertanda * bersifat wajib (atribut required).            -->
+                <section class="vf-card">
+                    <h2 class="vf-card-title"><i class="fa-solid fa-car"></i> Identitas Kendaraan</h2>
+                    <!-- Grid penataan field. Field dengan kelas vf-span-2 melebar penuh. Atribut value mengisi ulang data lama dari f. -->
+                    <div class="vf-grid">
+                        <div class="vf-field">
+                            <label class="vf-label" for="merek">Merek <span class="vf-req">*</span></label>
+                            <input class="vf-input" type="text" id="merek" name="merek" maxlength="50"
+                                placeholder="Contoh: Toyota" value="{{ f.get('merek', '') }}" required>
+                        </div>
+                        <div class="vf-field">
+                            <label class="vf-label" for="tipe">Tipe <span class="vf-req">*</span></label>
+                            <input class="vf-input" type="text" id="tipe" name="tipe" maxlength="100"
+                                placeholder="Contoh: Rush" value="{{ f.get('tipe', '') }}" required>
+                        </div>
+                        <div class="vf-field">
+                            <label class="vf-label" for="tahun">Tahun <span class="vf-req">*</span></label>
+                            <input class="vf-input" type="number" id="tahun" name="tahun" min="1980" max="2100"
+                                placeholder="Contoh: 2024" value="{{ f.get('tahun', '') }}" required>
+                        </div>
+                        <div class="vf-field">
+                            <label class="vf-label" for="warna">Warna</label>
+                            <input class="vf-input" type="text" id="warna" name="warna" maxlength="30"
+                                placeholder="Contoh: Putih" value="{{ f.get('warna', '') }}">
+                        </div>
+                        <!-- Dropdown kategori. Opsi pertama berstatus disabled sebagai placeholder dan terpilih otomatis bila belum ada nilai. -->
+                        <div class="vf-field">
+                            <label class="vf-label" for="kategori">Kategori <span class="vf-req">*</span></label>
+                            <select class="vf-input" id="kategori" name="kategori" required>
+                                <option value="" disabled {{ 'selected' if not f.get('kategori') }}>Pilih kategori
+                                </option>
+                                {% for o in ['SUV', 'MPV', 'Sedan', 'Motor'] %}
+                                <option value="{{ o }}" {{ 'selected' if f.get('kategori')==o }}>{{ o }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- Plat nomor (maks. 20 karakter). Kelas vf-plate memberi gaya khusus tampilan plat. -->
+                        <div class="vf-field">
+                            <label class="vf-label" for="plat_nomor">Plat Nomor <span class="vf-req">*</span></label>
+                            <input class="vf-input vf-plate" type="text" id="plat_nomor" name="plat_nomor"
+                                maxlength="20" placeholder="Contoh: KT 1234 AB" value="{{ f.get('plat_nomor', '') }}"
+                                required>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4.1.2. SPESIFIKASI TEKNIS                                      -->
+                <!-- ─────────────────────────────────────────────────────────────  -->
+                <!-- Transmisi, bahan bakar, CC mesin, no. mesin, no. rangka.       -->
+                <!-- Semua opsional; pilihan dropdown dibuat dari daftar tetap.     -->
+                <section class="vf-card">
+                    <h2 class="vf-card-title"><i class="fa-solid fa-gears"></i> Spesifikasi Teknis</h2>
+                    <div class="vf-grid">
+                        <div class="vf-field">
+                            <label class="vf-label" for="transmisi">Transmisi</label>
+                            <select class="vf-input" id="transmisi" name="transmisi">
+                                {% for o in ['Otomatis', 'Manual'] %}
+                                <option value="{{ o }}" {{ 'selected' if f.get('transmisi')==o }}>{{ o }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="vf-field">
+                            <label class="vf-label" for="bahan_bakar">Bahan Bakar</label>
+                            <select class="vf-input" id="bahan_bakar" name="bahan_bakar">
+                                {% for o in ['Bensin', 'Solar', 'Listrik'] %}
+                                <option value="{{ o }}" {{ 'selected' if f.get('bahan_bakar')==o }}>{{ o }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- CC mesin dalam satuan cc. Dikosongkan untuk kendaraan listrik. -->
+                        <div class="vf-field">
+                            <label class="vf-label" for="cc_mesin">CC Mesin</label>
+                            <div class="vf-group">
+                                <input class="vf-input" type="number" id="cc_mesin" name="cc_mesin" min="0"
+                                    placeholder="Contoh: 1500" value="{{ f.get('cc_mesin', '') }}">
+                                <span class="vf-addon">cc</span>
+                            </div>
+                            <p class="vf-hint">Kosongkan untuk kendaraan listrik.</p>
+                        </div>
+                        <div class="vf-field">
+                            <label class="vf-label" for="no_mesin">No. Mesin</label>
+                            <input class="vf-input" type="text" id="no_mesin" name="no_mesin" maxlength="50"
+                                placeholder="Opsional" value="{{ f.get('no_mesin', '') }}">
+                        </div>
+                        <!-- No. mesin & no. rangka bersifat opsional, tetapi harus unik jika diisi (keunikan diverifikasi di sisi server). -->
+                        <div class="vf-field vf-span-2">
+                            <label class="vf-label" for="no_rangka">No. Rangka</label>
+                            <input class="vf-input" type="text" id="no_rangka" name="no_rangka" maxlength="50"
+                                placeholder="Opsional" value="{{ f.get('no_rangka', '') }}">
+                            <p class="vf-hint">No. rangka dan no. mesin harus unik jika diisi.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4.1.3. TARIF & KAPASITAS                                       -->
+                <!-- ─────────────────────────────────────────────────────────────  -->
+                <!-- Harga sewa per hari, jenis penyewaan, jumlah penumpang,        -->
+                <!-- dan kapasitas bagasi.                                          -->
+                <section class="vf-card">
+                    <h2 class="vf-card-title"><i class="fa-solid fa-tag"></i> Tarif &amp; Kapasitas</h2>
+                    <div class="vf-grid">
+                        <!-- Harga diisi angka murni tanpa titik (minimal 1). Teks bantuan priceHint diperbarui JavaScript menjadi format Rupiah. -->
+                        <div class="vf-field">
+                            <label class="vf-label" for="harga_sewa">Harga Sewa <span class="vf-req">*</span></label>
+                            <div class="vf-group">
+                                <span class="vf-addon">Rp</span>
+                                <input class="vf-input" type="number" id="harga_sewa" name="harga_sewa" min="1"
+                                    placeholder="500000" value="{{ f.get('harga_sewa', '') }}" required>
+                                <span class="vf-addon">/ hari</span>
+                            </div>
+                            <p class="vf-hint" id="priceHint">Dalam Rupiah, tanpa titik.</p>
+                        </div>
+                        <!-- Menentukan apakah unit disewakan dengan sopir, tanpa sopir, atau keduanya. -->
+                        <div class="vf-field">
+                            <label class="vf-label" for="jenis_penyewaan">Jenis Penyewaan</label>
+                            <select class="vf-input" id="jenis_penyewaan" name="jenis_penyewaan">
+                                {% for o in ['Sopir & Tanpa Sopir', 'Tanpa Sopir', 'Dengan Sopir'] %}
+                                <option value="{{ o }}" {{ 'selected' if f.get('jenis_penyewaan')==o }}>{{ o }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="vf-field">
+                            <label class="vf-label" for="jumlah_penumpang">Jumlah Penumpang <span
+                                    class="vf-req">*</span></label>
+                            <div class="vf-group">
+                                <input class="vf-input" type="number" id="jumlah_penumpang" name="jumlah_penumpang"
+                                    min="1" max="60" placeholder="Contoh: 7" value="{{ f.get('jumlah_penumpang', '') }}"
+                                    required>
+                                <span class="vf-addon">orang</span>
+                            </div>
+                        </div>
+                        <div class="vf-field">
+                            <label class="vf-label" for="jumlah_bagasi">Kapasitas Bagasi</label>
+                            <div class="vf-group">
+                                <input class="vf-input" type="number" id="jumlah_bagasi" name="jumlah_bagasi" min="0"
+                                    placeholder="Contoh: 2" value="{{ f.get('jumlah_bagasi', '') }}">
+                                <span class="vf-addon">koper</span>
+                            </div>
+                            <p class="vf-hint">Kosong dianggap 0.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4.1.4. FASILITAS & CATATAN                                     -->
+                <!-- ─────────────────────────────────────────────────────────────  -->
+                <!-- Daftar fasilitas (dipisah koma) dan catatan kondisi unit.      -->
+                <section class="vf-card">
+                    <h2 class="vf-card-title"><i class="fa-solid fa-clipboard-list"></i> Fasilitas &amp; Catatan</h2>
+                    <div class="vf-grid">
+                        <div class="vf-field vf-span-2">
+                            <label class="vf-label" for="fasilitas">Fasilitas</label>
+                            <input class="vf-input" type="text" id="fasilitas" name="fasilitas"
+                                placeholder="Contoh: AC, Audio Bluetooth, Kamera Mundur"
+                                value="{{ f.get('fasilitas', '') }}">
+                            <p class="vf-hint">Pisahkan dengan koma.</p>
+                        </div>
+                        <div class="vf-field vf-span-2">
+                            <label class="vf-label" for="catatan_kondisi">Catatan Kondisi</label>
+                            <textarea class="vf-input" id="catatan_kondisi" name="catatan_kondisi" rows="3"
+                                placeholder="Contoh: Servis terakhir 25 September 2026, goresan kecil di body kanan">{{ f.get('catatan_kondisi', '') }}</textarea>
+                        </div>
+                    </div>
+                </section>
             </div>
 
-            <!-- KOLOM KANAN -->
-            <div>
-                <div class="form-group-horizontal">
-                    <label>Jenis Penyewaan</label>
-                    <select name="jenis_penyewaan" class="form-control">
-                        <option value="Sopir & Tanpa Sopir">Sopir & Tanpa Sopir</option>
-                        <option value="Tanpa Sopir">Tanpa Sopir Saja</option>
-                        <option value="Dengan Sopir">Dengan Sopir Saja</option>
-                    </select>
-                </div>
-                <div class="form-group-horizontal">
-                    <label>Bahan Bakar</label>
-                    <select name="bahan_bakar" class="form-control">
-                        <option value="Bensin">Bensin</option>
-                        <option value="Solar">Solar</option>
-                        <option value="Listrik">Listrik</option>
-                    </select>
-                </div>
-                <div class="form-group-horizontal">
-                    <label>Transmisi</label>
-                    <select name="transmisi" class="form-control">
-                        <option value="Otomatis">Otomatis</option>
-                        <option value="Manual">Manual</option>
-                    </select>
-                </div>
-                <div class="form-group-horizontal">
-                    <label>Kategori</label>
-                    <select name="kategori" class="form-control">
-                        <option value="SUV">SUV</option>
-                        <option value="MPV">MPV</option>
-                        <option value="Sedan">Sedan</option>
-                        <option value="Motor">Motor</option>
-                    </select>
-                </div>
-                <div class="form-group-horizontal">
-                    <label>Harga Sewa Per Hari (Rp)</label>
-                    <input type="number" name="harga_sewa" class="form-control" placeholder="Contoh: 500000" required>
-                </div>
-                <div class="form-group-horizontal">
-                    <label>Jumlah Penumpang</label>
-                    <input type="number" name="jumlah_penumpang" class="form-control" placeholder="Contoh: 7" required>
-                </div>
-                <div class="form-group-horizontal">
-                    <label>Kapasitas Bagasi</label>
-                    <input type="number" name="jumlah_bagasi" class="form-control" placeholder="Contoh: 2">
-                </div>
-                <div class="form-group-horizontal">
-                    <label>No Rangka</label>
-                    <input type="text" name="no_rangka" class="form-control">
-                </div>
-                <div class="form-group-horizontal">
-                    <label>No Mesin</label>
-                    <input type="text" name="no_mesin" class="form-control">
-                </div>
-                <div class="form-group-horizontal">
-                    <label>Fasilitas</label>
-                    <input type="text" name="fasilitas" class="form-control">
-                </div>
-            </div>
+            <!-- 4.2. KOLOM KANAN : FOTO & STATUS                                -->
+            <!-- ═══════════════════════════════════════════════════════════════ -->
+            <aside class="vf-side">
+                <!-- 4.2.1. FOTO UTAMA                                              -->
+                <!-- ─────────────────────────────────────────────────────────────  -->
+                <!-- Unggah foto (wajib): JPG/PNG/WebP, maks. 2 MB. Pratinjau       -->
+                <!-- dan validasi ukuran ditangani skrip di bagian 5.1.             -->
+                <section class="vf-card">
+                    <h2 class="vf-card-title"><i class="fa-regular fa-image"></i> <span>Foto Utama <span
+                                class="vf-req">*</span></span></h2>
+                    <!-- Area unggah. Input file dibungkus label sehingga seluruh area bisa diklik. Elemen gambar menampilkan pratinjau setelah foto dipilih. -->
+                    <label class="vf-drop" id="dropZone">
+                        <input type="file" name="photo" id="photoInput" accept="image/png,image/jpeg,image/webp"
+                            required>
+                        <img class="vf-preview" id="photoPreview" alt="Pratinjau foto kendaraan">
+                        <span class="vf-replace"><i class="fa-solid fa-rotate"></i> Ganti foto</span>
+                        <span class="vf-drop-body">
+                            <span class="vf-drop-ico"><i class="fa-solid fa-cloud-arrow-up"></i></span>
+                            <span class="vf-drop-title">Klik atau seret foto ke sini</span>
+                            <span class="vf-drop-sub">JPG, PNG, atau WebP · maks. 2 MB</span>
+                        </span>
+                    </label>
+                    <!-- Teks petunjuk foto. Setelah error, pengguna diminta memilih ulang foto karena browser tidak menyimpan file yang sudah dikirim. -->
+                    <p class="vf-hint" id="photoHint">{% if error %}Pilih ulang foto: browser tidak menyimpan file
+                        setelah form dikirim.{% else %}Foto tampak samping dengan latar bersih paling mudah dikenali di
+                        daftar.{% endif %}</p>
+                </section>
+
+                <!-- 4.2.2. STATUS AKTIF                                            -->
+                <!-- ─────────────────────────────────────────────────────────────  -->
+                <!-- Saklar aktif/nonaktif. Unit nonaktif tidak dapat disewa        -->
+                <!-- (mis. sedang servis). Label teks disinkronkan oleh skrip 5.2.  -->
+                <section class="vf-card">
+                    <div class="vf-toggle">
+                        <div class="vf-toggle-text">
+                            <strong id="statusLabel">Aktif</strong>
+                            <span>Unit aktif bisa disewa. Matikan jika sedang servis.</span>
+                        </div>
+                        <label class="vf-switch">
+                            <!-- Default aktif saat form pertama dibuka (belum ada data form). Setelah error, status mengikuti isian sebelumnya. -->
+                            <input type="checkbox" name="is_active" id="isActive" value="1" {{ 'checked' if (not form)
+                                or f.get('is_active') else '' }}>
+                            <i></i>
+                        </label>
+                    </div>
+                </section>
+            </aside>
         </div>
-        
-        <div class="btn-action-group">
-            <a href="{{ url_for('main.admin_kendaraan') }}" class="btn-outline">Batal</a>
-            <button type="submit" class="btn-submit">Simpan</button>
+
+        <!-- 4.3. FOOTER AKSI FORM                                          -->
+        <!-- ═══════════════════════════════════════════════════════════════-->
+        <!-- Catatan kolom wajib, tombol Batal, dan tombol Simpan.          -->
+        <div class="vf-footer">
+            <span class="vf-footer-note">Kolom bertanda <span class="vf-req">*</span> wajib diisi</span>
+            <div class="vf-footer-btns">
+                <a href="{{ url_for('main.admin_kendaraan') }}" class="vf-btn vf-btn-ghost">Batal</a>
+                <!-- Tombol simpan. Dinonaktifkan oleh skrip 5.4 saat submit untuk mencegah pengiriman ganda. -->
+                <button type="submit" class="vf-btn vf-btn-primary" id="submitBtn">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan Kendaraan
+                </button>
+            </div>
         </div>
     </form>
-</section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--     5.     SKRIPT INTERAKSI FORM                                -->
+<!--            Pratinjau foto, label status, format harga, dan      -->
+<!--            pencegah klik ganda. Dibungkus IIFE agar tidak       -->
+<!--            mencemari scope global.                              -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<script>
+    (function () {
+        // Batas ukuran foto: 2 MB (dalam byte). Harus sama dengan batas di server.
+        var MAX_BYTES = 2 * 1024 * 1024;
+
+        // 5.1. PRATINJAU FOTO & VALIDASI UKURAN
+        // ═══════════════════════════════════════════════════════════════
+        // Menampilkan pratinjau saat foto dipilih, menolak file > 2 MB,
+        // dan memberi efek visual saat file diseret ke area unggah.
+        var input = document.getElementById('photoInput');
+        var zone = document.getElementById('dropZone');
+        var img = document.getElementById('photoPreview');
+        var hint = document.getElementById('photoHint');
+        var defaultHint = hint.textContent;
+
+        function resetPhoto() {
+            zone.classList.remove('has-image');
+            img.removeAttribute('src');
+            hint.classList.remove('is-error');
+            hint.textContent = defaultHint;
+        }
+
+        input.addEventListener('change', function () {
+            var file = input.files && input.files[0];
+            if (!file) { resetPhoto(); return; }
+            if (file.size > MAX_BYTES) {
+                input.value = '';
+                resetPhoto();
+                hint.textContent = 'Ukuran foto ' + (file.size / 1048576).toFixed(1) + ' MB, melebihi batas 2 MB.';
+                hint.classList.add('is-error');
+                return;
+            }
+            var url = URL.createObjectURL(file);
+            img.onload = function () { URL.revokeObjectURL(url); };
+            img.src = url;
+            zone.classList.add('has-image');
+            hint.classList.remove('is-error');
+            hint.textContent = file.name + ' · ' + Math.round(file.size / 1024) + ' KB';
+        });
+
+        // Efek visual saat file diseret ke area unggah (hanya kelas CSS, file tidak otomatis masuk ke input)
+        ['dragenter', 'dragover'].forEach(function (ev) {
+            zone.addEventListener(ev, function () { zone.classList.add('is-drag'); });
+        });
+        ['dragleave', 'drop'].forEach(function (ev) {
+            zone.addEventListener(ev, function () { zone.classList.remove('is-drag'); });
+        });
+
+        // 5.2. LABEL STATUS AKTIF / NONAKTIF
+        // ═══════════════════════════════════════════════════════════════
+        // Menyinkronkan teks label dengan posisi saklar.
+        var sw = document.getElementById('isActive');
+        var statusLabel = document.getElementById('statusLabel');
+        function syncStatus() { statusLabel.textContent = sw.checked ? 'Aktif' : 'Nonaktif'; }
+        sw.addEventListener('change', syncStatus);
+        syncStatus();
+
+        // 5.3. FORMAT HARGA REAL-TIME
+        // ═══════════════════════════════════════════════════════════════
+        // Menampilkan nilai input dalam format Rupiah (pemisah titik) di bawah kolom harga.        
+        var price = document.getElementById('harga_sewa');
+        var priceHint = document.getElementById('priceHint');
+        function syncPrice() {
+            var v = parseInt(price.value, 10);
+            priceHint.textContent = isNaN(v) ? 'Dalam Rupiah, tanpa titik.' : 'Rp ' + v.toLocaleString('id-ID') + ' per hari';
+        }
+        price.addEventListener('input', syncPrice);
+        syncPrice();
+
+        // 5.4. PENCEGAH KLIK GANDA
+        // ═══════════════════════════════════════════════════════════════
+        // Menonaktifkan tombol simpan setelah submit agar data tidak tersimpan dua kali.
+        var form = document.getElementById('vehicleForm');
+        var btn = document.getElementById('submitBtn');
+        form.addEventListener('submit', function () {
+            btn.disabled = true;
+            btn.textContent = 'Menyimpan…';
+        });
+    })();
+</script>
 {% endblock %}
