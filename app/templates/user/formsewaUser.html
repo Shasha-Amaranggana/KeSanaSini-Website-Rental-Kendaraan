@@ -127,6 +127,10 @@ KeSanaSini - Form Sewa
                                 <input type="file" name="ktp" id="ktp" accept=".jpg,.jpeg,.png,.pdf" hidden>
                                 <span data-default="Unggah KTP">Unggah KTP</span>
                             </label>
+                            <div class="doc-actions">
+                                <button type="button" class="doc-btn" id="ktpView" hidden>Lihat</button>
+                                <button type="button" class="doc-btn doc-remove" id="ktpRemove" hidden>Hapus</button>
+                            </div>
                             {% endif %}
                         </div>
 
@@ -149,6 +153,10 @@ KeSanaSini - Form Sewa
                                 <input type="file" name="sim" id="sim" accept=".jpg,.jpeg,.png,.pdf" hidden>
                                 <span data-default="Unggah {{ sim_label }}">Unggah {{ sim_label }}</span>
                             </label>
+                            <div class="doc-actions">
+                                <button type="button" class="doc-btn" id="simView" hidden>Lihat</button>
+                                <button type="button" class="doc-btn doc-remove" id="simRemove" hidden>Hapus</button>
+                            </div>
                             {% endif %}
                         </div>
                     </div>
@@ -314,50 +322,60 @@ KeSanaSini - Form Sewa
     </div>
 </section>
 
+<!-- 5. Popup lihat dokumen -->
+<div class="doc-modal" id="docModal" hidden>
+    <div class="doc-modal-box">
+        <button type="button" class="doc-modal-close" id="docModalClose" aria-label="Tutup">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="doc-modal-body" id="docModalBody"></div>
+    </div>
+</div>
+
 <!--=============================================
         B. JAVASCRIPT
 ==============================================-->
 
 <script>
 (function () {
-    // 5. INISIALISASI DATA
+    // 6. INISIALISASI DATA
     const form = document.getElementById('formSewa');
     const days = Number(form.dataset.days);
     const basePrice = Number(form.dataset.price);
     const driverFee = Number(form.dataset.driver);
 
-    // 6. FUNGSI BANTU
+    // 7. FUNGSI BANTU
     // mengubah angka menjadi format rupiah
     const rp = n => 'Rp' + n.toLocaleString('id-ID');
     const $ = id => document.getElementById(id);
 
-    // 7. MEMBACA JENIS PENYEWAAN
+    // 8. MEMBACA JENIS PENYEWAAN
     function selectedType() {
         const r = form.querySelector('input[name="rental_type"]:checked');
         return r ? r.value : 'lepas_kunci';
     }
 
-    // 8. MEMPERBARUI RINGKASAN DAN VALIDASI FORM
+    // 9. MEMPERBARUI RINGKASAN DAN VALIDASI FORM
     function update() {
         const withDriver = selectedType() === 'sopir';
 
-        // 8.1. PERHITUNGAN BIAYA
+        // 9.1. PERHITUNGAN BIAYA
         const vehicleCost = basePrice * days;
         const driverCost = withDriver ? driverFee * days : 0;
         $('rowDriver').hidden = !withDriver;
         $('sumDriver').textContent = rp(driverCost);
 
-        // 8.2. MENGHITUNG TOTAL HARGA AKSESORIS 
+        // 9.2. MENGHITUNG TOTAL HARGA AKSESORIS 
         let accCost = 0;
         form.querySelectorAll('input[name="accessories"]:checked').forEach(c => {
             accCost += Number(c.dataset.price);
         });
 
-        //8.3. MENGHITUNG BIAYA ASURANSI
+        //9.3. MENGHITUNG BIAYA ASURANSI
         const ins = form.querySelector('input[name="insurance"]:checked');
         const insCost = ins ? Number(ins.dataset.price) * days : 0;
 
-        //8.4. MEMPERBARUI RINCIAN BIAYA DAN TOTAL PEMBAYARAN
+        //9.4. MEMPERBARUI RINCIAN BIAYA DAN TOTAL PEMBAYARAN
         $('sumVehicle').textContent = rp(vehicleCost);
         $('sumAcc').textContent = rp(accCost);
         $('sumIns').textContent = rp(insCost);
@@ -381,19 +399,76 @@ KeSanaSini - Form Sewa
         $('orderHint').hidden = ready;
     }
 
-    // 9. PERBARUAN STATUS DOKUMEN
+    // 10. Popup lihat dokumen
+    const modal = $('docModal');
+    const modalBody = $('docModalBody');
+
+    function openModal(file, url) {
+        modalBody.innerHTML = '';
+        let el;
+        if (file.type === 'application/pdf') {
+            el = document.createElement('iframe');
+        } else {
+            el = document.createElement('img');
+            el.alt = file.name;
+        }
+        el.src = url;
+        modalBody.appendChild(el);
+        modal.hidden = false;
+    }
+
+    function closeModal() {
+        modal.hidden = true;
+        modalBody.innerHTML = '';
+    }
+
+    $('docModalClose').addEventListener('click', closeModal);
+    modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    // 11. PERBARUAN STATUS DOKUMEN
     ['ktp', 'sim'].forEach(id => {
-        $(id).addEventListener('change', function () {
-            const label = form.querySelector('.doc-status[data-for="' + id + '"]');
-            const ok = this.files.length > 0;
+        const input  = $(id);
+        const view   = $(id + 'View');
+        const remove = $(id + 'Remove');
+        const label  = form.querySelector('.doc-status[data-for="' + id + '"]');
+
+        // Lewati jika dokumen sudah ada di akun (tidak ada tombol unggah)
+        if (!view || !remove) return;
+
+        let objUrl = null;
+
+        function refresh() {
+            const file = input.files[0];
+            const ok = !!file;
+
+            if (objUrl) { URL.revokeObjectURL(objUrl); objUrl = null; }
+
             label.textContent = ok ? 'sudah diunggah' : 'belum diunggah';
             label.classList.toggle('done', ok);
-            const span = this.nextElementSibling;
-            span.textContent = ok ? this.files[0].name : span.dataset.default;
+
+            const span = input.nextElementSibling;
+            span.textContent = ok ? file.name : span.dataset.default;
+
+            view.hidden = remove.hidden = !ok;
+            if (ok) {
+                objUrl = URL.createObjectURL(file);
+            }
+        }
+
+        input.addEventListener('change', refresh);
+        view.addEventListener('click', function () {
+            if (input.files[0] && objUrl) openModal(input.files[0], objUrl);
+        });
+
+        remove.addEventListener('click', function () {
+            input.value = '';
+            refresh();
+            update();  
         });
     });
 
-    // 10. PERBARUAN OTOMATIS FORM
+    // 12. PERBARUAN OTOMATIS FORM
     // menghitung ulang biaya dan memeriksa persyaratan setiap kali pengguna mengubah pilihan
     form.addEventListener('change', update);
     update();
