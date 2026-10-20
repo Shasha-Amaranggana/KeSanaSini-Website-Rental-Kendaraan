@@ -98,8 +98,9 @@ notifications-page
 
                             <!--  KARTU NOTIFIKASI  -->
                             <article
-                                class="notification-card {{ notification.card_tone }}
-                                {{ notification.tone }}{% if not notification.is_read %} unread{% endif %}">
+                                class="notification-card {{ notification.card_tone }} 
+                                {{ notification.tone }}{% if notification.is_manual_cancellation %} 
+                                cancellation-admin{% endif %}{% if not notification.is_read %} unread{% endif %}">
 
                                 <!--  IKON NOTIFIKASI  -->
                                 <div class="notification-icon {{ notification.tone }}">
@@ -112,7 +113,12 @@ notifications-page
                                     <!-- JUDUL DAN LABEL NOTIFIKASI -->
                                     <div class="notification-heading">
                                         <h3>
-                                            {{ notification.title }}
+                                            {% if notification.is_manual_cancellation
+                                                and notification.title == 'Status Pesanan Diperbarui' %}
+                                                Pesanan Dibatalkan
+                                            {% else %}
+                                                {{ notification.title }}
+                                            {% endif %}
                                         </h3>
 
                                         {% if not notification.is_read %}
@@ -124,7 +130,33 @@ notifications-page
                                     </div>
 
                                     <!-- PESAN NOTIFIKASI -->
-                                    <p>{{ notification.message }}</p>
+                                    {% if notification.is_manual_cancellation
+                                        and notification.title == 'Status Pesanan Diperbarui' %}
+
+                                        {% set alasan_user = [
+                                            'Ingin mengubah rincian dan membuat pesanan baru',
+                                            'Kendaraan memiliki ulasan yang kurang baik (Detail kendaraan kurang sesuai, pengalaman pelanggan berbeda, dan lainnya).',
+                                            'Menemukan alternatif rental lain.',
+                                            'Pesanan dibuat secara tidak sengaja.',
+                                            'Alasan lainnya (Berubah pikiran, rencana perjalanan berubah atau dibatalkan, dan lainnya).'
+                                        ] %}
+
+                                        {% set alasan = (notification.rental.cancellation_reason or '')|trim %}
+                                        {% set pihak_pembatal = 'user' if alasan in alasan_user else 'admin' %}
+
+                                        <p>
+                                            Pesanan {{ notification.rental.booking_code }}
+                                            dibatalkan oleh {{ pihak_pembatal }}
+                                            dengan alasan: "{{ alasan or 'tidak dicantumkan' }}".
+                                            Untuk pengembalian dana, silakan hubungi admin
+                                            melalui halaman detail pesanan.
+                                        </p>
+
+                                    {% else %}
+
+                                        <p>{{ notification.message }}</p>
+
+                                    {% endif %}
 
                                     <!-- KODE PESANAN DAN WAKTU NOTIFIKASI -->
                                     <div class="notification-meta">

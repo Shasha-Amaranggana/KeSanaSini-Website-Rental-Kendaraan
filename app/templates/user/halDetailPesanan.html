@@ -109,30 +109,118 @@ orders-page
                         </div>
 
                         <span class="timeline-current-status">
-                            {{ rental.status }}
+                            {% if cancellation_is_pending %}
+                                Pembatalan Diajukan
+                            {% else %}
+                                {{ rental.status }}
+                            {% endif %}
                         </span>
                     </div>
+
+                    <!-- PESAN PERMOHONAN PEMBATALAN DITOLAK -->
+                    {% if cancellation_is_rejected %}
+                        <div class="cancellation-rejected-notice">
+                            <i class="fa-solid fa-circle-info"></i>
+
+                            <div>
+                                <strong>Permohonan Pembatalan Ditolak</strong>
+                                <p>
+                                    Admin menolak permohonan pembatalan.
+                                    Status pesanan tetap seperti sebelumnya.
+                                </p>
+                                {% if cancellation.admin_note %}
+                                    <small>
+                                        Catatan admin: {{ cancellation.admin_note }}
+                                    </small>
+                                {% endif %}
+                                {% if cancellation.rejected_at %}
+                                    <small>
+                                        {{ cancellation.rejected_at | tanggal_id }},
+                                        pukul {{ cancellation.rejected_at.strftime('%H:%M') }}
+                                    </small>
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    {% endif %}
 
                     <!-- TIMELINE STATUS -->
                     <div class="timeline-section">
 
-                        <!-- PESANAN DIBATALKAN -->
-                        {% if rental.status == rental.STATUS_BATAL %}
+                        <!-- TIMELINE PEMBATALAN YANG MEMILIKI CATATAN TERSENDIRI -->
+                        {% if cancellation_steps %}
+
+                            <div class="timeline-steps">
+
+                                {% for icon, label, waktu in cancellation_steps %}
+
+                                    <div class="timeline-step
+                                        {% if loop.index0 < cancellation_completed_steps %}
+                                            completed
+                                        {% elif loop.index0 == cancellation_completed_steps %}
+                                            current
+                                        {% endif %}">
+
+                                        <div class="timeline-icon">
+                                            <i class="fa-solid {{ icon }}"></i>
+                                        </div>
+
+                                        <span>{{ label }}</span>
+
+                                        {% if waktu %}
+                                            <small>
+                                                {{ waktu | tanggal_id }}
+                                                <br>
+                                                Pukul {{ waktu.strftime('%H:%M') }}
+                                            </small>
+                                        {% else %}
+                                            <small>Menunggu proses</small>
+                                        {% endif %}
+
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        <!-- PEMBATALAN LANGSUNG OLEH ADMIN ATAU SISTEM TANPA REFUND -->
+                        {% elif rental.status == rental.STATUS_BATAL %}
 
                             <div class="timeline-cancelled">
                                 <i class="fa-solid fa-circle-xmark"></i>
-                                Pesanan dibatalkan
-                                {% set waktu_batal = timeline_times.get('cancelled') %}
+
+                                <div class="timeline-cancelled-content">
+
+                                    <strong>
+                                        {% if dibatalkan_otomatis %}
+                                            Pesanan dibatalkan karena melewati batas waktu pembayaran.
+                                        {% else %}
+                                            Pesanan Anda dibatalkan oleh admin.
+                                        {% endif %}
+                                    </strong>
+
+                                    {% set waktu_batal = timeline_times.get('cancelled') %}
+
                                     {% if waktu_batal %}
                                         <small class="timeline-cancelled-time">
                                             {{ waktu_batal | tanggal_id }},
                                             pukul {{ waktu_batal.strftime('%H:%M') }}
                                         </small>
                                     {% endif %}
+
+                                    {% if rental.cancellation_reason %}
+                                        <small>
+                                            Alasan: {{ rental.cancellation_reason }}
+                                        </small>
+                                    {% endif %}
+
+                                </div>
+
                             </div>
 
-                        <!-- TIMELINE PESANAN -->
+                        <!-- TIMELINE PENYEWAAN NORMAL -->
                         {% else %}
+
                             <div class="timeline-steps">
 
                                 {% set steps = [
@@ -145,22 +233,17 @@ orders-page
 
                                 {% for icon, label, time_key in steps %}
 
-                                    <!-- KARTU TAHAP TIMELINE PESANAN -->
-                                    <div
-                                        class="timeline-step
+                                    <div class="timeline-step
                                         {% if loop.index0 < current_step %}completed
                                         {% elif loop.index0 == current_step %}current
                                         {% endif %}">
 
-                                        <!-- IKON TIMELINE -->
                                         <div class="timeline-icon">
                                             <i class="fa-solid {{ icon }}"></i>
                                         </div>
 
-                                        <!-- NAMA TIMELINE -->
                                         <span>{{ label }}</span>
 
-                                        <!-- WAKTU PERUBAHAN STATUS -->
                                         {% set waktu = timeline_times.get(time_key) %}
 
                                         {% if waktu %}
@@ -342,7 +425,8 @@ orders-page
 
                             <!-- TOMBOL PEMBAYARAN -->
                             {% if rental.payment_status != 'Lunas'
-                            and rental.status == rental.STATUS_MENUNGGU_BAYAR %}
+                            and rental.status == rental.STATUS_MENUNGGU_BAYAR
+                            and not cancellation_is_pending %}
 
                                 <a
                                     href="{{ url_for('main.pembayaran', rental_id=rental.id) }}"
@@ -358,7 +442,7 @@ orders-page
                                 rental.STATUS_MENUNGGU_BAYAR,
                                 rental.STATUS_MENUNGGU_KONFIRMASI,
                                 rental.STATUS_PENGAMBILAN
-                            ] %}
+                            ] and not cancellation_is_pending %}
 
                             <div class="cancel-order-form">
 
@@ -473,7 +557,8 @@ orders-page
                                         <select
                                             id="cancellation_reason"
                                             name="cancellation_reason"
-                                            required>
+                                            required
+                                        >
                                             <option value="" selected disabled>
                                                 Pilih alasan pembatalan
                                             </option>
@@ -486,7 +571,7 @@ orders-page
                                         </select>
 
                                         <small class="cancel-reason-hint">
-                                            Pilih salah satu alasan yang tersedia.
+                                            Silakan pilih alasan yang paling sesuai.
                                         </small>
 
                                         <!-- TOMBOL AKSI FORMULIR -->
