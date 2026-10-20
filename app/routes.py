@@ -630,6 +630,34 @@ def batalkan_pesanan_kedaluwarsa(rental, commit=True):
 
     return True
 
+def batalkan_pesanan_tidak_diambil(rental, commit=True):
+    """Batalkan pesanan yang sudah dibayar tapi kendaraan tidak diambil."""
+    if not rental.is_pickup_expired:
+        return False
+
+    status_lama = rental.status
+
+    if not rental.cancellation_reason:
+        rental.cancellation_reason = (
+            'Dibatalkan otomatis karena kendaraan tidak diambil '
+            'hingga masa sewa berakhir.'
+        )
+
+    rental.change_status(Rental.STATUS_BATAL)
+
+    # Cegah notifikasi ganda.
+    sudah_ada = Notification.query.filter_by(
+        rental_id=rental.id,
+        category=Notification.CATEGORY_PICKUP_EXPIRED,
+    ).first()
+
+    if not sudah_ada:
+        db.session.add(Notification.pickup_expired(rental, status_lama))
+
+    if commit:
+        db.session.commit()
+
+    return True
 
 @bp.route('/pembayaran/<int:rental_id>')
 def pembayaran(rental_id):
@@ -748,8 +776,9 @@ def kelola_akun():
             if not name:
                 raise ValueError('Nama lengkap wajib diisi.')
 
-            if not phone or not emergency_phone:
-                raise ValueError('Nomor telepon wajib diisi.')
+            if not re.fullmatch(r'\+?\d{10,15}', phone) or \
+                not re.fullmatch(r'\+?\d{10,15}', emergency_phone):
+                raise ValueError('Nomor telepon harus berupa angka 10-15 digit.')
 
             if gender not in ['Laki-laki', 'Perempuan']:
                 raise ValueError('Jenis kelamin tidak valid.')
@@ -1259,6 +1288,26 @@ def periksa_pengingat_dan_denda(user_id=None):
                     Notification.overdue_warning(rental)
                 )
                 jumlah_baru += 1
+
+    # =====================================================
+    # 3. PESANAN SUDAH DIBAYAR TAPI TIDAK DIAMBIL
+    # =====================================================
+    belum_diambil_query = Rental.query.filter(
+        Rental.status.in_([
+            Rental.STATUS_MENUNGGU_KONFIRMASI,
+            Rental.STATUS_PENGAMBILAN,
+        ]),
+        Rental.end_date <= now.date(),
+    )
+
+    if user_id is not None:
+        belum_diambil_query = belum_diambil_query.filter(
+            Rental.user_id == user_id
+        )
+
+    for rental in belum_diambil_query.all():
+        if batalkan_pesanan_tidak_diambil(rental, commit=False):
+            jumlah_baru += 1
 
     if jumlah_baru:
         db.session.commit()
