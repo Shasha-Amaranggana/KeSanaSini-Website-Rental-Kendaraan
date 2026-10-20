@@ -1,3 +1,8 @@
+{# =========================================================
+   Halaman Kelola Admin (Super Admin).
+   Kiri: daftar admin + pencarian. Kanan: detail & ubah status akun.
+   Data dari AdminListView: pagination, keyword, selected.
+   ========================================================= #}
 {% extends 'admin/base_admin.html' %}
 {% from 'admin/_macros_pengguna.html' import avatar, field, pager, status_form, switch_script %}
 
@@ -11,6 +16,7 @@
         <h2>Daftar Admin</h2>
         <a href="{{ url_for('kelola_admin.tambah') }}" class="kp-btn small">+ Tambah Admin</a>
 
+        {# Pencarian lewat GET (?q=) agar kata kunci tampil di URL #}
         <form class="kp-search" method="get" action="{{ url_for('kelola_admin.daftar') }}">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" name="q" value="{{ keyword }}" placeholder="Cari admin berdasarkan ID, nama, ..." autocomplete="off">
@@ -20,7 +26,9 @@
             <thead><tr><th>ID Admin</th><th>Nama</th><th>Status</th></tr></thead>
             <tbody>
             {% for a in pagination.items %}
+                {# Link baris: memilih admin (id) sambil mempertahankan halaman & kata kunci #}
                 {% set link = url_for('kelola_admin.daftar', id=a.id, page=pagination.page, q=keyword or None) %}
+                {# Baris admin terpilih diberi kelas "selected" #}
                 <tr class="{{ 'selected' if selected and selected.id == a.id }}">
                     <td><a href="{{ link }}">#{{ a.code }}</a></td>
                     <td><a href="{{ link }}">{{ a.name }}</a></td>
@@ -30,6 +38,7 @@
                     </a></td>
                 </tr>
             {% else %}
+                {# Tampil jika hasil pencarian kosong #}
                 <tr><td colspan="3" class="kp-empty">Admin tidak ditemukan</td></tr>
             {% endfor %}
             </tbody>
@@ -39,6 +48,7 @@
     </section>
 
     <!-- ===== PANEL 2: DETAIL & EDIT ADMIN ===== -->
+    {# Menampilkan data admin terpilih (read-only); "-" jika belum ada yang dipilih #}
     <section class="kp-card">
         <h2>Detail &amp; Edit Admin</h2>
         <div class="kp-code">#{{ selected.code if selected else '-' }}</div>
@@ -51,9 +61,11 @@
         {{ field('No. Telepon', selected.phone if selected else '') }}
         {{ field('Email', selected.email if selected else '') }}
 
+        {# Saklar status akun; dikirim ke AdminStatusView (route ubah_status) #}
         {{ status_form(selected, url_for('kelola_admin.ubah_status', user_id=selected.id) if selected else '#', pagination, keyword) }}
     </section>
 </div>
 {% endblock %}
 
+{# JS label Aktif/Tidak Aktif pada saklar #}
 {% block scripts %}{{ switch_script() }}{% endblock %}

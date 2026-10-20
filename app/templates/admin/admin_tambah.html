@@ -1,15 +1,22 @@
+{# =========================================================
+   Halaman Tambah Admin (Super Admin).
+   Form POST ke AdminCreateView; jika validasi gagal, `errors` dan `form`
+   (input sebelumnya) dikirim balik agar isian tidak hilang.
+   ========================================================= #}
 {% extends 'admin/base_admin.html' %}
 {% from 'admin/_macros_pengguna.html' import avatar %}
 
 {% block title %}Tambah Admin{% endblock %}
 
 {% block content %}
+{# enctype multipart wajib karena ada unggah foto profil #}
 <form class="kp kp-grid-form" method="post" enctype="multipart/form-data" action="{{ url_for('kelola_admin.tambah') }}">
 
     <!-- ===== KARTU KIRI: DATA ADMIN ===== -->
     <section class="kp-card">
         <h2>Tambah Admin Baru</h2>
 
+        {# Daftar pesan error dari validasi server (ValidationError) #}
         {% if errors %}
         <ul class="kp-errors">
             {% for e in errors %}<li>{{ e }}</li>{% endfor %}
@@ -17,6 +24,7 @@
         {% endif %}
 
         <div class="kp-box">
+            {# Nama, email, dan HP diisi ulang dari `form` bila ada error #}
             <div class="kp-input">
                 <label for="name">Nama Lengkap</label>
                 <input type="text" id="name" name="name" value="{{ form.get('name', '') }}" placeholder="Nama Lengkap Admin" required>
@@ -29,6 +37,7 @@
                 <label for="phone">Nomor HP</label>
                 <input type="tel" id="phone" name="phone" value="{{ form.get('phone', '') }}" placeholder="081234567890" required>
             </div>
+            {# Password tidak diisi ulang demi keamanan; tombol mata diatur oleh script di bawah #}
             <div class="kp-two">
                 <div class="kp-input">
                     <label for="password">Password</label>
@@ -55,7 +64,9 @@
     <!-- ===== KARTU KANAN: FOTO PROFIL ===== -->
     <section class="kp-card center">
         <h2>Foto Profil</h2>
+        {# Pratinjau foto; ikon default sebelum ada file dipilih #}
         <div id="previewBox">{{ avatar(None) }}</div>
+        {# Input file disembunyikan; label bertindak sebagai tombol #}
         <label class="kp-btn outline small">
             Pilih Foto Profil
             <input type="file" id="foto_profil" name="foto_profil" accept="image/png,image/jpeg,image/webp" hidden>
@@ -67,7 +78,7 @@
 
 {% block scripts %}
 <script>
-    // Ikon mata: tampil/sembunyikan password
+    // Tombol mata: ganti tipe input password <-> text, sekaligus ikonnya
     document.querySelectorAll('.kp-eye').forEach(function (btn) {
         btn.addEventListener('click', function () {
             var input = document.getElementById(btn.dataset.target);
@@ -75,7 +86,7 @@
             btn.querySelector('i').className = input.type === 'password' ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
         });
     });
-    // Pratinjau foto profil sebelum disimpan
+    // Pratinjau foto profil di browser sebelum disimpan
     document.getElementById('foto_profil').addEventListener('change', function (e) {
         var file = e.target.files[0];
         if (!file) return;
