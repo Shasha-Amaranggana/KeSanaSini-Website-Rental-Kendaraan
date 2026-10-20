@@ -1,23 +1,58 @@
+# ═════════════════════════════════════════════════════════════
+#     ROUTES DAN LOGIKA WEBSITE KeSanaSini (routes.py)
+#
+#     ⤷ Mengatur URL atau halaman yang dapat diakses pengguna.
+#     ⤷ Menghubungkan halaman HTML dengan data dari models.py.
+#     ⤷ Memproses formulir, memvalidasi input, dan mengelola session.
+#     ⤷ Menjalankan proses pemesanan, pembayaran, pembatalan,
+#       pengelolaan akun, serta notifikasi.
+#     ⤷ Menggunakan Flask Blueprint untuk mengelompokkan route.
+# ═════════════════════════════════════════════════════════════
+
+# ═════════════════════════════════════════════════════════════
+#   IMPORT LIBRARY DAN MODEL
+# ═════════════════════════════════════════════════════════════
+# Mengimpor fungsi Flask untuk membuat halaman, membaca input,
+# mengatur pengalihan halaman, session, dan respons JSON.
 from flask import jsonify, Blueprint, render_template, request, redirect, url_for, flash, session, current_app
+# Mengimpor model database yang digunakan dalam proses website.
 from app.models import (
     User, Vehicle, Rental, RentalCancellation, Review, Driver, Notification)
+# Mengimpor fungsi untuk pencarian dengan beberapa kondisi.
 from sqlalchemy import or_
+# Mengimpor fungsi pengelolaan tanggal dan waktu.
 from datetime import datetime, date, timedelta
+# Mengamankan nama file yang diunggah pengguna.
 from werkzeug.utils import secure_filename
+# Mengelola data formulir dalam bentuk MultiDict.
 from werkzeug.datastructures import MultiDict
+# Mengimpor wraps untuk mempertahankan informasi fungsi decorator.
 from functools import wraps
+# Mengimpor database dan OAuth dari aplikasi.
 from app import db, oauth
+# Mengelola token bertanda tangan dan memeriksa masa berlakunya.
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
+# Mengelola operasi file dan folder.
 import os
 import shutil
+# Membuat ID unik dan menangani pengiriman email.
 import uuid
 import smtplib
 import ssl
 from email.message import EmailMessage
+# Mengamankan teks HTML dari karakter yang berpotensi berbahaya.
 from html import escape
 
+# ═════════════════════════════════════════════════════════════
+#   MEMBUAT BLUEPRINT
+# ═════════════════════════════════════════════════════════════
+# Blueprint digunakan untuk mengelompokkan route utama website.
 bp = Blueprint('main', __name__)
 
+# ═════════════════════════════════════════════════════════════
+#   PEMERIKSAAN NOTIFIKASI OTOMATIS
+# ═════════════════════════════════════════════════════════════
+# Decorator ini menjalankan pemeriksaan sebelum request diproses.
 @bp.before_app_request
 def periksa_notifikasi_otomatis():
     """Memeriksa notifikasi otomatis pada setiap request non-statis."""
@@ -27,26 +62,35 @@ def periksa_notifikasi_otomatis():
         return
 
     try:
+        # Memeriksa pengingat dan denda secara otomatis.
         periksa_pengingat_dan_denda()
     except Exception:
+        # Membatalkan perubahan database jika terjadi kesalahan
+        # dan mencatat detail kesalahan ke log aplikasi.
         db.session.rollback()
         current_app.logger.exception(
             'Gagal memproses notifikasi otomatis KeSanaSini.'
         )
 
+# ═════════════════════════════════════════════════════════════
+#   KONSTANTA DAN FUNGSI PENGATURAN WAKTU
+# ═════════════════════════════════════════════════════════════
+# Daftar nama bulan untuk menampilkan tanggal dalam Bahasa Indonesia.
 BULAN_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli',
             'Agustus', 'September', 'Oktober', 'November', 'Desember']
 
+# Minimal waktu antara pemesanan dan pengambilan kendaraan adalah 25 jam.
 MINIMUM_JAM_SEBELUM_PENGAMBILAN = 25
 
 
+# Menghasilkan waktu paling awal kendaraan boleh diambil.
 def waktu_minimum_pengambilan():
     """Waktu paling awal kendaraan boleh diambil."""
     return datetime.now() + timedelta(
         hours=MINIMUM_JAM_SEBELUM_PENGAMBILAN
     )
 
-
+# Membulatkan waktu ke menit berikutnya jika masih memiliki detik.
 def bulatkan_ke_menit_berikutnya(waktu):
     """Bulatkan ke menit berikutnya untuk input tanggal dan jam."""
     if waktu.second or waktu.microsecond:
@@ -57,12 +101,15 @@ def bulatkan_ke_menit_berikutnya(waktu):
 
     return waktu.replace(second=0, microsecond=0)
 
+# Menentukan jadwal pengambilan default untuk formulir.
 def waktu_default_pengambilan():
     """Jadwal bawaan agar pengguna punya waktu mengisi formulir."""
     return bulatkan_ke_menit_berikutnya(
         datetime.now() + timedelta(hours=26)
     )
 
+# Menggabungkan tanggal dan jam dari input menjadi objek datetime.
+# Jika format tidak valid, fungsi mengembalikan None.
 def parse_waktu_pengambilan(tanggal, jam):
     """Gabungkan tanggal dan jam pilihan menjadi satu datetime."""
     try:
@@ -73,6 +120,11 @@ def parse_waktu_pengambilan(tanggal, jam):
     except (TypeError, ValueError):
         return None
 
+# ═════════════════════════════════════════════════════════════
+#   FILTER TEMPLATE
+# ═════════════════════════════════════════════════════════════
+
+# Mendaftarkan filter rupiah agar dapat digunakan pada template HTML.
 @bp.app_template_filter('rupiah')
 def rupiah(value):
     """15000 -> 15.000"""
@@ -85,23 +137,25 @@ def tanggal_id(value):
         return '-'
     return f"{value.day:02d} {BULAN_ID[value.month - 1]} {value.year}"
 
-# =========================================================
-# HALAMAN OPENING
-# =========================================================
+# ═════════════════════════════════════════════════════════════
+#   HALAMAN OPENING
+# ═════════════════════════════════════════════════════════════
+# Route untuk menampilkan halaman pembuka website.
 @bp.route('/')
 def welcome():
     return render_template('welcome.html')
 
-
-# =========================================================
-# HALAMAN UTAMA USER
-# =========================================================
+# ═════════════════════════════════════════════════════════════
+#   HALAMAN UTAMA USER
+# ═════════════════════════════════════════════════════════════
+# Menampilkan halaman utama setelah pengguna berhasil login.
 @bp.route('/home')
 def index():
 
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
 
+    # Mengambil data pengguna yang sedang login dari database.
     user = User.query.get(session['user_id'])
 
     vehicles = Vehicle.query.all()
@@ -120,10 +174,10 @@ def index():
         current_time=current_time
     )
 
-
-# =========================================================
-# HALAMAN PENCARIAN USER
-# =========================================================
+# ═════════════════════════════════════════════════════════════
+#   HALAMAN PENCARIAN KENDARAAN
+# ═════════════════════════════════════════════════════════════
+# Memproses pencarian kendaraan berdasarkan jadwal, jenis, dan harga.
 @bp.route('/hasil-pencarian')
 def hasil_pencarian():
     # Ambil data dari form pencarian
@@ -245,9 +299,10 @@ def hasil_pencarian():
         vehicle_type=vehicle_type
     )
 
-
-
-
+# ═════════════════════════════════════════════════════════════
+#   DETAIL KENDARAAN DAN ULASAN
+# ═════════════════════════════════════════════════════════════
+# Menampilkan detail kendaraan, jadwal sewa, harga, dan ulasan.
 @bp.route('/detail-kendaraan/<int:vehicle_id>')
 def detail_kendaraan(vehicle_id):
     if 'user_id' not in session:
@@ -350,6 +405,10 @@ def semua_ulasan(vehicle_id):
 
     return redirect(url_for('main.detail_kendaraan', vehicle_id=vehicle.id, ulasan=1, star=star))
 
+# ═════════════════════════════════════════════════════════════
+#   KONSTANTA FORMULIR PENYEWAAN
+# ═════════════════════════════════════════════════════════════
+# Pilihan tujuan penggunaan kendaraan.
 PURPOSES = ['Liburan', 'Dinas / Bisnis', 'Acara keluarga', 'Pernikahan', 'Lainnya']
 REGIONS = ['Dalam kota', 'Luar kota']
 LOCATIONS = ['Kantor rental', 'Bandara SAMS Sepinggan']
@@ -362,7 +421,11 @@ ALASAN_PEMBATALAN_USER = [
     'Alasan lainnya (Berubah pikiran, rencana perjalanan berubah atau dibatalkan, dan lainnya).'
 ]
 
-
+# ═════════════════════════════════════════════════════════════
+#   FUNGSI BANTUAN PEMBATALAN DAN DOKUMEN
+# ═════════════════════════════════════════════════════════════
+# Memeriksa apakah pesanan sudah dibayar berdasarkan status pembayaran
+# atau status pesanan yang menunjukkan pembayaran telah dilakukan.
 def _rental_sudah_dibayar(rental, status_sebelum=None):
     """
     Menentukan apakah pesanan sudah dibayar.
@@ -384,7 +447,7 @@ def _rental_sudah_dibayar(rental, status_sebelum=None):
         or status in status_yang_menandakan_pembayaran
     )
 
-
+# Mengambil pengajuan pembatalan pelanggan yang masih menunggu admin.
 def _permohonan_pembatalan_pending(rental_id):
     """Mengambil permohonan pelanggan yang masih menunggu keputusan admin."""
     return (
@@ -399,6 +462,8 @@ def _permohonan_pembatalan_pending(rental_id):
     )
 
 
+# Membuat catatan pembatalan dan pengembalian dana untuk pesanan
+# yang sudah dibayar lalu dibatalkan langsung oleh admin.
 def _catat_pembatalan_admin_berbayar(
     rental,
     reason,
@@ -421,7 +486,8 @@ def _catat_pembatalan_admin_berbayar(
     db.session.add(pembatalan)
     return pembatalan
 
-
+# Memvalidasi dan menyimpan dokumen KTP atau SIM ke folder dokumen.
+# Nama file diamankan sebelum digunakan untuk penyimpanan.
 def _save_document(file_storage, booking_code, kind):
     """Simpan KTP/SIM ke static/uploads/dokumen. Return nama file, atau None."""
     if not file_storage or not file_storage.filename:
@@ -461,6 +527,10 @@ def _copy_account_document(account_file, booking_code, kind):
     shutil.copyfile(src, os.path.join(folder, filename))
     return filename
 
+# ═════════════════════════════════════════════════════════════
+#   FORM DAN PROSES PEMESANAN KENDARAAN
+# ═════════════════════════════════════════════════════════════
+# Menampilkan formulir sewa dan memproses data ketika formulir dikirim.
 @bp.route('/pesanan', methods=['GET', 'POST'])
 def pesanan():
     if 'user_id' not in session:
@@ -640,7 +710,10 @@ def pesanan():
 
     return redirect(url_for('main.pembayaran', rental_id=rental.id))
 
-
+# ═════════════════════════════════════════════════════════════
+#   PEMBATALAN OTOMATIS PESANAN
+# ═════════════════════════════════════════════════════════════
+# Membatalkan pesanan yang belum dibayar setelah melewati batas 24 jam.
 def batalkan_pesanan_kedaluwarsa(rental, commit=True):
     """Membatalkan pesanan lewat tenggat pembayaran 24 jam."""
     if rental.status != Rental.STATUS_MENUNGGU_BAYAR:
@@ -684,6 +757,10 @@ def batalkan_pesanan_kedaluwarsa(rental, commit=True):
 
     return True
 
+# ═════════════════════════════════════════════════════════════
+#   HALAMAN PEMBAYARAN
+# ═════════════════════════════════════════════════════════════
+# Menampilkan halaman pembayaran untuk pesanan tertentu.
 def batalkan_pesanan_tidak_diambil(rental, commit=True):
     """Batalkan pesanan yang sudah dibayar tapi kendaraan tidak diambil."""
     if not rental.is_pickup_expired:
@@ -713,6 +790,7 @@ def batalkan_pesanan_tidak_diambil(rental, commit=True):
 
     return True
 
+# Menampilkan halaman pembayaran untuk pesanan tertentu.
 @bp.route('/pembayaran/<int:rental_id>')
 def pembayaran(rental_id):
     if 'user_id' not in session:
@@ -763,13 +841,17 @@ def pembayaran(rental_id):
         deadline=deadline
     )
 
+# Mengembalikan status pembayaran dalam format JSON.
+# Route ini dapat dipanggil oleh JavaScript untuk memeriksa status terbaru.
 @bp.route('/pembayaran/<int:rental_id>/status')
 def status_pembayaran(rental_id):
     rental = Rental.query.get_or_404(rental_id)
     return jsonify(paid=(rental.payment_status == 'Lunas'))
 
-
-
+# ═════════════════════════════════════════════════════════════
+#   KONFIRMASI PEMBAYARAN BERHASIL
+# ═════════════════════════════════════════════════════════════
+# Menampilkan halaman sukses setelah status pembayaran diperbarui.
 @bp.route('/pembayaran/<int:rental_id>/sukses')
 def pembayaran_sukses(rental_id):
     if 'user_id' not in session:
@@ -812,12 +894,10 @@ def pembayaran_sukses(rental_id):
         user=user
     )
 
-
-
-# =========================================================
-# HALAMAN KELOLA AKUN USER
-# =========================================================
-
+# ═════════════════════════════════════════════════════════════
+#   KELOLA AKUN PENGGUNA
+# ═════════════════════════════════════════════════════════════
+# Menampilkan dan memperbarui data profil pengguna.
 @bp.route('/kelola-akun', methods=['GET', 'POST'])
 def kelola_akun():
     # Cek login menggunakan session yang sudah ada
@@ -941,7 +1021,10 @@ def kelola_akun():
         user=user
     )
 
-
+# ═════════════════════════════════════════════════════════════
+#   KELOLA PESANAN PENGGUNA
+# ═════════════════════════════════════════════════════════════
+# Menampilkan seluruh riwayat pesanan milik pengguna yang login.
 @bp.route('/kelola-pesanan', methods=['GET', 'POST'])
 def kelola_pesanan():
     if 'user_id' not in session:
@@ -968,16 +1051,10 @@ def kelola_pesanan():
         pesanan=pesanan
     )
 
-
-# =========================================================
-# PEMBATALAN PESANAN OLEH PENGGUNA
-# =========================================================
-@bp.route(
-    '/detail-pesanan/<int:rental_id>/batalkan',
-    methods=['POST']
-)
-
-
+# ═════════════════════════════════════════════════════════════
+#   PENGAJUAN PEMBATALAN PESANAN OLEH PENGGUNA
+# ═════════════════════════════════════════════════════════════
+# Route POST digunakan untuk menerima permohonan pembatalan pesanan.
 @bp.route(
     '/detail-pesanan/<int:rental_id>/batalkan',
     methods=['POST'])
@@ -1066,10 +1143,12 @@ def batalkan_pesanan_user(rental_id):
         url_for('main.detail_pesanan', rental_id=rental.id)
     )
 
-
-
+# =========================================================
+#   HALAMAN DETAIL PESANAN
+# =========================================================
 @bp.route('/detail-pesanan/<int:rental_id>')
 def detail_pesanan(rental_id):
+    # Membuat route untuk menampilkan detail pesanan berdasarkan ID rental.
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
 
@@ -1152,7 +1231,7 @@ def detail_pesanan(rental_id):
     )
 
     # =====================================================
-    # WAKTU PERUBAHAN STATUS PESANAN
+    #   WAKTU PERUBAHAN STATUS PESANAN
     # =====================================================
     status_waktu = {}
 
@@ -1285,14 +1364,18 @@ def detail_pesanan(rental_id):
         }.get(rental.status, 0)
     )
 
-
+# =========================================================
+#   HALAMAN RIWAYAT PESANAN
+# =========================================================
 @bp.route('/riwayat-pesanan')
 def riwayat_pesanan():
     if 'user_id' not in session:
+        # Memeriksa apakah pengguna sudah login.
         return redirect(url_for('main.login'))
 
     user = User.query.get(session['user_id'])
-
+    
+    # Mengambil data pengguna dari database.
     if not user:
         session.clear()
         return redirect(url_for('main.login'))
@@ -1321,6 +1404,9 @@ def riwayat_pesanan():
 #    (Notification.overdue_warning & Notification.return_reminder) untuk
 #    membuat objek notifikasi tanpa menyusun string pesan secara manual.
 # ---------------------------------------------------------
+# =========================================================
+#   MEMERIKSA NOTIFIKASI YANG SUDAH ADA
+# =========================================================
 def _notifikasi_sudah_ada(rental, category):
     """Memeriksa apakah kategori notifikasi sudah dibuat untuk pesanan."""
     return Notification.query.filter_by(
@@ -1329,7 +1415,9 @@ def _notifikasi_sudah_ada(rental, category):
         category=category,
     ).first() is not None
 
-
+# =========================================================
+#   MEMERIKSA PENGINGAT DAN DENDA
+# =========================================================
 def periksa_pengingat_dan_denda(user_id=None):
     """
     Memeriksa pengingat pembayaran, pengembalian, dan denda.
@@ -1485,7 +1573,9 @@ def periksa_pengingat_dan_denda(user_id=None):
     if jumlah_baru:
         db.session.commit()
 
-
+# =========================================================
+# MEMBUKA NOTIFIKASI DAN MENANDAINYA SUDAH DIBACA
+# =========================================================
 @bp.route('/notifikasi')
 def notifikasi():
     if 'user_id' not in session:
@@ -1493,7 +1583,9 @@ def notifikasi():
 
     user = User.query.get(session['user_id'])
 
+    # Mengambil data pengguna yang sedang login.
     if not user:
+        # Memeriksa apakah data akun masih tersedia.
         session.clear()
         return redirect(url_for('main.login'))
     
@@ -1541,7 +1633,9 @@ def buka_notifikasi(notification_id):
 
     # Tandai notifikasi sebagai sudah dibaca.
     if not notification.is_read:
+        # Mengubah status notifikasi menjadi sudah dibaca.
         notification.is_read = True
+        # Menyimpan perubahan ke database.
         db.session.commit()
 
     # Buka halaman detail pesanan terkait.
@@ -1553,6 +1647,9 @@ def buka_notifikasi(notification_id):
     )
 
 
+# =========================================================
+# MENGGANTI PASSWORD
+# =========================================================
 @bp.route('/ganti-password', methods=['POST'])
 def ganti_password():
     # Pastikan user sudah login
@@ -1611,7 +1708,7 @@ def ganti_password():
 
 
 # =========================================================
-# HALAMAN LOGIN | REGISTER | LOGOUT
+#   HALAMAN LOGIN | REGISTER | LOGOUT
 # =========================================================
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -2204,7 +2301,6 @@ def admin_proses_pembatalan(rental_id, cancellation_id):
     )
 
 
-
 @bp.route('/admin/penyewaan/<int:rental_id>/status', methods=['POST'])
 @admin_required
 def admin_update_rental_status(rental_id):
@@ -2300,7 +2396,7 @@ def admin_update_rental_status(rental_id):
 
 
 # =========================================================
-# HALAMAN ADMIN: DAFTAR KENDARAAN
+#   HALAMAN ADMIN: DAFTAR KENDARAAN
 # =========================================================
 @bp.route('/admin/kendaraan')
 @admin_required
@@ -2355,7 +2451,7 @@ def admin_kendaraan():
     )
 
 # ========================================================
-# HELPER FUNCTIONS UNTUK HALAMAN TAMBAH / EDIT KENDARAAN
+#   HELPER FUNCTIONS UNTUK HALAMAN TAMBAH / EDIT KENDARAAN
 # ========================================================
 # Batas unggah foto. Aturan ini diperiksa ulang di server karena
 # validasi di browser (accept dan 2 MB) mudah dilewati.
@@ -2517,7 +2613,7 @@ def _delete_vehicle_photo(filename):
 
 
 # =========================================================
-# HALAMAN ADMIN: TAMBAH KENDARAAN
+#   HALAMAN ADMIN: TAMBAH KENDARAAN
 # =========================================================
 @bp.route('/admin/kendaraan/tambah', methods=['GET', 'POST'])
 @admin_required
@@ -2572,7 +2668,7 @@ def tambah_kendaraan():
 
 
 # =========================================================
-# HALAMAN ADMIN: UBAH KENDARAAN
+#   HALAMAN ADMIN: UBAH KENDARAAN
 # =========================================================
 @bp.route('/admin/kendaraan/edit/<int:id>', methods=['GET', 'POST'])
 @admin_required
@@ -2836,7 +2932,7 @@ def admin_pelanggan():
 ALLOWED_IMG_EXT = {'jpg', 'jpeg', 'png', 'webp'}
 
 # =========================================================
-# KELOLA PELANGGAN (admin_bp)  &  KELOLA ADMIN (superadmin_bp)
+#   KELOLA PELANGGAN (admin_bp)  &  KELOLA ADMIN (superadmin_bp)
 # =========================================================
 import re
 from flask.views import MethodView
@@ -2846,8 +2942,9 @@ from app.models import Customer, Admin
 admin_bp = Blueprint('kelola_pelanggan', __name__, url_prefix='/admin/kelola-pelanggan')
 superadmin_bp = Blueprint('kelola_admin', __name__, url_prefix='/superadmin/kelola-admin')
 
-
-# ---------- PENJAGA AKSES ----------
+# =========================================================
+#   PENJAGA AKSES
+# =========================================================
 def superadmin_required(view_func):
     """Decorator: hanya role 'superadmin'. (Untuk Admin biasa & Super Admin pakai admin_required.)"""
     @wraps(view_func)
@@ -3027,7 +3124,7 @@ class AdminService(BaseUserService):
             raise ValidationError(['Email sudah terdaftar.'])
         return new_admin
 
-    # ---------- penyimpanan foto profil ----------
+    # Penyimpanan foto profil
     @staticmethod
     def _photo_folder():
         return os.path.join(current_app.root_path, 'static', 'uploads', 'profil')
@@ -3177,8 +3274,6 @@ superadmin_bp.add_url_rule('/tambah', view_func=AdminCreateView.as_view('tambah'
                            methods=['GET', 'POST'])
 
 
-
-
 def _save_driver_file(file_storage, prefix):
     """Simpan foto sopir / SIM ke static/uploads/sopir. Return nama file, atau None."""
     if not file_storage or not file_storage.filename:
@@ -3199,8 +3294,9 @@ def _delete_driver_file(filename):
         if os.path.exists(path):
             os.remove(path)
 
-
-# ---------- DAFTAR SOPIR ----------
+# =========================================================
+#   DAFTAR SOPIR 
+# =========================================================
 @bp.route('/admin/sopir')
 @admin_required
 def admin_sopir():
@@ -3227,8 +3323,9 @@ def admin_sopir():
         **admin_context()
     )
 
-
-# ---------- TAMBAH SOPIR ----------
+# =========================================================
+#   TAMBAH SOPIR
+# =========================================================
 @bp.route('/admin/sopir/tambah', methods=['GET', 'POST'])
 @admin_required
 def tambah_sopir():
@@ -3255,8 +3352,9 @@ def tambah_sopir():
 
     return render_template('admin/sopir_tambah.html', active_menu='sopir', f={}, **admin_context())
 
-
-# ---------- PROFIL + STATUS SOPIR ----------
+# =========================================================
+#   PROFIL + STATUS SOPIR
+# =========================================================
 @bp.route('/admin/sopir/<int:id>')
 @admin_required
 def admin_sopir_detail(id):
@@ -3274,8 +3372,9 @@ def admin_sopir_detail(id):
         **admin_context()
     )
 
-
-# ---------- PECAT (HAPUS) SOPIR ----------
+# =========================================================
+#   PECAT (HAPUS) SOPIR
+# =========================================================
 @bp.route('/admin/sopir/<int:id>/pecat', methods=['POST'])
 @admin_required
 def pecat_sopir(id):
@@ -3345,13 +3444,8 @@ def logout():
     return redirect(url_for('main.login'))
 
 
-
-
-
-
-
 # =========================================================
-# HALAMAN ADMIN: LIVE TRACKING
+#   HALAMAN ADMIN: LIVE TRACKING
 # =========================================================
 @bp.route('/admin/tracking')
 @admin_required
