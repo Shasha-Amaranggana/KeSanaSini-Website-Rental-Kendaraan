@@ -1,7 +1,8 @@
-from app import create_app
+x = 10
+y = 6 / 2
 
-app = create_app()
+def hitungBro():
+    x = 3 + 3
+    print(x + y)
 
-if __name__ == '__main__':
-    # Run the Flask development server on port 5000
-    app.run(debug=True) 
+hitungBro()
