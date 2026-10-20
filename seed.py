@@ -39,15 +39,19 @@ def run_seed():
     db.session.add(user_biasa)
     db.session.add(admin_web)
 
-    # Akun Super Admin + beberapa admin contoh (modul Kelola Admin)
+    # ---------------------------------------------------------
+    # Akun Super Admin + admin contoh (data uji modul Kelola Admin)
+    # role="superadmin"/"admin" membuat SQLAlchemy memetakan ke class SuperAdmin/Admin (polimorfisme)
+    # ---------------------------------------------------------
     super_admin = User(
         name="Super Admin", birth_date=date(1988, 3, 3), gender="Laki-laki",
         email="superadmin@sanasini.com", phone="08999000111", emergency_phone="08999000222",
         ktp_number="1234567890123456", sim_number="123456789012", role="superadmin"
     )
-    super_admin.set_password("admin123")
+    super_admin.set_password("admin123")  # disimpan sebagai hash, bukan teks asli
     db.session.add(super_admin)
 
+    # Tiga admin contoh: (nama, email, status aktif). Mimin dibuat nonaktif untuk menguji tampilan "Tidak Aktif"
     for nama, email, aktif in [("Mimin Jakan", "mimin@sanasini.com", False),
                                ("Lamin Temet", "lamin@sanasini.com", True),
                                ("Fandi Santoso", "fandi@sanasini.com", True)]:
