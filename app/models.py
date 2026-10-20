@@ -386,6 +386,15 @@ class Rental(db.Model):
     # Membungkus komputasi deadline (tanggal + jam), selisih waktu sewa,
     # pengingat H-3 (is_due_soon), dan status keterlambatan (is_overdue).
     # ---------------------------------------------------------
+    # [OOP - ENKAPSULASI]: aturan "sudah dibayar tapi tidak diambil" dibungkus di model
+    @property
+    def is_pickup_expired(self):
+        """Sudah dibayar tapi kendaraan tidak diambil sampai batas akhir sewa lewat."""
+        return (
+            self.status in (self.STATUS_MENUNGGU_KONFIRMASI, self.STATUS_PENGAMBILAN)
+            and datetime.now() > self.return_deadline
+        )
+    
     @property
     def return_deadline(self):
         """Tanggal + jam pengembalian digabung menjadi satu datetime."""
@@ -629,6 +638,7 @@ class Notification(db.Model):
     CATEGORY_PAYMENT_1H = 'payment_1h'
     CATEGORY_PAYMENT_30M = 'payment_30m'
     CATEGORY_PAYMENT_CANCELLED = 'payment_cancelled'
+    CATEGORY_PICKUP_EXPIRED = 'pickup_expired'
 
     # Notifikasi pengembalian kendaraan
     CATEGORY_RETURN_24H = 'return_24h'
@@ -676,6 +686,10 @@ class Notification(db.Model):
             'fa-solid fa-ban',
             'tone-danger'
         ),
+        CATEGORY_PICKUP_EXPIRED: (
+            'fa-solid fa-ban',
+            'tone-danger'
+        ),
         CATEGORY_RETURN_24H: (
             'fa-solid fa-car-side',
             'tone-info'
@@ -695,6 +709,7 @@ class Notification(db.Model):
         CATEGORY_PAYMENT_1H: 'card-payment',
         CATEGORY_PAYMENT_30M: 'card-payment',
         CATEGORY_PAYMENT_CANCELLED: 'card-payment',
+        CATEGORY_PICKUP_EXPIRED: 'card-rental',
         CATEGORY_RETURN_24H: 'card-rental',
         CATEGORY_RETURN_3H: 'card-rental',
     }
@@ -708,6 +723,7 @@ class Notification(db.Model):
         CATEGORY_PAYMENT_1H: ('Pengingat Pembayaran', 'warning'),
         CATEGORY_PAYMENT_30M: ('Segera Bayar', 'warning'),
         CATEGORY_PAYMENT_CANCELLED: ('Dibatalkan', 'danger'),
+        CATEGORY_PICKUP_EXPIRED: ('Dibatalkan', 'danger'),
         CATEGORY_RETURN_24H: ('Pengingat Pengembalian', 'info'),
         CATEGORY_RETURN_3H: ('Segera Dikembalikan', 'warning'),
     }
@@ -813,6 +829,25 @@ class Notification(db.Model):
                 f'Batas pembayaran: {batas}.'
             ),
             old_status=old_status or Rental.STATUS_MENUNGGU_BAYAR,
+            new_status=Rental.STATUS_BATAL,
+        )
+
+    @classmethod
+    def pickup_expired(cls, rental, old_status=None):
+        """Notifikasi pembatalan otomatis karena kendaraan tidak diambil."""
+        batas = rental.return_deadline.strftime('%d-%m-%Y pukul %H:%M')
+        return cls(
+            user_id=rental.user_id,
+            rental_id=rental.id,
+            category=cls.CATEGORY_PICKUP_EXPIRED,
+            title='Pesanan Dibatalkan karena Kendaraan Tidak Diambil',
+            message=(
+                f'Pesanan {rental.booking_code} dibatalkan otomatis karena kendaraan '
+                f'tidak diambil hingga batas akhir masa sewa ({batas}). '
+                'Untuk pengembalian dana, silakan hubungi admin melalui halaman '
+                'detail pesanan.'
+            ),
+            old_status=old_status or rental.status,
             new_status=Rental.STATUS_BATAL,
         )
 
