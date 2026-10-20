@@ -341,6 +341,15 @@ class Rental(db.Model):
         lazy=True
     )
 
+    # Riwayat permohonan pembatalan dan pengembalian dana.
+    cancellations = db.relationship(
+        'RentalCancellation',
+        back_populates='rental',
+        cascade='all, delete-orphan',
+        order_by='RentalCancellation.id',
+        lazy=True
+    )
+
     # ---- Aturan bisnis pengingat & denda ----
     REMINDER_DAYS = 3                 # pengingat mulai H-3 sebelum batas kembali
     FINE_ADMIN_FEE = 50000            # denda administrasi per hari keterlambatan
@@ -567,6 +576,97 @@ class RentalStatusHistory(db.Model):
         back_populates='status_history'
     )
 
+
+
+# =========================================================
+# RENTAL CANCELLATION
+# Permohonan pembatalan dan pengembalian dana.
+# =========================================================
+class RentalCancellation(db.Model):
+    __tablename__ = 'rental_cancellation'
+
+    STATUS_DIAJUKAN = 'Pembatalan Diajukan'
+    STATUS_DISETUJUI = 'Pembatalan Disetujui'
+    STATUS_DITOLAK = 'Pembatalan Ditolak'
+    STATUS_MENUNGGU_REFUND = 'Menunggu Pengembalian Dana'
+    STATUS_DANA_DIKEMBALIKAN = 'Dana dikembalikan'
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    rental_id = db.Column(
+        db.Integer,
+        db.ForeignKey('rental.id'),
+        nullable=False,
+        index=True
+    )
+
+    # Alasan dari pilihan pelanggan atau keterangan admin.
+    reason = db.Column(
+        db.String(500),
+        nullable=False
+    )
+
+    # Sumber pembatalan: customer atau admin.
+    initiated_by = db.Column(
+        db.String(20),
+        nullable=False
+    )
+
+    status = db.Column(
+        db.String(50),
+        nullable=False,
+        default=STATUS_DIAJUKAN
+    )
+
+    # Waktu pengajuan hanya berlaku untuk pengajuan pelanggan.
+    requested_at = db.Column(
+        db.DateTime,
+        nullable=True
+    )
+
+    approved_at = db.Column(
+        db.DateTime,
+        nullable=True
+    )
+
+    rejected_at = db.Column(
+        db.DateTime,
+        nullable=True
+    )
+
+    # Waktu pembatalan langsung oleh admin atau hasil persetujuan.
+    cancelled_at = db.Column(
+        db.DateTime,
+        nullable=True
+    )
+
+    # Diisi setelah refund benar-benar dilakukan.
+    refunded_at = db.Column(
+        db.DateTime,
+        nullable=True
+    )
+
+    # None berarti tidak ada refund yang perlu diproses.
+    refund_amount = db.Column(
+        db.Integer,
+        nullable=True
+    )
+
+    admin_note = db.Column(
+        db.Text,
+        nullable=True
+    )
+
+    rental = db.relationship(
+        'Rental',
+        back_populates='cancellations'
+    )
+
+
+
 # =========================================================
 # REVIEW MODEL (Ulasan Pengguna)
 # ---------------------------------------------------------
@@ -730,32 +830,62 @@ class Notification(db.Model):
 
     # [OOP - ENKAPSULASI (Property)]: Menentukan ikon visual berdasarkan kategori
     @property
-    def icon(self):
-        return self._STYLE.get(
-            self.category, self._STYLE[self.CATEGORY_STATUS])[0]
+    def is_manual_cancellation(self):
+        return (
+            self.category == self.CATEGORY_STATUS
+            and self.new_status == Rental.STATUS_BATAL
+        )
 
-    # [OOP - ENKAPSULASI (Property)]: Menentukan tone warna badge berdasarkan kategori
+
+    @property
+    def icon(self):
+        if self.is_manual_cancellation:
+            return 'fa-solid fa-ban'
+
+        return self._STYLE.get(
+            self.category,
+            self._STYLE[self.CATEGORY_STATUS]
+        )[0]
+
+
     @property
     def tone(self):
+        if self.is_manual_cancellation:
+            return 'tone-danger'
+
         return self._STYLE.get(
-            self.category, self._STYLE[self.CATEGORY_STATUS])[1]
+            self.category,
+            self._STYLE[self.CATEGORY_STATUS]
+        )[1]
+
 
     @property
     def card_tone(self):
+        if self.is_manual_cancellation:
+            return 'card-rental'
+
         return self._CARD_STYLE.get(
             self.category,
             self._CARD_STYLE[self.CATEGORY_STATUS]
         )
 
+
     @property
     def badge_label(self):
+        if self.is_manual_cancellation:
+            return 'Dibatalkan'
+
         return self._BADGE_STYLE.get(
             self.category,
             self._BADGE_STYLE[self.CATEGORY_STATUS]
         )[0]
 
+
     @property
     def badge_tone(self):
+        if self.is_manual_cancellation:
+            return 'danger'
+
         return self._BADGE_STYLE.get(
             self.category,
             self._BADGE_STYLE[self.CATEGORY_STATUS]
@@ -770,171 +900,46 @@ class Notification(db.Model):
     def _rp(n):
         return 'Rp{:,.0f}'.format(n).replace(',', '.')
 
+
     @classmethod
-    def status_changed(cls, rental, old_status):
-        msg = (f'Status pesanan {rental.booking_code} berubah dari '
-               f'"{old_status}" menjadi "{rental.status}".')
-        if rental.status == Rental.STATUS_BATAL and rental.cancellation_reason:
-            msg += f' Alasan: {rental.cancellation_reason}'
+    def status_changed(cls, rental, old_status, cancelled_by=None):
+        if (
+            rental.status == Rental.STATUS_BATAL
+            and cancelled_by in ('user', 'admin')
+        ):
+            alasan = (
+                rental.cancellation_reason or 'Tidak dicantumkan'
+            ).strip()
+
+            title = (
+                f'Pesanan Dibatalkan oleh {cancelled_by.title()}'
+            )
+
+            message = (
+                f'Pesanan {rental.booking_code} dibatalkan '
+                f'oleh {cancelled_by} dengan alasan {alasan}. '
+                'Untuk pengembalian dana, silakan hubungi admin '
+                'melalui halaman detail pesanan.'
+            )
+        else:
+            title = 'Status Pesanan Diperbarui'
+            message = (
+                f'Status pesanan {rental.booking_code} berubah dari '
+                f'"{old_status}" menjadi "{rental.status}".'
+            )
+
+            if rental.status == Rental.STATUS_BATAL and rental.cancellation_reason:
+                message += f' Alasan: {rental.cancellation_reason}'
+
         return cls(
-            user_id=rental.user_id, rental_id=rental.id,
+            user_id=rental.user_id,
+            rental_id=rental.id,
             category=cls.CATEGORY_STATUS,
-            title='Status Pesanan Diperbarui',
-            message=msg,
-            old_status=old_status, new_status=rental.status,
-        )
-
-    @classmethod
-    def payment_reminder(cls, rental, category):
-        """Membuat pengingat pembayaran H-1 jam atau H-30 menit."""
-        deadline = rental.created_at + timedelta(hours=24)
-        batas = deadline.strftime('%d-%m-%Y pukul %H:%M')
-
-        if category == cls.CATEGORY_PAYMENT_1H:
-            title = 'Pembayaran Akan Berakhir dalam 1 Jam'
-            detail_waktu = 'Batas pembayaran tinggal sekitar 1 jam lagi.'
-        else:
-            title = 'Pembayaran Berakhir dalam 30 Menit'
-            detail_waktu = 'Batas pembayaran tinggal sekitar 30 menit lagi.'
-
-        return cls(
-            user_id=rental.user_id,
-            rental_id=rental.id,
-            category=category,
             title=title,
-            message=(
-                f'{detail_waktu} Segera selesaikan pembayaran untuk pesanan '
-                f'{rental.booking_code}. Batas pembayaran: {batas}. '
-                'Jika sampai batas waktu belum dibayar, '
-                'pesanan akan dibatalkan otomatis.'
-            ),
-            old_status=rental.status,
+            message=message,
+            old_status=old_status,
             new_status=rental.status,
         )
-
-    @classmethod
-    def payment_cancelled(cls, rental, old_status=None):
-        """Membuat notifikasi pembatalan otomatis akibat pembayaran."""
-        deadline = rental.created_at + timedelta(hours=24)
-        batas = deadline.strftime('%d-%m-%Y pukul %H:%M')
-
-        return cls(
-            user_id=rental.user_id,
-            rental_id=rental.id,
-            category=cls.CATEGORY_PAYMENT_CANCELLED,
-            title='Pesanan Dibatalkan karena Belum Dibayar',
-            message=(
-                f'Pesanan {rental.booking_code} dibatalkan otomatis karena '
-                'pembayaran tidak diselesaikan dalam 24 jam sejak pemesanan. '
-                f'Batas pembayaran: {batas}.'
-            ),
-            old_status=old_status or Rental.STATUS_MENUNGGU_BAYAR,
-            new_status=Rental.STATUS_BATAL,
-        )
-
-    @classmethod
-    def pickup_expired(cls, rental, old_status=None):
-        """Notifikasi pembatalan otomatis karena kendaraan tidak diambil."""
-        batas = rental.return_deadline.strftime('%d-%m-%Y pukul %H:%M')
-        return cls(
-            user_id=rental.user_id,
-            rental_id=rental.id,
-            category=cls.CATEGORY_PICKUP_EXPIRED,
-            title='Pesanan Dibatalkan karena Kendaraan Tidak Diambil',
-            message=(
-                f'Pesanan {rental.booking_code} dibatalkan otomatis karena kendaraan '
-                f'tidak diambil hingga batas akhir masa sewa ({batas}). '
-                'Untuk pengembalian dana, silakan hubungi admin melalui halaman '
-                'detail pesanan.'
-            ),
-            old_status=old_status or rental.status,
-            new_status=Rental.STATUS_BATAL,
-        )
-
-    @classmethod
-    def return_deadline_reminder(cls, rental, category):
-        """Membuat pengingat menjelang batas pengembalian kendaraan."""
-        batas = rental.return_deadline.strftime('%d-%m-%Y pukul %H:%M')
-
-        if category == cls.CATEGORY_RETURN_24H:
-            title = 'Pengingat Pengembalian Kendaraan dalam 24 Jam'
-            keterangan = (
-                'Waktu pengembalian sudah memasuki 24 jam terakhir.'
-            )
-        else:
-            title = 'Pengingat: 3 Jam Menuju Pengembalian Kendaraan'
-            keterangan = (
-                'Waktu pengembalian tinggal sekitar 3 jam lagi.'
-            )
-
-        return cls(
-            user_id=rental.user_id,
-            rental_id=rental.id,
-            category=category,
-            title=title,
-            message=(
-                f'{keterangan} Mohon kembalikan kendaraan untuk pesanan '
-                f'{rental.booking_code} tepat waktu. '
-                f'Batas pengembalian: {batas}. '
-                f'Keterlambatan dikenakan denda '
-                f'{cls._rp(rental.fine_per_day)} per hari.'
-            ),
-            old_status=rental.status,
-            new_status=rental.status,
-        )
-
-    @classmethod
-    def return_reminder(cls, rental):
-        batas = rental.return_deadline.strftime('%d-%m-%Y pukul %H:%M')
-        return cls(
-            user_id=rental.user_id, rental_id=rental.id,
-            category=cls.CATEGORY_REMINDER,
-            title='Pengingat Pengembalian Kendaraan',
-            message=(f'Masa sewa {rental.vehicle.full_name} '
-                     f'({rental.vehicle.vehicle_number}) untuk pesanan '
-                     f'{rental.booking_code} tersisa {rental.remaining_label}. '
-                     f'Batas pengembalian: {batas}. Keterlambatan dikenakan denda '
-                     f'{cls._rp(rental.fine_per_day)} per hari.'),
-            old_status=rental.status, new_status=rental.status,
-        )
-
-    @classmethod
-    def overdue_warning(cls, rental):
-        batas = rental.return_deadline.strftime(
-            '%d-%m-%Y pukul %H:%M'
-        )
-
-        return cls(
-            user_id=rental.user_id,
-            rental_id=rental.id,
-            category=cls.CATEGORY_OVERDUE,
-            title='Pesanan Dikenakan Denda karena Belum Dikembalikan',
-            message=(
-                f'Kendaraan untuk pesanan {rental.booking_code} belum '
-                f'dikembalikan melewati batas pengembalian ({batas}). '
-                f'Saat ini keterlambatan dihitung {rental.late_days} hari '
-                f'dengan denda berjalan '
-                f'{cls._rp(rental.active_fine)}. '
-                'Segera kembalikan kendaraan agar denda tidak bertambah.'
-            ),
-            old_status=rental.status,
-            new_status=rental.status,
-        )
-
-    @classmethod
-    def fine_issued(cls, rental):
-        return cls(
-            user_id=rental.user_id, rental_id=rental.id,
-            category=cls.CATEGORY_FINE,
-            title='Tagihan Denda Keterlambatan',
-            message=(f'Kendaraan pesanan {rental.booking_code} dikembalikan '
-                     f'terlambat {rental.fine_days} hari. Total denda: '
-                     f'{cls._rp(rental.fine_amount)}. Silakan selesaikan '
-                     f'pembayaran denda kepada admin.'),
-            old_status=rental.status, new_status=rental.status,
-        )
-
-
 
 # =========================================================
 # MODEL TURUNAN USER (Kelola Pelanggan & Kelola Admin)

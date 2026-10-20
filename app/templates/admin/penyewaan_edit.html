@@ -203,6 +203,153 @@
                 </div>
             </div>
             {% endif %}
+
+            <!-- PANEL PERMOHONAN PEMBATALAN DARI PELANGGAN -->
+            {% if cancellation
+                and cancellation.initiated_by == 'customer'
+                and cancellation.status == 'Pembatalan Diajukan' %}
+
+            <div class="card-detail"
+                style="margin-bottom: 20px; border: 1px solid #FDBA74;">
+
+                <div class="card-title">
+                    Permohonan Pembatalan
+                </div>
+
+                <p style="font-size: 13px; line-height: 1.6;">
+                    <strong>Alasan:</strong> {{ cancellation.reason }}
+                </p>
+
+                <p style="font-size: 12px; color: #666;">
+                    Diajukan pada
+                    {{ cancellation.requested_at | tanggal_id }},
+                    pukul {{ cancellation.requested_at.strftime('%H:%M') }}
+                </p>
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'main.admin_proses_pembatalan',
+                        rental_id=rental.id,
+                        cancellation_id=cancellation.id
+                    ) }}"
+                    style="display: flex; gap: 10px; flex-wrap: wrap;">
+
+                    <button
+                        type="submit"
+                        name="action"
+                        value="approve"
+                        style="padding: 10px 14px; border: none;
+                            border-radius: 5px; background: #16A34A;
+                            color: white; cursor: pointer; font-weight: 600;">
+                        Setujui Pembatalan
+                    </button>
+
+                    <button
+                        type="submit"
+                        name="action"
+                        value="reject"
+                        style="padding: 10px 14px; border: 1px solid #DC2626;
+                            border-radius: 5px; background: white;
+                            color: #DC2626; cursor: pointer; font-weight: 600;"
+                        onclick="return confirm('Yakin menolak permohonan pembatalan ini?');">
+                        Tolak Permohonan
+                    </button>
+
+                </form>
+
+            </div>
+            {% endif %}
+
+
+            <!-- PANEL PENGEMBALIAN DANA -->
+            {% if cancellation
+                and cancellation.refund_amount is not none
+                and cancellation.refunded_at is none
+                and cancellation.status in [
+                    'Pembatalan Disetujui',
+                    'Menunggu Pengembalian Dana'
+                ] %}
+
+            <div class="card-detail"
+                style="margin-bottom: 20px; border: 1px solid #FDBA74;">
+
+                <div class="card-title">
+                    Pengembalian Dana
+                </div>
+
+                <p style="font-size: 13px; line-height: 1.6;">
+                    Dana belum dicatat sebagai selesai dikembalikan.
+                    Setelah refund benar-benar dilakukan, masukkan nominal
+                    yang dikembalikan dan catat prosesnya di sini.
+                </p>
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'main.admin_proses_pembatalan',
+                        rental_id=rental.id,
+                        cancellation_id=cancellation.id
+                    ) }}">
+
+                    <label for="refund_amount"
+                        class="info-label"
+                        style="font-weight: 600;">
+                        Nominal dana yang dikembalikan (Rp)
+                    </label>
+
+                    <input
+                        type="number"
+                        id="refund_amount"
+                        name="refund_amount"
+                        min="0"
+                        max="{{ rental.total_price }}"
+                        value="{{ cancellation.refund_amount }}"
+                        required
+                        style="display: block; width: 100%;
+                            padding: 10px; margin: 8px 0 16px;
+                            border: 1px solid #ccc; border-radius: 5px;">
+
+                    <button
+                        type="submit"
+                        name="action"
+                        value="refund"
+                        style="padding: 10px 14px; border: none;
+                            border-radius: 5px; background: #16A34A;
+                            color: white; cursor: pointer; font-weight: 600;"
+                        onclick="return confirm('Catat bahwa dana benar-benar sudah dikembalikan?');">
+                        Catat Dana Dikembalikan
+                    </button>
+
+                </form>
+
+            </div>
+            {% endif %}
+
+
+            <!-- INFORMASI REFUND YANG SUDAH SELESAI -->
+            {% if cancellation and cancellation.refunded_at %}
+
+            <div class="card-detail"
+                style="margin-bottom: 20px; border: 1px solid #86EFAC;">
+
+                <div class="card-title">
+                    Dana Berhasil Dikembalikan
+                </div>
+
+                <p style="font-size: 13px;">
+                    <strong>Nominal:</strong>
+                    Rp {{ cancellation.refund_amount | rupiah }}
+                </p>
+
+                <p style="font-size: 12px; color: #666;">
+                    <strong>Waktu:</strong>
+                    {{ cancellation.refunded_at | tanggal_id }},
+                    pukul {{ cancellation.refunded_at.strftime('%H:%M') }}
+                </p>
+
+            </div>
+            {% endif %}
             
             <form method="POST" action="{{ url_for('main.admin_penyewaan_edit', id=rental.id) }}">
                 <div style="margin-bottom: 20px;">
