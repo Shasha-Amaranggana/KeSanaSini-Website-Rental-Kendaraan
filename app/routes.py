@@ -3154,6 +3154,8 @@ class PelangganListView(MethodView):
     decorators = [admin_required]
     service = CustomerService()
 
+    # [ Polimorfisme - class PelangganListView & AdminListView ]
+    # Nama method sama, implementasi/perilaku berbeda sesuai kebutuhan kelas
     def get(self):
         keyword = request.args.get('q', '').strip()
         page = request.args.get('page', 1, type=int)
@@ -3176,6 +3178,8 @@ class PelangganStatusView(MethodView):
     decorators = [admin_required]
     service = CustomerService()
 
+    # [ Polimorfisme - class PelangganStatusView & AdminStatusView ]
+    # Nama method sama, implementasi/perilaku berbeda sesuai kebutuhan kelas
     def post(self, user_id):
         customer = self.service.get_or_404(user_id)
         active = request.form.get('is_active') == '1'
@@ -3205,6 +3209,8 @@ class AdminListView(MethodView):
     decorators = [superadmin_required]
     service = AdminService()
 
+    # [ Polimorfisme - class PelangganListView & AdminListView ]
+    # Nama method sama, implementasi/perilaku berbeda sesuai kebutuhan kelas
     def get(self):
         keyword = request.args.get('q', '').strip()
         page = request.args.get('page', 1, type=int)
@@ -3225,6 +3231,8 @@ class AdminStatusView(MethodView):
     decorators = [superadmin_required]
     service = AdminService()
 
+    # [ Polimorfisme - class PelangganStatusView & AdminStatusView ]
+    # Nama method sama, implementasi/perilaku berbeda sesuai kebutuhan kelas
     def post(self, user_id):
         target = self.service.get_or_404(user_id)
         active = request.form.get('is_active') == '1'
