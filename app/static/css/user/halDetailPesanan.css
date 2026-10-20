@@ -942,12 +942,12 @@
 }
 
 
-/* J.18. Mengatur kolom teks alasan pembatalan
+/* J.18. Mengatur dropdown pilihan alasan pembatalan
    ═══════════════════════════════════════════════════════ */
-.cancel-reason-modal textarea {
+.cancel-reason-modal select {
     display: block;
     width: 100%;
-    min-height: 110px;
+    min-height: 46px;
     padding: 12px 14px;
 
     border: 1px solid #d9d9d9;
@@ -959,24 +959,23 @@
     font: inherit;
     font-size: 13px;
 
-    resize: vertical;
+    cursor: pointer;
 }
 
 
-/* J.19. Memberikan penanda ketika kolom alasan dipilih
+/* J.19. Memberikan penanda ketika dropdown dipilih
    ═══════════════════════════════════════════════════════ */
-.cancel-reason-modal textarea:focus {
+.cancel-reason-modal select:focus {
     border-color: #f47721;
     box-shadow: 0 0 0 3px rgba(244, 119, 33, 0.12);
 }
 
 
-/* J.20. Mengatur warna teks petunjuk pada kolom alasan
+/* J.20. Membuat teks pilihan awal terlihat seperti petunjuk
    ═══════════════════════════════════════════════════════ */
-.cancel-reason-modal textarea::placeholder {
+.cancel-reason-modal select:invalid {
     color: #aaaaaa;
 }
-
 
 /* J.21. Mengatur teks petunjuk tambahan pada form alasan
    ═══════════════════════════════════════════════════════ */
@@ -987,6 +986,12 @@
     font-size: 11px;
 }
 
+
+/* J.22. Memastikan pilihan alasan tetap terbaca jelas */
+   ═══════════════════════════════════════════════════════ */
+.cancel-reason-modal select option {
+    color: #333333;
+}
 
 
 /* ═════════════════════════════════════════════════════════════

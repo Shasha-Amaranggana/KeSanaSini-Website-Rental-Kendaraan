@@ -34,24 +34,6 @@ def periksa_notifikasi_otomatis():
             'Gagal memproses notifikasi otomatis KeSanaSini.'
         )
 
-    # Batas waktu pembayaran adalah 24 jam sejak pesanan dibuat.
-    batas_waktu = datetime.now() - timedelta(hours=24)
-
-    # Cari pesanan yang belum dibayar dan sudah kedaluwarsa.
-    pesanan_kedaluwarsa = Rental.query.filter(
-        Rental.status == Rental.STATUS_MENUNGGU_BAYAR,
-        Rental.payment_status != 'Lunas',
-        Rental.created_at <= batas_waktu
-    ).all()
-
-    # Batalkan semua pesanan yang sudah melewati batas waktu.
-    if pesanan_kedaluwarsa:
-        for rental in pesanan_kedaluwarsa:
-            rental.change_status(Rental.STATUS_BATAL)
-
-        db.session.commit()
-
-
 BULAN_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli',
             'Agustus', 'September', 'Oktober', 'November', 'Desember']
 
@@ -372,6 +354,13 @@ PURPOSES = ['Liburan', 'Dinas / Bisnis', 'Acara keluarga', 'Pernikahan', 'Lainny
 REGIONS = ['Dalam kota', 'Luar kota']
 LOCATIONS = ['Kantor rental', 'Bandara SAMS Sepinggan']
 ALLOWED_DOC_EXT = {'jpg', 'jpeg', 'png', 'pdf'}
+ALASAN_PEMBATALAN_USER = [
+    'Ingin mengubah rincian dan membuat pesanan baru',
+    'Kendaraan memiliki ulasan yang kurang baik (Detail kendaraan kurang sesuai, pengalaman pelanggan berbeda, dan lainnya).',
+    'Menemukan alternatif rental lain.',
+    'Pesanan dibuat secara tidak sengaja.',
+    'Alasan lainnya (Berubah pikiran, rencana perjalanan berubah atau dibatalkan, dan lainnya).'
+]
 
 def _save_document(file_storage, booking_code, kind):
     """Simpan KTP/SIM ke static/uploads/dokumen. Return nama file, atau None."""
@@ -953,19 +942,17 @@ def batalkan_pesanan_user(rental_id):
         ]
     )
 
-    # Ambil alasan pembatalan dari formulir.
+    # Ambil alasan pembatalan dari dropdown.
     cancellation_reason = request.form.get(
         'cancellation_reason', ''
     ).strip()
 
-    if not cancellation_reason:
-        flash('Alasan pembatalan wajib diisi.', 'error')
-        return redirect(
-            url_for('main.detail_pesanan', rental_id=rental.id)
+    # Pastikan alasan sesuai dengan salah satu pilihan yang tersedia.
+    if cancellation_reason not in ALASAN_PEMBATALAN_USER:
+        flash(
+            'Silakan pilih alasan pembatalan yang tersedia.',
+            'error'
         )
-
-    if len(cancellation_reason) > 500:
-        flash('Alasan pembatalan maksimal 500 karakter.', 'error')
         return redirect(
             url_for('main.detail_pesanan', rental_id=rental.id)
         )
@@ -1110,7 +1097,8 @@ def detail_pesanan(rental_id):
         user=user,
         rental=rental,
         current_step=current_step,
-        timeline_times=timeline_times
+        timeline_times=timeline_times,
+        alasan_pembatalan=ALASAN_PEMBATALAN_USER
     )
 
 @bp.route('/riwayat-pesanan')

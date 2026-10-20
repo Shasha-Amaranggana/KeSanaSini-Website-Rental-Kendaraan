@@ -470,17 +470,23 @@ orders-page
                                             Alasan pembatalan
                                         </label>
 
-                                        <textarea
+                                        <select
                                             id="cancellation_reason"
                                             name="cancellation_reason"
-                                            rows="4"
-                                            maxlength="500"
-                                            placeholder="Contoh: Ada keperluan mendadak..."
-                                            required
-                                        ></textarea>
+                                            required>
+                                            <option value="" selected disabled>
+                                                Pilih alasan pembatalan
+                                            </option>
+
+                                            {% for alasan in alasan_pembatalan %}
+                                                <option value="{{ alasan }}">
+                                                    {{ alasan }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
 
                                         <small class="cancel-reason-hint">
-                                            Maksimal 500 karakter.
+                                            Pilih salah satu alasan yang tersedia.
                                         </small>
 
                                         <!-- TOMBOL AKSI FORMULIR -->
@@ -508,6 +514,8 @@ orders-page
                         </div>
 
                     </div>
+
+                    {% endif %}
 
                     <!-- HUBUNGI ADMIN JIKA ADA PERTANYAAN -->
                     <div class="order-admin-contact-wrapper">
