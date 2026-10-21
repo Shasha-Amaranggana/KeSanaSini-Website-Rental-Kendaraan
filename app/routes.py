@@ -424,8 +424,9 @@ ALASAN_PEMBATALAN_USER = [
 # ═════════════════════════════════════════════════════════════
 #   FUNGSI BANTUAN PEMBATALAN DAN DOKUMEN
 # ═════════════════════════════════════════════════════════════
-# Memeriksa apakah pesanan sudah dibayar berdasarkan status pembayaran
-# atau status pesanan yang menunjukkan pembayaran telah dilakukan.
+# [OOP - ABSTRAKSI & INSPEKSI RIWAYAT OBJEK]
+# Memeriksa apakah objek Rental sudah dibayar berdasarkan atribut payment_status,
+# status pesanan aktif, maupun koleksi objek riwayat status (status_history).
 def _rental_sudah_dibayar(rental, status_sebelum=None):
     """
     Menentukan apakah pesanan sudah dibayar.
@@ -442,12 +443,20 @@ def _rental_sudah_dibayar(rental, status_sebelum=None):
         Rental.STATUS_SELESAI
     ]
 
+    riwayat_pernah_bayar = any(
+        (h.old_status in status_yang_menandakan_pembayaran)
+        or (h.new_status in status_yang_menandakan_pembayaran)
+        for h in (rental.status_history or [])
+    )
+
     return (
         rental.payment_status == 'Lunas'
         or status in status_yang_menandakan_pembayaran
+        or riwayat_pernah_bayar
     )
 
-# Mengambil pengajuan pembatalan pelanggan yang masih menunggu admin.
+# [OOP - ENKAPSULASI QUERY OBJEK]
+# Mengambil pengajuan pembatalan pelanggan yang masih menunggu keputusan admin.
 def _permohonan_pembatalan_pending(rental_id):
     """Mengambil permohonan pelanggan yang masih menunggu keputusan admin."""
     return (
@@ -462,8 +471,9 @@ def _permohonan_pembatalan_pending(rental_id):
     )
 
 
-# Membuat catatan pembatalan dan pengembalian dana untuk pesanan
-# yang sudah dibayar lalu dibatalkan langsung oleh admin.
+# [OOP - INSTANSIASI OBJEK & RELASI ASOSIASI]
+# Membuat catatan pembatalan dan pengembalian dana (objek RentalCancellation)
+# untuk pesanan yang sudah dibayar lalu dibatalkan langsung oleh admin.
 def _catat_pembatalan_admin_berbayar(
     rental,
     reason,
@@ -473,6 +483,11 @@ def _catat_pembatalan_admin_berbayar(
     Membuat catatan refund saat admin langsung membatalkan
     pesanan yang sudah dibayar.
     """
+    existing = rental.latest_cancellation
+    if existing and existing.needs_refund:
+        existing.reason = reason or existing.reason or 'Dibatalkan oleh Admin.'
+        return existing
+
     pembatalan = RentalCancellation(
         rental_id=rental.id,
         reason=reason or 'Dibatalkan oleh Admin.',
@@ -1165,69 +1180,38 @@ def detail_pesanan(rental_id):
         user_id=user.id
     ).first_or_404()
 
-    # Ambil data pembatalan terbaru untuk pesanan ini.
-    cancellation = (
-        RentalCancellation.query
-        .filter_by(rental_id=rental.id)
-        .order_by(RentalCancellation.id.desc())
-        .first()
-    )
+    # [OOP - PEMANFAATAN PROPERTI ENKAPSULASI & ABSTRAKSI MODEL]
+    # Mengambil objek RentalCancellation terbaru melalui properti enkapsulasi
+    # serta menyinkronkan data lama jika pesanan berbayar sudah berstatus Batal.
+    cancellation = rental.latest_cancellation
+    if (
+        rental.status == Rental.STATUS_BATAL
+        and cancellation is None
+        and _rental_sudah_dibayar(rental)
+    ):
+        waktu_batal = (
+            rental.status_history[-1].changed_at
+            if rental.status_history
+            else datetime.now()
+        )
+        cancellation = _catat_pembatalan_admin_berbayar(
+            rental,
+            rental.cancellation_reason,
+            waktu_batal
+        )
+        db.session.commit()
 
-    # Siapkan tahap timeline pembatalan.
-    cancellation_steps = []
-
-    if cancellation:
-        if cancellation.initiated_by == 'customer':
-            cancellation_steps = [
-                (
-                    'fa-file-circle-plus',
-                    'Pembatalan Diajukan',
-                    cancellation.requested_at
-                ),
-                (
-                    'fa-circle-check',
-                    'Pembatalan Disetujui',
-                    cancellation.approved_at
-                )
-            ]
-
-            # Tahap refund hanya berlaku untuk pesanan berbayar.
-            if cancellation.refund_amount is not None:
-                cancellation_steps.append(
-                    (
-                        'fa-wallet',
-                        'Dana dikembalikan',
-                        cancellation.refunded_at
-                    )
-                )
-
-        elif (
-            cancellation.initiated_by == 'admin'
-            and cancellation.refund_amount is not None
-        ):
-            cancellation_steps = [
-                (
-                    'fa-ban',
-                    'Pesanan dibatalkan',
-                    cancellation.cancelled_at
-                ),
-                (
-                    'fa-wallet',
-                    'Dana dikembalikan',
-                    cancellation.refunded_at
-                )
-            ]
-
-    # Permohonan masih menunggu persetujuan admin.
     cancellation_is_pending = (
-        cancellation is not None
-        and cancellation.status == RentalCancellation.STATUS_DIAJUKAN
+        cancellation.is_pending if cancellation else False
     )
-
-    # Permohonan ditolak admin.
     cancellation_is_rejected = (
-        cancellation is not None
-        and cancellation.status == RentalCancellation.STATUS_DITOLAK
+        cancellation.is_rejected if cancellation else False
+    )
+    cancellation_steps = (
+        cancellation.timeline_steps if cancellation else []
+    )
+    cancellation_completed_steps = (
+        cancellation.completed_steps_count if cancellation else 0
     )
 
     # =====================================================
@@ -1274,64 +1258,6 @@ def detail_pesanan(rental_id):
             Rental.STATUS_BATAL
         )
     }
-
-    # =====================================================
-    # TIMELINE KHUSUS PEMBATALAN
-    # Satu elemen: (ikon, label, waktu)
-    # =====================================================
-    cancellation_steps = []
-
-    if cancellation and not cancellation_is_rejected:
-
-        if cancellation.initiated_by == 'customer':
-
-            cancellation_steps = [
-                (
-                    'fa-file-circle-plus',
-                    'Pembatalan Diajukan',
-                    cancellation.requested_at
-                ),
-                (
-                    'fa-circle-check',
-                    'Pembatalan Disetujui',
-                    cancellation.approved_at
-                )
-            ]
-
-            # Hanya tampilkan tahap refund jika pesanan memang
-            # memiliki dana yang perlu dikembalikan.
-            if cancellation.refund_amount is not None:
-                cancellation_steps.append(
-                    (
-                        'fa-wallet',
-                        'Dana dikembalikan',
-                        cancellation.refunded_at
-                    )
-                )
-
-        elif (
-            cancellation.initiated_by == 'admin'
-            and cancellation.refund_amount is not None
-        ):
-            cancellation_steps = [
-                (
-                    'fa-ban',
-                    'Pesanan dibatalkan',
-                    cancellation.cancelled_at
-                ),
-                (
-                    'fa-wallet',
-                    'Dana dikembalikan',
-                    cancellation.refunded_at
-                )
-            ]
-
-    # Jumlah tahap berurutan yang telah tercatat waktunya.
-    cancellation_completed_steps = 0
-
-    for _, _, waktu in cancellation_steps:
-        if waktu is not None:
-            cancellation_completed_steps += 1
 
     # Keterangan pembatalan langsung tanpa proses refund.
     alasan_lama = (rental.cancellation_reason or '').lower()
@@ -2046,13 +1972,37 @@ def admin_required(view_func):
 
 def admin_context():
     """Data yang dipakai bersama oleh semua halaman admin (navbar & notifikasi)."""
+    # [OOP - QUERY OBJECT & AGREGASI KONTEKS ADMIN]
+    # Mengambil koleksi objek Rental yang menunggu konfirmasi serta objek
+    # RentalCancellation yang membutuhkan tindakan persetujuan/refund dari Admin.
     pending = (Rental.query
                .filter_by(status=Rental.STATUS_MENUNGGU)
                .order_by(Rental.created_at.desc())
                .all())
+    pending_cancellations = (
+        RentalCancellation.query
+        .join(Rental)
+        .filter(
+            or_(
+                RentalCancellation.status == RentalCancellation.STATUS_DIAJUKAN,
+                db.and_(
+                    Rental.status == Rental.STATUS_BATAL,
+                    RentalCancellation.status.in_([
+                        RentalCancellation.STATUS_DISETUJUI,
+                        RentalCancellation.STATUS_MENUNGGU_REFUND
+                    ]),
+                    RentalCancellation.refund_amount.isnot(None),
+                    RentalCancellation.refunded_at.is_(None)
+                )
+            )
+        )
+        .order_by(RentalCancellation.id.desc())
+        .all()
+    )
     return {
         'admin': User.query.get(session['user_id']),
         'pending_rentals': pending,
+        'pending_cancellations': pending_cancellations,
     }
 
 
@@ -2173,15 +2123,13 @@ def admin_proses_pembatalan(rental_id, cancellation_id):
                 url_for('main.admin_penyewaan_edit', id=rental.id)
             )
 
-        pembatalan.approved_at = sekarang
-        pembatalan.cancelled_at = sekarang
-        pembatalan.status = RentalCancellation.STATUS_DISETUJUI
-
-        # None berarti tidak ada pengembalian dana yang diperlukan.
-        if perlu_refund:
-            pembatalan.refund_amount = rental.total_price
-        else:
-            pembatalan.refund_amount = None
+        # [OOP - ENKAPSULASI & STATE TRANSITION]
+        # Memanggil method behavior approve() pada objek RentalCancellation
+        # serta Factory Method Notification.status_changed().
+        pembatalan.approve(
+            refund_amount=rental.total_price if perlu_refund else None,
+            timestamp=sekarang
+        )
 
         db.session.add(
             Notification.status_changed(
@@ -2218,10 +2166,15 @@ def admin_proses_pembatalan(rental_id, cancellation_id):
                 url_for('main.admin_penyewaan_edit', id=rental.id)
             )
 
-        pembatalan.rejected_at = sekarang
-        pembatalan.status = RentalCancellation.STATUS_DITOLAK
-        pembatalan.admin_note = (
-            request.form.get('admin_note', '').strip() or None
+        # [OOP - ENKAPSULASI & FACTORY METHOD]
+        # Memanggil method behavior reject() pada objek RentalCancellation
+        # dan mengirim notifikasi penolakan ke pelanggan.
+        pembatalan.reject(
+            admin_note=request.form.get('admin_note', ''),
+            timestamp=sekarang
+        )
+        db.session.add(
+            Notification.cancellation_rejected(rental, pembatalan)
         )
 
         # Status pesanan tidak diubah ketika permohonan ditolak.
@@ -2280,10 +2233,12 @@ def admin_proses_pembatalan(rental_id, cancellation_id):
                 url_for('main.admin_penyewaan_edit', id=rental.id)
             )
 
-        pembatalan.refund_amount = nominal
-        pembatalan.refunded_at = sekarang
-        pembatalan.status = (
-            RentalCancellation.STATUS_DANA_DIKEMBALIKAN
+        # [OOP - ENKAPSULASI & FACTORY METHOD]
+        # Memanggil method behavior mark_refunded() untuk memperbarui timeline
+        # menjadi 'Dana dikembalikan' serta menerbitkan notifikasi ke pelanggan.
+        pembatalan.mark_refunded(nominal=nominal, timestamp=sekarang)
+        db.session.add(
+            Notification.refund_completed(rental, pembatalan)
         )
 
         db.session.commit()
@@ -2905,11 +2860,34 @@ def admin_penyewaan_edit(id):
         flash('Data penyewaan berhasil diperbarui.')
         return redirect(url_for('main.admin_penyewaan'))
 
-    cancellation = (
-        RentalCancellation.query
-        .filter_by(rental_id=rental.id)
-        .order_by(RentalCancellation.id.desc())
-        .first()
+    # [OOP - SINKRONISASI OBJEK PEMBATALAN & REFUND]
+    # Mengambil objek RentalCancellation terbaru melalui properti enkapsulasi.
+    # Jika pesanan berstatus Batal dan sudah dibayar namun belum memiliki
+    # catatan RentalCancellation (mis. dari data sebelum migrasi), buat otomatis
+    # agar Admin dapat mengonfirmasi pengembalian dana (refund).
+    cancellation = rental.latest_cancellation
+    if (
+        rental.status == Rental.STATUS_BATAL
+        and cancellation is None
+        and _rental_sudah_dibayar(rental)
+    ):
+        waktu_batal = (
+            rental.status_history[-1].changed_at
+            if rental.status_history
+            else datetime.now()
+        )
+        cancellation = _catat_pembatalan_admin_berbayar(
+            rental,
+            rental.cancellation_reason,
+            waktu_batal
+        )
+        db.session.commit()
+
+    cancellation_steps = (
+        cancellation.timeline_steps if cancellation else []
+    )
+    cancellation_completed_steps = (
+        cancellation.completed_steps_count if cancellation else 0
     )
 
     return render_template(
@@ -2919,6 +2897,9 @@ def admin_penyewaan_edit(id):
         statuses=Rental.ALL_STATUS,
         drivers=drivers,
         cancellation=cancellation,
+        cancellation_steps=cancellation_steps,
+        cancellation_completed_steps=cancellation_completed_steps,
+        perlu_refund=_rental_sudah_dibayar(rental),
         **admin_context()
     )
 

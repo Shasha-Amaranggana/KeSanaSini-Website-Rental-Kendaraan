@@ -78,7 +78,22 @@
                 </td>
                 <td>{{ r.start_date|tanggal_id }}</td>
                 <td>{{ r.end_date|tanggal_id }}</td>
-                <td class="center"><span class="badge badge-{{ r.status }}">{{ r.status }}</span></td>
+                <td class="center">
+                    <span class="badge badge-{{ r.status }}">{{ r.status }}</span>
+                    {% if r.has_pending_cancellation %}
+                    <br><span style="display:inline-block; margin-top:4px; padding:2px 7px; background:#FFF7ED; color:#C2410C; border:1px solid #FDBA74; border-radius:3px; font-size:10px; font-weight:700;">
+                        <i class="fa-solid fa-bell"></i> Permohonan Batal
+                    </span>
+                    {% elif r.needs_refund %}
+                    <br><span style="display:inline-block; margin-top:4px; padding:2px 7px; background:#FEF3C7; color:#92400E; border:1px solid #FDE68A; border-radius:3px; font-size:10px; font-weight:700;">
+                        <i class="fa-solid fa-wallet"></i> Menunggu Refund
+                    </span>
+                    {% elif r.is_refunded %}
+                    <br><span style="display:inline-block; margin-top:4px; padding:2px 7px; background:#ECFDF5; color:#15803D; border:1px solid #86EFAC; border-radius:3px; font-size:10px; font-weight:700;">
+                        <i class="fa-solid fa-circle-check"></i> Dana Dikembalikan
+                    </span>
+                    {% endif %}
+                </td>
                 <td class="center">
                     <button class="btn-sm" type="button"
                         onclick="openView(this)"
@@ -93,13 +108,18 @@
                         data-total="Rp {{ '{:,.0f}'.format(r.total_price).replace(',', '.') }}"
                         data-status="{{ r.status }}"
                         data-special-request="{{ r.special_request or '' }}"
-                        data-cancel-reason="{{ r.cancellation_reason or '' }}">View</button>
+                        data-cancel-reason="{{ r.cancellation_reason or (r.latest_cancellation.reason if r.latest_cancellation else '') }}"
+                        data-cancel-state="{{ r.latest_cancellation.status if r.latest_cancellation else '' }}">View</button>
+                    {% if r.has_pending_cancellation or r.needs_refund %}
+                    <a href="{{ url_for('main.admin_penyewaan_edit', id=r.id) }}" class="btn-sm" style="display:inline-block; text-decoration:none; color:#C2410C; border-color:#FDBA74; background:#FFF7ED; font-weight:600;">Proses</a>
+                    {% else %}
                     <button class="btn-sm" type="button"
                         onclick="openEdit(this)"
                         data-code="{{ r.booking_code }}"
                         data-status="{{ r.status }}"
                         data-cancel-reason="{{ r.cancellation_reason or '' }}"
                         data-action="{{ url_for('main.admin_update_rental_status', rental_id=r.id) }}">Edit</button>
+                    {% endif %}
                 </td>
             </tr>
             {% else %}
@@ -189,7 +209,10 @@
         if (d.specialRequest) {
             rows.push(['Permintaan Khusus', '<span style="color:#C2410C;font-style:italic;">"' + d.specialRequest + '"</span>']);
         }
-        if (d.status === 'Batal' && d.cancelReason) {
+        if (d.cancelState) {
+            rows.push(['Status Pembatalan', '<span style="color:#C2410C;font-weight:600;">' + d.cancelState + '</span>']);
+        }
+        if ((d.status === 'Batal' || d.cancelState) && d.cancelReason) {
             rows.push(['Alasan Batal', '<span style="color:#DC2626;font-weight:500;">' + d.cancelReason + '</span>']);
         }
         document.getElementById('viewBody').innerHTML = rows.map(function (r) {

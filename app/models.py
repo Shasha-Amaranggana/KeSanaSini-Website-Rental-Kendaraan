@@ -1229,6 +1229,57 @@ class Rental(db.Model):
 
         return old_status
 
+    # [OOP - ENKAPSULASI & ASOSIASI OBJEK (OBJECT ASSOCIATION)]
+    # Properti terenkapsulasi untuk mengambil objek RentalCancellation terbaru
+    # dari relasi one-to-many (cancellations) tanpa mengekspos logika pengurutan
+    # secara berulang di layer controller maupun template.
+    @property
+    def latest_cancellation(self):
+        if not self.cancellations:
+            return None
+        return max(self.cancellations, key=lambda c: c.id or 0)
+
+    # [OOP - ENKAPSULASI & ABSTRAKSI STATUS PEMBATALAN]
+    # Menyembunyikan detail pengecekan state permohonan pembatalan pelanggan
+    # yang masih menunggu keputusan (persetujuan/penolakan) dari Admin.
+    @property
+    def has_pending_cancellation(self):
+        latest = self.latest_cancellation
+        return (
+            latest is not None
+            and latest.initiated_by == 'customer'
+            and latest.status == RentalCancellation.STATUS_DIAJUKAN
+        )
+
+    # [OOP - ENKAPSULASI & ABSTRAKSI STATUS REFUND]
+    # Menentukan apakah pesanan yang telah dibatalkan masih membutuhkan
+    # konfirmasi pengembalian dana (refund) dari pihak Admin.
+    @property
+    def needs_refund(self):
+        latest = self.latest_cancellation
+        return (
+            self.status == self.STATUS_BATAL
+            and latest is not None
+            and latest.refund_amount is not None
+            and latest.refunded_at is None
+            and latest.status in (
+                RentalCancellation.STATUS_DISETUJUI,
+                RentalCancellation.STATUS_MENUNGGU_REFUND,
+            )
+        )
+
+    # [OOP - ENKAPSULASI & ABSTRAKSI STATUS REFUND]
+    # Memeriksa apakah proses pengembalian dana (refund) untuk pesanan ini
+    # telah diselesaikan dan dikonfirmasi oleh Admin.
+    @property
+    def is_refunded(self):
+        latest = self.latest_cancellation
+        return (
+            latest is not None
+            and latest.refunded_at is not None
+            and latest.status == RentalCancellation.STATUS_DANA_DIKEMBALIKAN
+        )
+
 
 
 # ═════════════════════════════════════════════════════════════
@@ -1433,6 +1484,108 @@ class RentalCancellation(db.Model):
 
     # Menghubungkan data pembatalan dengan pesanan terkait.
     rental = db.relationship('Rental', back_populates='cancellations')
+
+    # ═════════════════════════════════════════════════════════════════════════
+    #                [METHOD & PROPERTI OOP RENTAL CANCELLATION]
+    # ═════════════════════════════════════════════════════════════════════════
+
+    # [OOP - ENKAPSULASI STATE]
+    # Properti terenkapsulasi untuk memeriksa apakah permohonan pembatalan
+    # dari pelanggan masih menunggu persetujuan Admin.
+    @property
+    def is_pending(self):
+        return (
+            self.initiated_by == 'customer'
+            and self.status == self.STATUS_DIAJUKAN
+        )
+
+    # [OOP - ENKAPSULASI STATE]
+    # Properti terenkapsulasi untuk memeriksa apakah permohonan pembatalan
+    # pelanggan telah ditolak oleh Admin.
+    @property
+    def is_rejected(self):
+        return self.status == self.STATUS_DITOLAK
+
+    # [OOP - ENKAPSULASI STATE REFUND]
+    # Memeriksa apakah objek pembatalan ini membutuhkan konfirmasi
+    # pengembalian dana oleh Admin.
+    @property
+    def needs_refund(self):
+        return (
+            self.refund_amount is not None
+            and self.refunded_at is None
+            and self.status in (
+                self.STATUS_DISETUJUI,
+                self.STATUS_MENUNGGU_REFUND,
+            )
+        )
+
+    # [OOP - ENKAPSULASI STATE REFUND]
+    # Memeriksa apakah dana refund pada pembatalan ini sudah dikembalikan.
+    @property
+    def is_refunded(self):
+        return (
+            self.refunded_at is not None
+            and self.status == self.STATUS_DANA_DIKEMBALIKAN
+        )
+
+    # [OOP - ENKAPSULASI & STATE TRANSITION (BEHAVIOR METHOD)]
+    # Mengenkapsulasi perubahan state saat Admin menyetujui permohonan
+    # pembatalan yang diajukan oleh pelanggan.
+    def approve(self, refund_amount=None, timestamp=None):
+        waktu = timestamp or datetime.now()
+        self.approved_at = waktu
+        self.cancelled_at = waktu
+        self.status = self.STATUS_DISETUJUI
+        self.refund_amount = refund_amount
+
+    # [OOP - ENKAPSULASI & STATE TRANSITION (BEHAVIOR METHOD)]
+    # Mengenkapsulasi perubahan state saat Admin menolak permohonan
+    # pembatalan pelanggan beserta catatan alasan penolakan (admin_note).
+    def reject(self, admin_note=None, timestamp=None):
+        waktu = timestamp or datetime.now()
+        self.rejected_at = waktu
+        self.status = self.STATUS_DITOLAK
+        self.admin_note = (admin_note or '').strip() or None
+
+    # [OOP - ENKAPSULASI & STATE TRANSITION (BEHAVIOR METHOD)]
+    # Mengenkapsulasi perubahan state saat Admin mengonfirmasi bahwa dana
+    # refund telah dikembalikan kepada pelanggan.
+    def mark_refunded(self, nominal=None, timestamp=None):
+        waktu = timestamp or datetime.now()
+        if nominal is not None:
+            self.refund_amount = int(nominal)
+        self.refunded_at = waktu
+        self.status = self.STATUS_DANA_DIKEMBALIKAN
+
+    # [OOP - ABSTRAKSI & POLIMORFISME DATA TIMELINE]
+    # Menghasilkan tahapan timeline pembatalan secara dinamis berdasarkan
+    # aktor pengaju (customer vs admin) dan kondisi pembayaran (refund vs non-refund).
+    @property
+    def timeline_steps(self):
+        if self.is_rejected:
+            return []
+
+        steps = []
+        if self.initiated_by == 'customer':
+            steps = [
+                ('fa-file-circle-plus', 'Pembatalan Diajukan', self.requested_at),
+                ('fa-circle-check', 'Pembatalan Disetujui', self.approved_at),
+            ]
+            if self.refund_amount is not None:
+                steps.append(('fa-wallet', 'Dana dikembalikan', self.refunded_at))
+        elif self.initiated_by == 'admin' and self.refund_amount is not None:
+            steps = [
+                ('fa-ban', 'Pesanan dibatalkan', self.cancelled_at),
+                ('fa-wallet', 'Dana dikembalikan', self.refunded_at),
+            ]
+        return steps
+
+    # [OOP - ABSTRAKSI PERHITUNGAN STATE TIMELINE]
+    # Menghitung jumlah tahapan timeline pembatalan yang sudah selesai (memiliki timestamp).
+    @property
+    def completed_steps_count(self):
+        return sum(1 for _, _, waktu in self.timeline_steps if waktu is not None)
 
 
 
@@ -1902,6 +2055,84 @@ class Notification(db.Model):
             ),
             old_status=rental.status,
             new_status=rental.status,
+        )
+
+    @classmethod
+    def payment_cancelled(cls, rental, old_status=None):
+        """Membuat notifikasi pembatalan otomatis akibat pembayaran kedaluwarsa."""
+        deadline = rental.created_at + timedelta(hours=24)
+        batas = deadline.strftime('%d-%m-%Y pukul %H:%M')
+
+        return cls(
+            user_id=rental.user_id,
+            rental_id=rental.id,
+            category=cls.CATEGORY_PAYMENT_CANCELLED,
+            title='Pesanan Dibatalkan karena Belum Dibayar',
+            message=(
+                f'Pesanan {rental.booking_code} dibatalkan otomatis karena '
+                'pembayaran tidak diselesaikan dalam 24 jam sejak pemesanan. '
+                f'Batas pembayaran: {batas}.'
+            ),
+            old_status=old_status or Rental.STATUS_MENUNGGU_BAYAR,
+            new_status=Rental.STATUS_BATAL,
+        )
+
+    @classmethod
+    def pickup_expired(cls, rental, old_status=None):
+        """Membuat notifikasi pembatalan otomatis karena kendaraan tidak diambil."""
+        return cls(
+            user_id=rental.user_id,
+            rental_id=rental.id,
+            category=cls.CATEGORY_PICKUP_EXPIRED,
+            title='Pesanan Dibatalkan karena Kendaraan Tidak Diambil',
+            message=(
+                f'Pesanan {rental.booking_code} dibatalkan otomatis karena '
+                'kendaraan tidak diambil hingga masa sewa berakhir. '
+                'Silakan hubungi admin untuk informasi lebih lanjut.'
+            ),
+            old_status=old_status or rental.status,
+            new_status=Rental.STATUS_BATAL,
+        )
+
+    # [OOP - FACTORY METHOD & ENKAPSULASI NOTIFIKASI]
+    # Membuat objek Notification saat permohonan pembatalan pelanggan ditolak Admin.
+    @classmethod
+    def cancellation_rejected(cls, rental, cancellation):
+        catatan = (
+            f' Catatan admin: {cancellation.admin_note}'
+            if cancellation and cancellation.admin_note
+            else ''
+        )
+        return cls(
+            user_id=rental.user_id,
+            rental_id=rental.id,
+            category=cls.CATEGORY_STATUS,
+            title='Permohonan Pembatalan Ditolak',
+            message=(
+                f'Permohonan pembatalan untuk pesanan {rental.booking_code} '
+                f'ditolak oleh admin. Status pesanan tetap "{rental.status}".'
+                f'{catatan}'
+            ),
+            old_status=rental.status,
+            new_status=rental.status,
+        )
+
+    # [OOP - FACTORY METHOD & ENKAPSULASI NOTIFIKASI]
+    # Membuat objek Notification saat Admin mengonfirmasi pengembalian dana (refund).
+    @classmethod
+    def refund_completed(cls, rental, cancellation):
+        nominal_rp = cls._rp(cancellation.refund_amount or 0)
+        return cls(
+            user_id=rental.user_id,
+            rental_id=rental.id,
+            category=cls.CATEGORY_STATUS,
+            title='Pengembalian Dana Selesai',
+            message=(
+                f'Pengembalian dana sebesar {nominal_rp} untuk pesanan '
+                f'{rental.booking_code} telah selesai diproses oleh admin.'
+            ),
+            old_status=Rental.STATUS_BATAL,
+            new_status=RentalCancellation.STATUS_DANA_DIKEMBALIKAN,
         )
 
 

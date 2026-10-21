@@ -242,11 +242,31 @@ orders-page
                                         </div>
                                     {% endif %}
 
+                                    {% if rental.needs_refund %}
+                                        <div style="margin-top:6px; display:inline-flex; align-items:center;
+                                        gap:6px; padding:3px 10px; background:#FEF3C7; border:1px solid #FDE68A;
+                                        color:#92400E; border-radius:4px; font-size:11px; font-weight:600;">
+                                            <i class="fa-solid fa-wallet"></i>
+                                            Menunggu Pengembalian Dana (Rp{{ "{:,.0f}".format(rental.latest_cancellation.refund_amount).replace(",", ".") }})
+                                        </div>
+                                    {% elif rental.is_refunded %}
+                                        <div style="margin-top:6px; display:inline-flex; align-items:center;
+                                        gap:6px; padding:3px 10px; background:#ECFDF5; border:1px solid #86EFAC;
+                                        color:#15803D; border-radius:4px; font-size:11px; font-weight:600;">
+                                            <i class="fa-solid fa-circle-check"></i>
+                                            Dana Dikembalikan (Rp{{ "{:,.0f}".format(rental.latest_cancellation.refund_amount).replace(",", ".") }})
+                                        </div>
+                                    {% endif %}
+
                                 </div>
 
                                 <!-- STATUS PESANAN -->
                                 <span class="order-status">
-                                    {{ rental.status }}
+                                    {% if rental.has_pending_cancellation %}
+                                        Pembatalan Diajukan
+                                    {% else %}
+                                        {{ rental.status }}
+                                    {% endif %}
                                 </span>
 
                             </div>
