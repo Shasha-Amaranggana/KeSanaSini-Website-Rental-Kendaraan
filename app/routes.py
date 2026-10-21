@@ -775,10 +775,12 @@ def batalkan_pesanan_kedaluwarsa(rental, commit=True):
 # ═════════════════════════════════════════════════════════════
 #   HALAMAN PEMBAYARAN
 # ═════════════════════════════════════════════════════════════
-# Menampilkan halaman pembayaran untuk pesanan tertentu.
+# Membatalkan pesanan yang sudah dibayar tetapi kendaraan tidak diambil
 def batalkan_pesanan_tidak_diambil(rental, commit=True):
     """Batalkan pesanan yang sudah dibayar tapi kendaraan tidak diambil."""
     if not rental.is_pickup_expired:
+        return False
+    if _permohonan_pembatalan_pending(rental.id):
         return False
 
     status_lama = rental.status
@@ -940,7 +942,8 @@ def kelola_akun():
 
             if not re.fullmatch(r'\+?\d{10,15}', phone) or \
                 not re.fullmatch(r'\+?\d{10,15}', emergency_phone):
-                raise ValueError('Nomor telepon harus berupa angka 10-15 digit.')
+                flash('Nomor telepon harus berupa angka 10-15 digit.', 'error')
+                return redirect(url_for('main.kelola_akun'))
 
             if gender not in ['Laki-laki', 'Perempuan']:
                 raise ValueError('Jenis kelamin tidak valid.')

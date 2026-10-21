@@ -40,6 +40,7 @@ import math
 
 
 # Menentukan method yang harus dimiliki oleh class penghitung harga.
+# [OOP - ABSTRAKSI]: class abstrak (ABC) dengan @abstractmethod yang mendefinisikan kontrak perhitungan harga.
 class AbstractRentalPricing(ABC):
 
     @abstractmethod
@@ -49,6 +50,7 @@ class AbstractRentalPricing(ABC):
 
 
 # Menghitung total biaya berdasarkan aturan harga yang digunakan website.
+# [OOP - PEWARISAN & OVERRIDING]: mewarisi AbstractRentalPricing dan mengimplementasikan calculate_total().
 class StandardRentalPricing(AbstractRentalPricing):
 
     def calculate_total(self, rental):
@@ -523,7 +525,16 @@ class Vehicle(db.Model):
 #   E.   |   SOPIL MODEL (CLASS DRIVER)
 # ═════════════════════════════════════════════════════════════════════════════
 
-# Menyimpan informasi sopir dan pesanan yang ditanganinya.
+# [OOP - PEWARISAN / INHERITANCE]:
+#   Driver mewarisi db.Model sehingga dapat dipetakan ke tabel sopir.
+# [OOP - ENKAPSULASI / ENCAPSULATION]:
+#   Atribut disimpan sebagai atribut privat (diawali __) dan diakses lewat
+#   getter/setter serta @property, sehingga data sopir tidak diubah langsung dari luar class.
+# [OOP - ABSTRAKSI / ABSTRACTION]:
+#   Cara menentukan status sopir (Tersedia / Menunggu Konfirmasi / Berjalan)
+#   disembunyikan di property status_label. Route dan template cukup memanggil d.status_label.
+# [OOP - ASOSIASI OBJEK]:
+#   Driver terhubung dengan Rental lewat relasi (driver.rentals dan rental.driver).
 class Driver(db.Model):
     
 
@@ -624,6 +635,7 @@ class Driver(db.Model):
         # Membuat kode sopir dari ID-nya.
         return f"SP{self.id:03d}"
 
+# [OOP - ENKAPSULASI]: query penyewaan aktif dibungkus di dalam objek sopir.
     @property
     def current_rental(self):
         # Mengambil pesanan aktif terbaru yang menggunakan sopir ini.
@@ -637,6 +649,7 @@ class Driver(db.Model):
                 .order_by(Rental.start_date.desc())
                 .first())
 
+# [OOP - ABSTRAKSI]: menyembunyikan aturan penentuan status dari pemanggil.
     @property
     def status_label(self):
         # Menentukan status sopir berdasarkan pesanan aktifnya.
@@ -657,6 +670,7 @@ class Driver(db.Model):
                         Rental.created_at >= batas)
                 .count())
 
+# [OOP - ENKAPSULASI]: agregasi rating dihitung di dalam class.
     @property
     def avg_rating(self):
         # Menghitung rata-rata ulasan dari kendaraan pada pesanan yang selesai.
@@ -666,6 +680,7 @@ class Driver(db.Model):
                  for rv in Review.query.filter_by(user_id=u, vehicle_id=v)]
         return round(sum(nilai) / len(nilai), 2) if nilai else 0
 
+# [OOP - ENKAPSULASI]: agregasi rating dihitung di dalam class.
     @property
     def rating_label(self):
         # Mengubah nilai rata-rata menjadi keterangan.
@@ -846,6 +861,8 @@ class Rental(db.Model):
 
     # Informasi pembayaran dan pembatalan.
 
+
+# [OOP - ENKAPSULASI]: data pembayaran bersifat privat dan hanya diakses lewat getter/setter.
     __payment_method      = db.Column("payment_method", db.String(50), nullable=True)
     # Getter dan setter untuk atribut privat payment_method.
     def get_payment_method(self):
@@ -853,7 +870,8 @@ class Rental(db.Model):
     def set_payment_method(self, value):
         self.__payment_method = value
     payment_method = synonym("_Rental__payment_method", descriptor=property(get_payment_method, set_payment_method))
-    
+
+# [OOP - ENKAPSULASI]: data pembayaran bersifat privat dan hanya diakses lewat getter/setter.
     __payment_status      = db.Column("payment_status", db.String(20), nullable=False, default='Belum Lunas') # 'Lunas' / 'Belum Lunas'
     # Getter dan setter untuk atribut privat payment_status.
     def get_payment_status(self):
@@ -1078,6 +1096,7 @@ class Rental(db.Model):
     # ↪  [BATAS WAKTU PENYEWAAN ATURAN]
     # ──────────────────────────────────────────────────────────────────────────
 
+#[OOP - ENKAPSULASI]: aturan "dibayar tapi tidak diambil" dibungkus di model, bukan di route.
     @property
     def is_pickup_expired(self):
         # Memeriksa apakah batas waktu pengambilan sudah lewat.
@@ -1186,6 +1205,7 @@ class Rental(db.Model):
     #                    [METHOD RENTAL - PERUBAHAN STATUS]
     # ═════════════════════════════════════════════════════════════════════════
 
+# [OOP - ENKAPSULASI & STATE TRANSITION]: perubahan status dan efek sampingnya (termasuk status pembayaran) lewat satu pintu.
     def change_status(self, new_status):
         # Mengubah status sekaligus menjalankan proses yang terkait.
         if new_status not in self.ALL_STATUS or new_status == self.status:
@@ -1985,6 +2005,7 @@ class Notification(db.Model):
             new_status=rental.status,
         )
 
+# [OOP - FACTORY METHOD & ENKAPSULASI NOTIFIKASI]
     @classmethod
     def payment_reminder(cls, rental, category):
         # Membuat notifikasi pengingat pembayaran berdasarkan kategori
@@ -2057,6 +2078,7 @@ class Notification(db.Model):
             new_status=rental.status,
         )
 
+# [OOP - FACTORY METHOD & ENKAPSULASI NOTIFIKASI]
     @classmethod
     def payment_cancelled(cls, rental, old_status=None):
         """Membuat notifikasi pembatalan otomatis akibat pembayaran kedaluwarsa."""
@@ -2077,6 +2099,7 @@ class Notification(db.Model):
             new_status=Rental.STATUS_BATAL,
         )
 
+# [OOP - FACTORY METHOD & ENKAPSULASI NOTIFIKASI]
     @classmethod
     def pickup_expired(cls, rental, old_status=None):
         """Membuat notifikasi pembatalan otomatis karena kendaraan tidak diambil."""
