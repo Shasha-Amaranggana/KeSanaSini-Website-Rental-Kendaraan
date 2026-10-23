@@ -111,8 +111,6 @@ orders-page
                         <span class="timeline-current-status">
                             {% if cancellation_is_pending %}
                                 Pembatalan Diajukan
-                            {% elif rental.status == rental.STATUS_BATAL and cancellation %}
-                                {{ cancellation.status }}
                             {% else %}
                                 {{ rental.status }}
                             {% endif %}
@@ -425,9 +423,6 @@ orders-page
                                 </strong>
                             </p>
 
-                            <!-- AKSI UTAMA DETAIL PESANAN -->
-                            <div class="order-actions">
-
                             <!-- TOMBOL PEMBAYARAN -->
                             {% if rental.payment_status != 'Lunas'
                             and rental.status == rental.STATUS_MENUNGGU_BAYAR
@@ -469,8 +464,6 @@ orders-page
                                 </button>
 
                             </div>
-
-                            </div><!-- /order-actions -->
 
                             <!-- BENTUK KONFIRMASI PEMBATALAN -->
                             <div
@@ -668,64 +661,6 @@ orders-page
 
                     </div>
 
-
-                    <!-- REVIEW HANYA TERSEDIA SETELAH PESANAN SELESAI -->
-                    {% if rental.status == rental.STATUS_SELESAI %}
-                        <section class="order-review-section">
-                            {% if review_existing %}
-                                <div class="review-already-submitted">
-                                    <i class="fa-solid fa-circle-check"></i>
-                                    Kamu sudah memberikan review untuk kendaraan ini.
-                                </div>
-                            {% else %}
-                                <div class="review-prompt">
-                                    <div>
-                                        <strong>Bagaimana pengalaman sewamu?</strong>
-                                        <span>Bantu pelanggan lain dengan memberi rating kendaraan.</span>
-                                    </div>
-                                    <button type="button" class="btn-review-open"
-                                            onclick="bukaModalReview()">
-                                        <i class="fa-solid fa-star"></i> Beri Rating
-                                    </button>
-                                </div>
-                            {% endif %}
-                        </section>
-
-                        {% if not review_existing %}
-                        <div class="review-modal-overlay" id="reviewModal" aria-hidden="true">
-                            <div class="review-modal" role="dialog" aria-modal="true"
-                                 aria-labelledby="reviewModalTitle">
-                                <button type="button" class="review-modal-close"
-                                        onclick="tutupModalReview()" aria-label="Tutup">&times;</button>
-                                <div class="review-modal-icon"><i class="fa-solid fa-star"></i></div>
-                                <h2 id="reviewModalTitle">Beri Rating Kendaraan</h2>
-                                <p>Ceritakan pengalamanmu setelah menyelesaikan penyewaan.</p>
-                                <form method="POST"
-                                      action="{{ url_for('main.kirim_review_pesanan', rental_id=rental.id) }}">
-                                    <label for="review-rating">Rating</label>
-                                    <select id="review-rating" name="rating" required>
-                                        <option value="">Pilih rating</option>
-                                        <option value="5">★★★★★ - Sangat puas</option>
-                                        <option value="4">★★★★☆ - Puas</option>
-                                        <option value="3">★★★☆☆ - Cukup</option>
-                                        <option value="2">★★☆☆☆ - Kurang puas</option>
-                                        <option value="1">★☆☆☆☆ - Tidak puas</option>
-                                    </select>
-                                    <label for="review-comment">Ulasan (opsional)</label>
-                                    <textarea id="review-comment" name="comment"
-                                              rows="3" maxlength="2000"
-                                              placeholder="Tulis pengalamanmu di sini..."></textarea>
-                                    <div class="review-modal-actions">
-                                        <button type="button" class="review-cancel"
-                                                onclick="tutupModalReview()">Nanti saja</button>
-                                        <button type="submit" class="review-submit">Kirim Review</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                        {% endif %}
-                    {% endif %}
-
                 </article>
 
             </section>
@@ -741,21 +676,6 @@ orders-page
     <!--            interaksi modal pembatalan pesanan.       -->
     <!-- ════════════════════════════════════════════════════ -->
     <script>
-
-        // Membuka dan menutup modal review setelah pesanan selesai.
-        function bukaModalReview() {
-            const modal = document.getElementById('reviewModal');
-            if (!modal) return;
-            modal.classList.add('active');
-            modal.setAttribute('aria-hidden', 'false');
-        }
-
-        function tutupModalReview() {
-            const modal = document.getElementById('reviewModal');
-            if (!modal) return;
-            modal.classList.remove('active');
-            modal.setAttribute('aria-hidden', 'true');
-        }
 
         // Membuka modal konfirmasi pembatalan.
         function bukaModalPembatalan() {
