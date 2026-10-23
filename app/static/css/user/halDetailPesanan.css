@@ -1170,3 +1170,412 @@
         font-size: 12px;
     }
 }
+
+/* ═════════════════════════════════════════════════════════════
+   K.   PENYESUAIAN CARD SESUAI MOCKUP DETAIL PESANAN
+       ⤷ Header krem, timeline ringkas, tabel biaya, dan aksi
+         pembayaran/pembatalan yang sejajar seperti desain.
+═════════════════════════════════════════════════════════════ */
+.order-detail-combined {
+    border: 1px solid #eadcc8;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(77, 49, 20, .08);
+}
+
+.combined-header {
+    background: #fff9ed;
+    border-bottom: 1px solid #e9ddcc;
+    padding: 18px 22px;
+}
+
+.combined-vehicle h2 {
+    color: #171717;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.combined-vehicle span {
+    font-size: 10px;
+    letter-spacing: .15px;
+}
+
+.timeline-current-status {
+    padding: 7px 10px;
+    background: #fff0d9;
+    color: #bd671a;
+    border: 1px solid #ffe0b5;
+    border-radius: 4px;
+    font-size: 10px;
+}
+
+.timeline-section {
+    padding: 8px 16px 22px;
+    border-top: 0;
+}
+
+.timeline-steps {
+    padding: 10px 0 14px;
+}
+
+.timeline-step {
+    gap: 7px;
+    font-size: 10px;
+}
+
+.timeline-icon {
+    width: 44px;
+    height: 44px;
+    border-width: 3px;
+    font-size: 16px;
+}
+
+.timeline-step:not(:last-child)::after {
+    top: 20px;
+    left: calc(50% + 22px);
+    width: calc(100% - 44px);
+    height: 3px;
+}
+
+.timeline-step span {
+    max-width: 100px;
+    line-height: 1.35;
+}
+
+.timeline-step small {
+    font-size: 9px;
+}
+
+.detail-section-divider {
+    margin-left: 18px;
+    margin-right: 18px;
+    background: #d8c9bc;
+}
+
+.order-detail-body {
+    padding: 18px 18px 20px;
+}
+
+.order-detail-info {
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.order-detail-info p {
+    font-size: 11px;
+}
+
+.order-detail-pricing h3 {
+    margin: 0 -18px 0;
+    padding: 13px 18px;
+    border-top: 2px solid #ed8b79;
+    border-bottom: 1px solid #e8e1d9;
+    background: #fffdf8;
+    font-size: 15px;
+}
+
+.order-detail-pricing h3:not(:first-child) {
+    margin-top: 18px;
+}
+
+.order-detail-pricing p {
+    align-items: stretch;
+    gap: 0;
+    padding: 10px 0;
+    border-bottom: 1px solid #e9e3dc;
+}
+
+.order-detail-pricing p span {
+    flex: 1;
+    font-size: 11px;
+}
+
+.order-detail-pricing p strong {
+    min-width: 34%;
+    font-size: 12px;
+}
+
+.order-detail-pricing .detail-total {
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+.detail-total strong {
+    color: #e87519;
+    font-size: 15px !important;
+}
+
+.order-detail-pricing > p:has(span:first-child) strong {
+    padding-left: 10px;
+}
+
+.cancel-order-form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.cancel-order-form .cancel-order-note {
+    flex-basis: 100%;
+}
+
+.btn-pembayaran,
+.btn-batalkan-pesanan {
+    flex: 1;
+    min-height: 42px;
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 5px;
+    font-size: 11px;
+    text-align: center;
+}
+
+.btn-pembayaran {
+    background: linear-gradient(90deg, #ffad37, #f28b28);
+}
+
+.btn-batalkan-pesanan {
+    border: 1px solid #a84d32;
+    background: #fff;
+    color: #a84d32;
+}
+
+.btn-pembayaran:hover {
+    background: #ed7b20;
+}
+
+.btn-batalkan-pesanan:hover {
+    background: #fff4ef;
+}
+
+.cancellation-rejected-notice {
+    margin: 12px 18px 0;
+    border-radius: 6px;
+}
+
+@media (max-width: 900px) {
+    .account-page {
+        padding: 20px 3% 34px;
+    }
+
+    .account-layout {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+}
+
+@media (max-width: 560px) {
+    .combined-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px;
+    }
+
+    .timeline-section {
+        padding: 8px 8px 18px;
+        overflow-x: auto;
+    }
+
+    .timeline-steps {
+        min-width: 430px;
+    }
+
+    .order-detail-body {
+        padding: 14px;
+    }
+
+    .order-detail-pricing h3 {
+        margin-left: -14px;
+        margin-right: -14px;
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .cancel-order-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+.order-actions {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    margin-top: 12px;
+    padding-top: 14px;
+    border-top: 2px solid #ed8b79;
+}
+.order-actions > .btn-pembayaran,
+.order-actions .cancel-order-form {
+    flex: 1 1 0;
+    min-width: 0;
+    margin-top: 0;
+}
+.order-actions .btn-pembayaran,
+.order-actions .btn-batalkan-pesanan {
+    width: 100%;
+}
+.order-actions .btn-pembayaran {
+    margin-top: 0;
+}
+.order-actions .cancel-order-form {
+    display: block;
+}
+.order-actions .cancel-order-form .cancel-order-note {
+    margin-bottom: 8px;
+    font-size: 10px;
+}
+.order-actions .btn-batalkan-pesanan {
+    margin-top: 0;
+}
+@media (max-width: 560px) {
+    .order-actions {
+        flex-direction: column;
+    }
+}
+
+
+/* ═════════════════════════════════════════════════════════════
+   L.   REVIEW KENDARAAN SETELAH PESANAN SELESAI
+═════════════════════════════════════════════════════════════ */
+.order-review-section {
+    padding: 14px 18px;
+    border-top: 1px solid #e8dfd5;
+    background: #fffdf8;
+}
+.review-prompt {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+.review-prompt div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.review-prompt strong {
+    color: #303847;
+    font-size: 12px;
+}
+.review-prompt span,
+.review-already-submitted {
+    color: #777;
+    font-size: 10px;
+}
+.review-already-submitted {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #16864b;
+}
+.btn-review-open,
+.review-submit {
+    border: 0;
+    border-radius: 5px;
+    padding: 10px 16px;
+    background: #f28b28;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.review-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(32, 25, 18, .55);
+}
+.review-modal-overlay.active {
+    display: flex;
+}
+.review-modal {
+    position: relative;
+    width: min(100%, 420px);
+    padding: 26px;
+    border: 1px solid #eadcc8;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 18px 55px rgba(0,0,0,.2);
+}
+.review-modal-close {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    border: 0;
+    background: transparent;
+    color: #777;
+    font-size: 26px;
+    cursor: pointer;
+}
+.review-modal-icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 12px;
+    border-radius: 50%;
+    background: #fff0d9;
+    color: #f28b28;
+    font-size: 19px;
+}
+.review-modal h2 {
+    margin-bottom: 7px;
+    color: #292929;
+    font-size: 18px;
+    text-align: center;
+}
+.review-modal > p {
+    margin-bottom: 18px;
+    color: #777;
+    font-size: 11px;
+    text-align: center;
+}
+.review-modal form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.review-modal label {
+    margin-top: 5px;
+    color: #444;
+    font-size: 11px;
+    font-weight: 700;
+}
+.review-modal select,
+.review-modal textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: #fff;
+    color: #333;
+    font: inherit;
+    font-size: 12px;
+}
+.review-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 12px;
+}
+.review-cancel {
+    padding: 10px 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #fff;
+    color: #555;
+    font-size: 11px;
+    cursor: pointer;
+}
+@media (max-width: 560px) {
+    .review-prompt {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}

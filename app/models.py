@@ -1392,7 +1392,7 @@ class RentalCancellation(db.Model):
     STATUS_DISETUJUI            = 'Pembatalan Disetujui'
     STATUS_DITOLAK              = 'Pembatalan Ditolak'
     STATUS_MENUNGGU_REFUND      = 'Menunggu Pengembalian Dana'
-    STATUS_DANA_DIKEMBALIKAN    = 'Dana dikembalikan'
+    STATUS_DANA_DIKEMBALIKAN    = 'Dana Dikembalikan'
 
     __id = db.Column("id", db.Integer, primary_key=True)
     # Getter dan setter untuk atribut privat id.
@@ -1556,8 +1556,12 @@ class RentalCancellation(db.Model):
         waktu = timestamp or datetime.now()
         self.approved_at = waktu
         self.cancelled_at = waktu
-        self.status = self.STATUS_DISETUJUI
         self.refund_amount = refund_amount
+        self.status = (
+            self.STATUS_MENUNGGU_REFUND
+            if refund_amount is not None
+            else self.STATUS_DISETUJUI
+        )
 
     # [OOP - ENKAPSULASI & STATE TRANSITION (BEHAVIOR METHOD)]
     # Mengenkapsulasi perubahan state saat Admin menolak permohonan
@@ -1583,22 +1587,47 @@ class RentalCancellation(db.Model):
     # aktor pengaju (customer vs admin) dan kondisi pembayaran (refund vs non-refund).
     @property
     def timeline_steps(self):
+        """Menyusun timeline berdasarkan aktor, keputusan, dan status refund."""
         if self.is_rejected:
-            return []
-
-        steps = []
-        if self.initiated_by == 'customer':
-            steps = [
+            return [
                 ('fa-file-circle-plus', 'Pembatalan Diajukan', self.requested_at),
-                ('fa-circle-check', 'Pembatalan Disetujui', self.approved_at),
+                ('fa-circle-xmark', 'Pembatalan Ditolak', self.rejected_at),
             ]
+
+        steps = [
+            ('fa-file-circle-plus', 'Pembatalan Diajukan',
+             self.requested_at or self.cancelled_at),
+        ]
+
+        if self.initiated_by == 'customer':
+            # Pengajuan pelanggan harus menampilkan keputusan admin.
+            if self.approved_at:
+                label_keputusan = (
+                    'Menunggu Pengembalian Dana'
+                    if self.refund_amount is not None
+                    else 'Pembatalan Disetujui'
+                )
+                steps.append(('fa-circle-check', label_keputusan, self.approved_at))
+            elif self.status == self.STATUS_MENUNGGU_REFUND:
+                steps.append(('fa-wallet', 'Menunggu Pengembalian Dana', self.cancelled_at))
+        elif self.initiated_by in ('admin', 'system'):
+            # Pembatalan langsung admin/sistem tidak melewati tahap persetujuan.
             if self.refund_amount is not None:
-                steps.append(('fa-wallet', 'Dana dikembalikan', self.refunded_at))
-        elif self.initiated_by == 'admin' and self.refund_amount is not None:
-            steps = [
-                ('fa-ban', 'Pesanan dibatalkan', self.cancelled_at),
-                ('fa-wallet', 'Dana dikembalikan', self.refunded_at),
-            ]
+                steps.append(('fa-wallet', 'Menunggu Pengembalian Dana', self.cancelled_at))
+            else:
+                steps[0] = (
+                    'fa-ban',
+                    'Pembatalan Diajukan',
+                    self.requested_at or self.cancelled_at
+                )
+
+        if self.refund_amount is not None:
+            steps.append((
+                'fa-wallet',
+                'Dana Dikembalikan',
+                self.refunded_at
+            ))
+
         return steps
 
     # [OOP - ABSTRAKSI PERHITUNGAN STATE TIMELINE]

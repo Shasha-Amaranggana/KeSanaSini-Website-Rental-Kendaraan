@@ -751,7 +751,21 @@ def batalkan_pesanan_kedaluwarsa(rental, commit=True):
             'Dibatalkan otomatis karena pembayaran melewati batas waktu 24 jam.'
         )
 
-    rental.change_status(Rental.STATUS_BATAL)
+    old_status = rental.change_status(Rental.STATUS_BATAL)
+
+    # Simpan timeline pembatalan otomatis agar Detail Pesanan menampilkan
+    # Pembatalan Diajukan beserta waktu kejadian, meskipun belum ada refund.
+    existing_cancellation = rental.latest_cancellation
+    if not existing_cancellation:
+        db.session.add(RentalCancellation(
+            rental_id=rental.id,
+            reason=rental.cancellation_reason,
+            initiated_by='system',
+            status=RentalCancellation.STATUS_DIAJUKAN,
+            requested_at=datetime.now(),
+            cancelled_at=datetime.now(),
+            refund_amount=None
+        ))
 
     # Pastikan notifikasi pembatalan tidak dibuat berulang.
     sudah_ada = Notification.query.filter_by(
@@ -791,7 +805,21 @@ def batalkan_pesanan_tidak_diambil(rental, commit=True):
             'hingga masa sewa berakhir.'
         )
 
-    rental.change_status(Rental.STATUS_BATAL)
+    old_status = rental.change_status(Rental.STATUS_BATAL)
+
+    # Pesanan sudah dibayar: pembatalan otomatis tetap memerlukan refund.
+    # Catat aktor system agar timeline tidak salah menyebut Admin sebagai pengaju.
+    existing_cancellation = rental.latest_cancellation
+    if not existing_cancellation or not existing_cancellation.needs_refund:
+        db.session.add(RentalCancellation(
+            rental_id=rental.id,
+            reason=rental.cancellation_reason,
+            initiated_by='system',
+            status=RentalCancellation.STATUS_MENUNGGU_REFUND,
+            requested_at=datetime.now(),
+            cancelled_at=datetime.now(),
+            refund_amount=rental.total_price
+        ))
 
     # Cegah notifikasi ganda.
     sudah_ada = Notification.query.filter_by(
@@ -897,12 +925,10 @@ def pembayaran_sukses(rental_id):
     # Ubah status jika pembayaran masih menunggu dan belum kedaluwarsa.
     # Catat pembayaran saat pelanggan menyelesaikan pembayaran.
     if rental.status == Rental.STATUS_MENUNGGU_BAYAR:
-        rental.payment_status = 'Lunas'
-
-        rental.change_status(
-            Rental.STATUS_MENUNGGU_KONFIRMASI
-        )
-
+        # Pelanggan telah menyelesaikan pembayaran, tetapi Admin belum
+        # memverifikasi bukti/transaksi. Status baru Lunas setelah dikonfirmasi.
+        rental.payment_status = 'Menunggu Konfirmasi'
+        rental.change_status(Rental.STATUS_MENUNGGU_KONFIRMASI)
         db.session.commit()
 
     return render_template(
@@ -1162,6 +1188,60 @@ def batalkan_pesanan_user(rental_id):
     )
 
 # =========================================================
+#   REVIEW PESANAN YANG SUDAH SELESAI
+# =========================================================
+@bp.route('/detail-pesanan/<int:rental_id>/review', methods=['POST'])
+def kirim_review_pesanan(rental_id):
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+
+    user = User.query.get(session['user_id'])
+    if not user:
+        session.clear()
+        return redirect(url_for('main.login'))
+
+    rental = Rental.query.filter_by(
+        id=rental_id,
+        user_id=user.id
+    ).first_or_404()
+
+    # Review hanya dibuka setelah proses pengembalian dinyatakan selesai.
+    if rental.status != Rental.STATUS_SELESAI:
+        flash('Review hanya dapat diberikan setelah pesanan selesai.', 'error')
+        return redirect(url_for('main.detail_pesanan', rental_id=rental.id))
+
+    # Model Review belum menyimpan rental_id, sehingga duplikasi dicegah
+    # berdasarkan kombinasi pelanggan dan kendaraan.
+    existing_review = Review.query.filter_by(
+        user_id=user.id,
+        vehicle_id=rental.vehicle_id
+    ).first()
+    if existing_review:
+        flash('Kamu sudah memberikan review untuk kendaraan ini.', 'error')
+        return redirect(url_for('main.detail_pesanan', rental_id=rental.id))
+
+    try:
+        rating = int(request.form.get('rating', '0'))
+    except (TypeError, ValueError):
+        rating = 0
+
+    comment = (request.form.get('comment') or '').strip()
+    if rating not in (1, 2, 3, 4, 5):
+        flash('Pilih rating antara 1 sampai 5 bintang.', 'error')
+        return redirect(url_for('main.detail_pesanan', rental_id=rental.id))
+
+    db.session.add(Review(
+        user_id=user.id,
+        vehicle_id=rental.vehicle_id,
+        rating=rating,
+        comment=comment or None
+    ))
+    db.session.commit()
+    flash('Terima kasih, review kendaraan berhasil dikirim.', 'success')
+    return redirect(url_for('main.detail_pesanan', rental_id=rental.id))
+
+
+# =========================================================
 #   HALAMAN DETAIL PESANAN
 # =========================================================
 @bp.route('/detail-pesanan/<int:rental_id>')
@@ -1275,6 +1355,10 @@ def detail_pesanan(rental_id):
         user=user,
         rental=rental,
         cancellation=cancellation,
+        review_existing=Review.query.filter_by(
+            user_id=user.id,
+            vehicle_id=rental.vehicle_id
+        ).first(),
         cancellation_steps=cancellation_steps,
         cancellation_completed_steps=cancellation_completed_steps,
         cancellation_is_pending=cancellation_is_pending,
@@ -2797,6 +2881,16 @@ def admin_penyewaan_edit(id):
                         rental.cancellation_reason,
                         waktu_batal
                     )
+                elif not rental.latest_cancellation:
+                    db.session.add(RentalCancellation(
+                        rental_id=rental.id,
+                        reason=rental.cancellation_reason,
+                        initiated_by='admin',
+                        status=RentalCancellation.STATUS_DIAJUKAN,
+                        requested_at=waktu_batal,
+                        cancelled_at=waktu_batal,
+                        refund_amount=None
+                    ))
 
             db.session.commit()
             flash('Penyewaan berhasil ditolak/dibatalkan.')
@@ -2818,6 +2912,14 @@ def admin_penyewaan_edit(id):
         )
 
         old_status = rental.change_status(new_status)
+
+        # Sinkronisasi status pembayaran dengan alur penyewaan:
+        # pembayaran pelanggan -> Menunggu Konfirmasi,
+        # konfirmasi Admin/persiapan pengambilan -> Lunas.
+        if new_status == Rental.STATUS_PENGAMBILAN and rental.payment_status == 'Menunggu Konfirmasi':
+            rental.payment_status = 'Lunas'
+        elif new_status == Rental.STATUS_MENUNGGU_KONFIRMASI and old_status == Rental.STATUS_MENUNGGU_BAYAR:
+            rental.payment_status = 'Menunggu Konfirmasi'
 
         if old_status:
             db.session.add(
@@ -2844,6 +2946,21 @@ def admin_penyewaan_edit(id):
                     rental.cancellation_reason,
                     waktu_batal
                 )
+            elif new_status == Rental.STATUS_BATAL and old_status and not rental.latest_cancellation:
+                waktu_batal = (
+                    rental.status_history[-1].changed_at
+                    if rental.status_history
+                    else datetime.now()
+                )
+                db.session.add(RentalCancellation(
+                    rental_id=rental.id,
+                    reason=rental.cancellation_reason,
+                    initiated_by='admin',
+                    status=RentalCancellation.STATUS_DIAJUKAN,
+                    requested_at=waktu_batal,
+                    cancelled_at=waktu_batal,
+                    refund_amount=None
+                ))
 
             # Terbitkan notifikasi denda jika kendaraan dikembalikan terlambat
             if rental.fine_amount > 0 and new_status in [Rental.STATUS_PENGEMBALIAN, Rental.STATUS_SELESAI]:
