@@ -109,11 +109,29 @@ orders-page
                         </div>
 
                         <span class="timeline-current-status">
+
                             {% if cancellation_is_pending %}
+
                                 Pembatalan Diajukan
+
+                            {% elif rental.status == rental.STATUS_BATAL
+                                and cancellation
+                                and cancellation.initiated_by == 'customer'
+                                and cancellation.refund_amount is not none
+                                and cancellation.status in [
+                                    'Pembatalan Disetujui',
+                                    'Menunggu Pengembalian Dana'
+                                ]
+                                and not cancellation.refunded_at %}
+
+                                Pembatalan Disetujui
+
                             {% else %}
+
                                 {{ rental.status }}
+
                             {% endif %}
+
                         </span>
                     </div>
 
@@ -194,10 +212,37 @@ orders-page
                         {% if cancellation_steps %}
 
                             <!-- PENGUMUMAN PESANAN DIBATALKAN -->
-                            {% if not dibatalkan_otomatis %}
+                            {% if dibatalkan_otomatis_batas_pembayaran %}
+
+                                <div class="cancellation-status-announcement">
+                                    Pesanan Dibatalkan Otomatis karena Melewati Batas Waktu Pembayaran
+                                </div>
+
+                            {% elif dibatalkan_otomatis_tidak_diambil %}
+
+                                <div class="cancellation-status-announcement">
+                                    Pesanan Dibatalkan Otomatis karena Kendaraan tidak segera Diambil
+                                </div>
+
+                            {% elif (
+                                rental.status == rental.STATUS_BATAL
+                                and not dibatalkan_otomatis
+                                and (
+                                    cancellation is none
+                                    or cancellation.initiated_by == 'admin'
+                                )
+                            ) %}
+
+                                <div class="cancellation-status-announcement">
+                                    Pesanan Dibatalkan oleh Admin
+                                </div>
+
+                            {% elif not dibatalkan_otomatis %}
+
                                 <div class="cancellation-status-announcement">
                                     Pesanan Dibatalkan oleh Anda
                                 </div>
+
                             {% endif %}
 
                             <div class="cancellation-timeline">
@@ -218,13 +263,19 @@ orders-page
                                         <span>{{ label }}</span>
 
                                         {% if waktu %}
+
+                                            <!-- WAKTU TAHAP YANG SUDAH TERCATAT -->
                                             <small>
                                                 {{ waktu | tanggal_id }}
                                                 <br>
                                                 Pukul {{ waktu.strftime('%H:%M') }}
                                             </small>
-                                        {% else %}
-                                            <small>Menunggu proses</small>
+
+                                        {% elif loop.index0 == cancellation_completed_steps %}
+
+                                            <!-- KETERANGAN HANYA UNTUK TAHAP YANG SEDANG BERJALAN -->
+                                            <small>Menunggu Proses</small>
+
                                         {% endif %}
 
                                     </div>
@@ -257,81 +308,63 @@ orders-page
                         {% endif %}
 
                         <!-- TIMELINE STATUS PENYEWAAN TETAP DITAMPILKAN -->
-                        {% if rental.status == rental.STATUS_BATAL %}
+                        <div class="timeline-steps {% if cancellation_is_pending or (rental.status == rental.STATUS_BATAL and cancellation_steps) %}timeline-cancellation-mode{% endif %} {% if rental.payment_status in ['Menunggu Konfirmasi', 'Lunas'] %}timeline-payment-completed{% endif %}">
 
-                            <div class="timeline-cancelled">
-                                <i class="fa-solid fa-circle-xmark"></i>
+                            {% set steps = [
+                                ('fa-file-lines', 'Pesanan Dibuat', 'created'),
+                                ('fa-wallet', 'Pembayaran', 'payment'),
+                                ('fa-car-side', 'Pengambilan', 'pickup'),
+                                ('fa-key', 'Sedang Disewa', 'in_use'),
+                                ('fa-circle-check', 'Selesai', 'completed')
+                            ] %}
 
-                                <div class="timeline-cancelled-content">
+                            {% for icon, label, time_key in steps %}
 
-                                    <strong>
-                                        {% if dibatalkan_otomatis %}
-                                            Pesanan dibatalkan karena melewati batas waktu pembayaran.
-                                        {% else %}
-                                            Pesanan Anda dibatalkan oleh admin.
-                                        {% endif %}
-                                    </strong>
+                                {% set waktu = timeline_times.get(time_key) %}
 
-                                    {% set waktu_batal = timeline_times.get('cancelled') %}
+                                <div class="timeline-step
+                                    {% if rental.status == rental.STATUS_BATAL and cancellation_steps %}
+                                        {% if waktu %}completed{% endif %}
+                                    {% elif loop.index0 < current_step %}
+                                        completed
+                                    {% elif loop.index0 == current_step %}
+                                        current
+                                    {% endif %}">
 
-                                    {% if waktu_batal %}
-                                        <small class="timeline-cancelled-time">
-                                            {{ waktu_batal | tanggal_id }},
-                                            pukul {{ waktu_batal.strftime('%H:%M') }}
-                                        </small>
-                                    {% endif %}
+                                    <div class="timeline-icon">
+                                        <i class="fa-solid {{ icon }}"></i>
+                                    </div>
 
-                                    {% if rental.cancellation_reason and not cancellation_steps %}
+                                    <span>{{ label }}</span>
+
+                                    {% if cancellation_is_pending
+                                        and loop.index0 > current_step %}
+
+                                        <small>Dibatalkan</small>
+
+                                    {% elif rental.status == rental.STATUS_BATAL
+                                        and cancellation_steps
+                                        and loop.index0 > 0
+                                        and not waktu %}
+
+                                        <small>Dibatalkan</small>
+
+                                    {% elif waktu %}
+
                                         <small>
-                                            Alasan: {{ rental.cancellation_reason }}
+                                            {{ waktu | tanggal_id }}
+                                            <br>
+                                            Pukul {{ waktu.strftime('%H:%M') }}
                                         </small>
+
                                     {% endif %}
 
                                 </div>
-                            </div>
 
-                        {% else %}
+                            {% endfor %}
 
-                            <div class="timeline-steps">
+                        </div>
 
-                                {% set steps = [
-                                    ('fa-file-lines', 'Pesanan Dibuat', 'created'),
-                                    ('fa-wallet', 'Pembayaran', 'payment'),
-                                    ('fa-car-side', 'Pengambilan', 'pickup'),
-                                    ('fa-key', 'Sedang Disewa', 'in_use'),
-                                    ('fa-circle-check', 'Selesai', 'completed')
-                                ] %}
-
-                                {% for icon, label, time_key in steps %}
-
-                                    <div class="timeline-step
-                                        {% if loop.index0 < current_step %}completed
-                                        {% elif loop.index0 == current_step %}current
-                                        {% endif %}">
-
-                                        <div class="timeline-icon">
-                                            <i class="fa-solid {{ icon }}"></i>
-                                        </div>
-
-                                        <span>{{ label }}</span>
-
-                                        {% set waktu = timeline_times.get(time_key) %}
-
-                                        {% if waktu %}
-                                            <small>
-                                                {{ waktu | tanggal_id }}
-                                                <br>
-                                                Pukul {{ waktu.strftime('%H:%M') }}
-                                            </small>
-                                        {% endif %}
-
-                                    </div>
-
-                                {% endfor %}
-
-                            </div>
-
-                        {% endif %}
 
                     </div>
 

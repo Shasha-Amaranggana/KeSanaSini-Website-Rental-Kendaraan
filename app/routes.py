@@ -455,6 +455,8 @@ def _rental_sudah_dibayar(rental, status_sebelum=None):
         or riwayat_pernah_bayar
     )
 
+
+
 # [OOP - ENKAPSULASI QUERY OBJEK]
 # Mengambil pengajuan pembatalan pelanggan yang masih menunggu keputusan admin.
 def _permohonan_pembatalan_pending(rental_id):
@@ -1341,9 +1343,47 @@ def detail_pesanan(rental_id):
         cancellation.is_rejected if cancellation else False
     )
 
+    # Keterangan pembatalan langsung tanpa proses refund.
+    alasan_lama = (rental.cancellation_reason or '').lower()
+
+    dibatalkan_otomatis = (
+        'otomatis' in alasan_lama
+        or 'melewati batas waktu pembayaran' in alasan_lama
+    )
+
+    # Memeriksa pembatalan otomatis karena kendaraan tidak diambil.
+    dibatalkan_otomatis_tidak_diambil = (
+        rental.status == Rental.STATUS_BATAL
+        and (
+            'kendaraan tidak diambil' in alasan_lama
+            or 'kendaraan tidak segera diambil' in alasan_lama
+        )
+    )
+
+    # Memeriksa pembatalan otomatis karena pembayaran melewati tenggat.
+    dibatalkan_otomatis_batas_pembayaran = (
+        rental.status == Rental.STATUS_BATAL
+        and (
+            'pembayaran melewati batas waktu' in alasan_lama
+            or 'melewati batas waktu pembayaran' in alasan_lama
+            or 'pembayaran melewati batas waktu 24 jam' in alasan_lama
+        )
+    )
+    
+
+    # Mengambil status pesanan sebelum pembatalan terakhir oleh admin.
+    status_sebelum_batal = next(
+        (
+            riwayat.old_status
+            for riwayat in reversed(rental.status_history)
+            if riwayat.new_status == Rental.STATUS_BATAL
+        ),
+        None
+    )
+
     # =====================================================
     # TIMELINE STATUS PEMBATALAN PESANAN
-    # Menampilkan pengajuan dan keputusan admin.
+    # Menampilkan pengajuan, persetujuan, dan pengembalian dana.
     # =====================================================
     cancellation_steps = []
     cancellation_completed_steps = 0
@@ -1357,7 +1397,7 @@ def detail_pesanan(rental_id):
             cancellation.requested_at
         ))
 
-        # TAHAP 2: KEPUTUSAN ADMIN.
+        # PERMOHONAN PEMBATALAN DITOLAK ADMIN.
         if cancellation.status == RentalCancellation.STATUS_DITOLAK:
 
             cancellation_steps.append((
@@ -1368,35 +1408,148 @@ def detail_pesanan(rental_id):
 
             cancellation_completed_steps = 2
 
-        elif cancellation.status in (
-            RentalCancellation.STATUS_DISETUJUI,
-            RentalCancellation.STATUS_MENUNGGU_REFUND,
-            RentalCancellation.STATUS_DANA_DIKEMBALIKAN
-        ):
-
-            cancellation_steps.append((
-                'fa-circle-check',
-                'Pembatalan Disetujui',
-                cancellation.approved_at
-            ))
-
-            cancellation_completed_steps = 2
-
         else:
 
-            # Pengajuan sudah tercatat, tetapi belum diputuskan admin.
-            cancellation_steps.append((
-                'fa-clock',
-                'Menunggu Persetujuan',
-                None
-            ))
+            # TAHAP 2: PERSETUJUAN PEMBATALAN.
+            if cancellation.status == RentalCancellation.STATUS_DIAJUKAN:
 
+                cancellation_steps.append((
+                    'fa-clock',
+                    'Menunggu Persetujuan',
+                    None
+                ))
+
+                cancellation_completed_steps = 1
+
+            else:
+
+                cancellation_steps.append((
+                    'fa-circle-check',
+                    'Pembatalan Disetujui',
+                    cancellation.approved_at
+                ))
+
+                cancellation_completed_steps = 2
+
+            # Memeriksa apakah pesanan membutuhkan refund.
+            perlu_refund = (
+                cancellation.refund_amount is not None
+                or rental.payment_status == 'Lunas'
+                or _rental_sudah_dibayar(rental)
+            )
+
+            # TAHAP 3: DANA DIKEMBALIKAN.
+            # Tetap tampil meskipun pembatalan masih diajukan.
+            if perlu_refund:
+
+                waktu_pengembalian = (
+                    cancellation.refunded_at
+                    if cancellation.status
+                    == RentalCancellation.STATUS_DANA_DIKEMBALIKAN
+                    else None
+                )
+
+                cancellation_steps.append((
+                    'fa-money-bill-transfer',
+                    'Dana Dikembalikan',
+                    waktu_pengembalian
+                ))
+
+                # Tahap refund selesai hanya setelah dana dikembalikan.
+                if (
+                    cancellation.status
+                    == RentalCancellation.STATUS_DANA_DIKEMBALIKAN
+                ):
+                    cancellation_completed_steps = 3
+
+    elif (
+        rental.status == Rental.STATUS_BATAL
+        and (rental.payment_status or 'Belum Lunas') == 'Belum Lunas'
+        and not dibatalkan_otomatis
+        and (
+            cancellation is None
+            or (
+                cancellation.initiated_by == 'admin'
+                and cancellation.refund_amount is None
+            )
+        )
+    ):
+
+        # TIMELINE PEMBATALAN LANGSUNG OLEH ADMIN TANPA REFUND.
+        waktu_batal = next(
+            (
+                riwayat.changed_at
+                for riwayat in reversed(rental.status_history)
+                if riwayat.new_status == Rental.STATUS_BATAL
+            ),
+            None
+        )
+
+        cancellation_steps = [(
+            'fa-file-circle-plus',
+            'Pembatalan Diajukan',
+            waktu_batal
+        )]
+
+        cancellation_completed_steps = 1
+
+    elif (
+        cancellation
+        and cancellation.initiated_by == 'admin'
+        and rental.status == Rental.STATUS_BATAL
+        and status_sebelum_batal in [
+            Rental.STATUS_MENUNGGU_KONFIRMASI,
+            Rental.STATUS_PENGAMBILAN
+        ]
+        and rental.payment_status in [
+            'Menunggu Konfirmasi',
+            'Lunas'
+        ]
+        and cancellation.refund_amount is not None
+    ):
+
+        # TIMELINE PEMBATALAN LANGSUNG OLEH ADMIN
+        # UNTUK PESANAN DENGAN PEMBAYARAN YANG PERLU DIREFUND.
+
+        waktu_batal = (
+            cancellation.cancelled_at
+            or next(
+                (
+                    riwayat.changed_at
+                    for riwayat in reversed(rental.status_history)
+                    if riwayat.new_status == Rental.STATUS_BATAL
+                ),
+                None
+            )
+        )
+
+        cancellation_steps = [
+            (
+                'fa-file-circle-plus',
+                'Pembatalan Diajukan',
+                waktu_batal
+            ),
+            (
+                'fa-money-bill-transfer',
+                'Dana Dikembalikan',
+                cancellation.refunded_at
+            )
+        ]
+
+        # Tahap pertama selesai ketika admin membatalkan pesanan.
+        # Tahap kedua selesai setelah dana benar-benar dikembalikan.
+        if (
+            cancellation.status
+            == RentalCancellation.STATUS_DANA_DIKEMBALIKAN
+            or cancellation.refunded_at is not None
+        ):
+            cancellation_completed_steps = 2
+        else:
             cancellation_completed_steps = 1
 
     else:
 
-        # Mempertahankan timeline untuk pembatalan yang bukan
-        # diajukan oleh pelanggan.
+        # Mempertahankan timeline pembatalan lainnya.
         cancellation_steps = (
             cancellation.timeline_steps if cancellation else []
         )
@@ -1450,14 +1603,6 @@ def detail_pesanan(rental_id):
         )
     }
 
-    # Keterangan pembatalan langsung tanpa proses refund.
-    alasan_lama = (rental.cancellation_reason or '').lower()
-
-    dibatalkan_otomatis = (
-        'otomatis' in alasan_lama
-        or 'melewati batas waktu pembayaran' in alasan_lama
-    )
-
     return render_template(
         'user/halDetailPesanan.html',
         user=user,
@@ -1470,6 +1615,8 @@ def detail_pesanan(rental_id):
         cancellation_is_rejected=cancellation_is_rejected,
         timeline_times=timeline_times,
         dibatalkan_otomatis=dibatalkan_otomatis,
+        dibatalkan_otomatis_tidak_diambil=dibatalkan_otomatis_tidak_diambil,
+        dibatalkan_otomatis_batas_pembayaran=dibatalkan_otomatis_batas_pembayaran,
         alasan_pembatalan=ALASAN_PEMBATALAN_USER,
         current_step={
             Rental.STATUS_MENUNGGU_BAYAR: 0,
@@ -2474,6 +2621,34 @@ def admin_update_rental_status(rental_id):
         return redirect(
             url_for('main.admin_penyewaan_edit', id=rental.id)
         )
+
+
+    # Validasi pembatalan langsung oleh admin.
+    if new_status == Rental.STATUS_BATAL:
+
+        status_pesanan_diizinkan = rental.status in [
+            Rental.STATUS_MENUNGGU_KONFIRMASI,
+            Rental.STATUS_PENGAMBILAN
+        ]
+
+        status_pembayaran_diizinkan = rental.payment_status in [
+            'Menunggu Konfirmasi',
+            'Lunas'
+        ]
+
+        if not (
+            status_pesanan_diizinkan
+            and status_pembayaran_diizinkan
+        ):
+            flash(
+                'Pesanan tidak dapat dibatalkan karena '
+                'status pesanan atau pembayarannya tidak sesuai.',
+                'error'
+            )
+            return redirect(
+                request.referrer or url_for('main.admin_dashboard')
+            )
+
 
     # Simpan kondisi pembayaran sebelum status berubah.
     sudah_dibayar = _rental_sudah_dibayar(

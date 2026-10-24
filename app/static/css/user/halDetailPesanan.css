@@ -366,8 +366,27 @@
 
 /* F.7. Mengubah warna garis setelah tahap yang selesai
    ════════════════════════════════════════════════════════ */
+/* GARIS HIJAU UNTUK TIMELINE PENYEWAAN NORMAL */
 .timeline-step.completed:not(:last-child)::after {
-    background: #00bf67;
+    background: #00bf6f;
+}
+
+/* GARIS ABU-ABU UNTUK TAHAP PEMBATALAN YANG BELUM SELESAI */
+.timeline-steps.timeline-cancellation-mode
+.timeline-step.completed:not(:last-child)::after {
+    background: #d1d5db;
+}
+
+/* GARIS HIJAU JIKA TAHAP BERIKUTNYA JUGA SUDAH SELESAI */
+.timeline-steps.timeline-cancellation-mode
+.timeline-step.completed:has(+ .timeline-step.completed)::after {
+    background: #00bf6f;
+}
+
+/* GARIS HIJAU JIKA PEMBAYARAN SUDAH DILAKUKAN */
+.timeline-steps.timeline-cancellation-mode.timeline-payment-completed
+> .timeline-step:first-child:not(:last-child)::after {
+    background: #00bf6f !important;
 }
 
 
@@ -543,7 +562,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin: 0 0 18px;
+    margin: 15px 0 25px;
     padding: 12px 14px;
     border-radius: 6px;
     background: #f6efea;
@@ -607,8 +626,8 @@
     margin: 0 0 15px;
     padding: 10px 16px;
     border-radius: 5px;
-    background: #FEE2E2;
-    color: #B4533C;
+    background: hsl(0, 100%, 92%);
+    color: #b33114;
     font-size: 15px;
     font-weight: 700;
     line-height: 1.5;
