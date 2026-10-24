@@ -1217,16 +1217,12 @@ def kirim_review_pesanan(rental_id):
             url_for('main.detail_pesanan', rental_id=rental.id)
         )
 
-    # Cegah review ganda untuk pesanan yang sama.
+    # Ambil review sebelumnya untuk menentukan apakah membuat
+    # review baru atau memperbarui review yang sudah ada.
     existing_review = Review.query.filter_by(
-        rental_id=rental.id
+        rental_id=rental.id,
+        user_id=user.id
     ).first()
-
-    if existing_review:
-        flash('Review untuk pesanan ini sudah pernah dikirim.', 'error')
-        return redirect(
-            url_for('main.detail_pesanan', rental_id=rental.id)
-        )
 
     # Validasi rating kendaraan.
     try:
@@ -1260,25 +1256,34 @@ def kirim_review_pesanan(rental_id):
     # Komentar hanya untuk kendaraan.
     comment = (request.form.get('comment') or '').strip()
 
-    review = Review(
-        user_id=user.id,
-        vehicle_id=rental.vehicle_id,
-        rental_id=rental.id,
-        driver_id=rental.driver_id,
-        rating=rating,
-        rating_driver=rating_driver,
-        comment=comment or None
-    )
+    if existing_review:
+        # Perbarui review yang sudah ada.
+        existing_review.rating = rating
+        existing_review.rating_driver = rating_driver
+        existing_review.comment = comment or None
 
-    db.session.add(review)
+        pesan_review = 'Review berhasil diperbarui.'
+    else:
+        # Buat review baru jika belum pernah mengisi.
+        review = Review(
+            user_id=user.id,
+            vehicle_id=rental.vehicle_id,
+            rental_id=rental.id,
+            rating=rating,
+            rating_driver=rating_driver,
+            comment=comment or None
+        )
+
+        db.session.add(review)
+        pesan_review = 'Terima kasih, review berhasil dikirim.'
+
     db.session.commit()
 
-    flash('Terima kasih, review berhasil dikirim.', 'success')
+    flash(pesan_review, 'success')
 
     return redirect(
         url_for('main.detail_pesanan', rental_id=rental.id)
     )
-
 
 # =========================================================
 #   HALAMAN DETAIL PESANAN
@@ -1304,7 +1309,8 @@ def detail_pesanan(rental_id):
 
     # Ambil ulasan yang sudah dikirim untuk pesanan ini.
     review_existing = Review.query.filter_by(
-        rental_id=rental.id
+        rental_id=rental.id,
+        user_id=user.id
     ).first()
 
     # [OOP - PEMANFAATAN PROPERTI ENKAPSULASI & ABSTRAKSI MODEL]
