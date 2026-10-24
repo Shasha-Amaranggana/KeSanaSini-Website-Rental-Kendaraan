@@ -448,6 +448,173 @@
 }
 
 
+/* F.15. Mengatur susunan timeline pembatalan
+   ═══════════════════════════════════════════════════════ */
+.cancellation-timeline {
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+    padding: 15px 0 20px;
+}
+
+/* F.16. Mengatur setiap tahap timeline pembatalan */
+.cancellation-timeline-step {
+    position: relative;
+    z-index: 0;
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    color: #888888;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* F.17. Membuat garis penghubung antartahap pembatalan */
+.cancellation-timeline-step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: 24px;
+    left: calc(50% + 25px);
+    width: calc(100% - 50px);
+    height: 4px;
+    background: #d4d7dc;
+}
+
+/* F.18. Mengatur ikon setiap tahap pembatalan */
+.cancellation-timeline-icon {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    border: 4px solid #d4d7dc;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #d0d3d8;
+    font-size: 22px;
+}
+
+/* F.19. Menandai tahap pembatalan yang telah selesai */
+.cancellation-timeline-step.completed
+.cancellation-timeline-icon {
+    border-color: #00bf67;
+    color: #00bf67;
+}
+
+/* F.20. Menandai garis setelah tahap yang selesai */
+.cancellation-timeline-step.completed:not(:last-child)::after {
+    background: #00bf67;
+}
+
+/* F.21. Menandai tahap pembatalan yang sedang berlangsung */
+.cancellation-timeline-step.current
+.cancellation-timeline-icon {
+    border-color: #00bf67;
+    background: #00bf67;
+    color: #ffffff;
+}
+
+/* F.22. Mengatur teks nama tahap pembatalan */
+.cancellation-timeline-step > span {
+    max-width: 140px;
+    line-height: 1.4;
+}
+
+/* F.23. Mengatur tanggal dan waktu tahap pembatalan */
+.cancellation-timeline-step > small {
+    display: block;
+    color: #888888;
+    font-size: 10px;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: center;
+}
+
+/* F.24. Mengatur alasan pembatalan */
+.cancellation-timeline-reason {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border-radius: 6px;
+    background: #f6efea;
+    color: #686868;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.cancellation-timeline-reason span:first-child {
+    font-weight: 700;
+    color: #333333;
+}
+
+/* F.25. Menyesuaikan timeline pembatalan pada layar kecil */
+@media (max-width: 700px) {
+    .cancellation-timeline {
+        padding: 15px 0;
+    }
+
+    .cancellation-timeline-step {
+        gap: 7px;
+        font-size: 10px;
+    }
+
+    .cancellation-timeline-icon {
+        width: 42px;
+        height: 42px;
+        border-width: 3px;
+        font-size: 15px;
+    }
+
+    .cancellation-timeline-step:not(:last-child)::after {
+        top: 19px;
+        left: calc(50% + 21px);
+        width: calc(100% - 42px);
+        height: 3px;
+    }
+
+    .cancellation-timeline-step > span {
+        max-width: 90px;
+    }
+}
+
+/* F.26. Mengatur judul rincian status tercatat */
+.recorded-status-heading {
+    margin: 0 -22px;
+    padding: 20px 24px 25px;
+    color: #080808;
+    border-top: 3px solid #ed812a;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+/* F.26. Pengumuman status pembatalan pesanan */
+.cancellation-status-announcement {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: 0 0 15px;
+    padding: 10px 16px;
+    border-radius: 5px;
+    background: #FEE2E2;
+    color: #B4533C;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.5;
+    text-align: center;
+}
+
 
 /* ═════════════════════════════════════════════════════════════
    G.   INFORMASI KENDARAAN DAN RINCIAN BIAYA
@@ -626,6 +793,7 @@
     gap: 16px;
     padding: 10px 25px 20px;
     border-top: 3px solid #ed812a;
+    border-bottom: none;
     background: #ffffff;
 }
 
@@ -934,6 +1102,7 @@
     color: #292929;
     font-size: 24px;
     font-weight: 700;
+    text-align: center;
 }
 
 
@@ -1114,24 +1283,6 @@
 }
 
 
-/* J.23. Isi keterangan pembatalan langsung
-   ═══════════════════════════════════════════════════════ */
-.timeline-cancelled-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 7px;
-    text-align: center;
-    line-height: 1.5;
-}
-
-.timeline-cancelled-content small {
-    color: #888888;
-    font-size: 11px;
-    font-weight: 400;
-}
-
-
 
 /* J.23. Pemberitahuan ketika permohonan pembatalan ditolak
    ═══════════════════════════════════════════════════════ */
@@ -1169,14 +1320,14 @@
 
 /* ═════════════════════════════════════════════════════════════
    L.   RATING DAN REVIEW
-       ⤷ Menyamakan tampilan tombol rating dengan tombol
-         pembatalan tanpa menampilkan tombol pembayaran.
+       ⤷ Mengatur tombol rating, formulir ulasan, bintang rating,
+         komentar, dan tampilan modal rating dan review.
 ═════════════════════════════════════════════════════════════ */
 
-/* L.1. Mengatur area tombol rating dan review
-   ⤷ Menggunakan struktur tombol pembatalan agar ukuran,
-     jarak, dan posisi tombol tetap konsisten.
-   ════════════════════════════════════════════════════════ */
+/* L.1. AREA TOMBOL RATING DAN REVIEW
+       ⤷ Mengatur posisi dan ukuran form pembungkus tombol
+         rating agar memenuhi area aksi detail pesanan.
+═════════════════════════════════════════════════════════════ */
 .detail-action-area > .review-order-form {
     display: flex;
     flex: 1 1 100%;
@@ -1188,8 +1339,11 @@
     background: transparent;
 }
 
-/* L.2. Menyamakan tampilan tombol rating dengan tombol batal
-   ════════════════════════════════════════════════════════ */
+
+/* L.2. TOMBOL MEMBUKA MODAL RATING
+       ⤷ Mengatur ukuran, warna, posisi ikon, teks, dan
+         tampilan dasar tombol pemberian rating.
+═════════════════════════════════════════════════════════════ */
 .detail-action-area .btn-review-open {
     display: inline-flex;
     align-items: center;
@@ -1217,156 +1371,432 @@
         color 0.2s ease;
 }
 
-/* L.3. Mengubah tampilan tombol rating ketika diarahkan kursor
-   ════════════════════════════════════════════════════════ */
+
+/* L.3. EFEK HOVER TOMBOL RATING
+       ⤷ Mengubah warna latar dan teks ketika tombol
+         diarahkan kursor.
+═════════════════════════════════════════════════════════════ */
 .detail-action-area .btn-review-open:hover {
     background: #ffd000;
     color: #ffffff;
 }
 
-/* L.4. Mengatur form rating dan review di dalam modal
-   ════════════════════════════════════════════════════════ */
+
+/* L.4. FORMULIR RATING DAN REVIEW
+       ⤷ Menyusun label, pilihan rating, kolom komentar,
+         dan tombol kirim secara vertikal.
+═════════════════════════════════════════════════════════════ */
 .order-review-form {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
+/* L.4.a. Mengatur tampilan label formulir rating dan review. */
 .order-review-form label {
-    margin-top: 10px;
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 13px;
     color: #303847;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
 }
 
+/* L.4.b. Mengatur label rating dan bintang dalam satu baris. */
+.order-review-form .review-item:has(.review-stars) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 15px;
+}
+
+/* L.4.c. Mengatur label rating di sebelah kiri bintang. */
+.order-review-form .review-item:has(.review-stars) label {
+    display: inline-block;
+    margin: 0;
+}
+
+/* L.4.d. Mengatur posisi bintang rating. */
+.order-review-form .review-item .review-stars {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 12px 0 auto;
+}
+
+/* L.4.e. Mengatur tampilan elemen pilihan dan kolom komentar. */
 .order-review-form select,
 .order-review-form textarea {
     width: 100%;
     box-sizing: border-box;
     padding: 11px 12px;
+
     border: 1px solid #d1d5db;
     border-radius: 8px;
+
     font-family: inherit;
     font-size: 13px;
 }
 
+/* L.4.d. Mengizinkan tinggi kolom komentar diubah secara vertikal. */
 .order-review-form textarea {
     resize: vertical;
 }
 
-/* Mengatur kelompok bintang rating yang dapat diklik. */
+
+/* L.5. KELOMPOK BINTANG RATING
+       ⤷ Menyusun bintang rating secara horizontal dengan
+         jarak yang konsisten antarbintang.
+═════════════════════════════════════════════════════════════ */
 .review-stars {
-display: flex;
-align-items: center;
-gap: 8px;
-margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
 }
 
-/* Mengatur tampilan setiap bintang rating. */
+
+/* L.5.a. Mengatur bentuk, ukuran, warna awal, dan animasi bintang. */
 .review-star {
-padding: 0;
-border: none;
-background: transparent;
-color: #d1d5db;
-font-size: 28px;
-line-height: 1;
-cursor: pointer;
-transition: color 0.2s ease, transform 0.2s ease;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #d1d5db;
+
+    font-size: 28px;
+    line-height: 1;
+
+    cursor: pointer;
+    transform: scale(1.12);
+
+    transition:
+        color 0.2s ease,
+        transform 0.2s ease;
 }
 
-/* Memberi warna pada bintang yang dipilih. */
+
+/* L.5.b. Memberikan warna kuning pada bintang yang dipilih
+   atau sedang mendapat pratinjau dari interaksi pengguna. */
 .review-star.is-selected,
 .review-star.is-preview {
-color: #ffb60a;
+    color: #ffb60a;
 }
 
-/* Memberi efek ketika kursor diarahkan ke bintang. */
-.review-star {
-transform: scale(1.12);
-}
 
-/* Mengatur keterangan rating. */
+/* L.6. KETERANGAN RATING
+       ⤷ Mengatur jarak, warna, dan ukuran teks petunjuk
+         yang ditampilkan pada bagian rating.
+═════════════════════════════════════════════════════════════ */
 .review-rating-hint {
-margin-top: 4px;
-color: #6b7280;
-font-size: 12px;
+    margin-top: 4px;
+    color: #6b7280;
+    font-size: 12px;
 }
 
-/* Mengatur tombol kirim review. */
+
+/* L.7. TOMBOL KIRIM REVIEW
+       ⤷ Mengatur ukuran, warna, teks, dan efek transisi
+         tombol untuk mengirim rating dan ulasan.
+═════════════════════════════════════════════════════════════ */
 .review-submit-btn {
-width: 100%;
-min-height: 39px;
-padding: 9px 12px;
-border: 2px solid #ffb60a;
-border-radius: 5px;
-background: #ffb60a;
-color: #ffffff;
-font-family: inherit;
-font-size: 12px;
-font-weight: 700;
-cursor: pointer;
-transition: background-color 0.2s ease, color 0.2s ease;
+    width: 100%;
+    min-height: 39px;
+    padding: 9px 12px;
+
+    border: 2px solid #ffd000;
+    border-radius: 5px;
+
+    background: #ffd000;
+    color: #ffffff;
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
 }
 
-.review-submit-btn {
-background: #ffd000;
-border-color: #ffd000;
+/* Efek saat kursor diarahkan ke tombol. */
+.review-submit-btn:hover {
+    background: #f4bf00;
+    border-color: rgba (247, 193, 0, 0.999)00;
+    transform: translateY(-2px);
 }
 
-/* Menampilkan rating setelah review berhasil dikirim. */
+
+/* L.8. TAMPILAN BINTANG RATING YANG TERSIMPAN
+       ⤷ Menyusun bintang secara horizontal untuk menampilkan
+         rating yang sebelumnya telah diberikan pengguna.
+═════════════════════════════════════════════════════════════ */
 .review-stars-static {
-display: flex;
-align-items: center;
-gap: 4px;
-color: #d1d5db;
-font-size: 20px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    color: #d1d5db;
+    font-size: 20px;
 }
 
+
+/* L.8.a. Memberikan warna kuning pada bintang yang terisi. */
 .review-stars-static .is-filled {
-color: #ffb60a;
+    color: #ffb60a;
 }
 
-/* Mengatur komentar review yang sudah tersimpan. */
+
+/* L.9. KOMENTAR REVIEW YANG TERSIMPAN
+       ⤷ Mengatur jarak, warna, ukuran teks, dan pemenggalan
+         kata pada komentar yang telah dikirim pengguna.
+═════════════════════════════════════════════════════════════ */
 .review-saved-comment {
-margin-top: 8px;
-color: #4b5563;
-font-size: 13px;
-line-height: 1.6;
-overflow-wrap: anywhere;
+    margin-top: 8px;
+    color: #4b5563;
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
 }
 
-/* L.4. Mengatur overlay modal rating dan review
-   ⤷ Menyembunyikan modal sampai tombol rating diklik.
-   ════════════════════════════════════════════════════════ */
+
 /* ═════════════════════════════════════════════════════════════
-   MODAL RATING DAN REVIEW
-   Menggunakan struktur modal yang sama dengan pembatalan.
+   L.10. HASIL RATING DAN REVIEW PADA DETAIL PESANAN
+   ⤷ Mengatur tampilan hasil rating kendaraan, rating sopir,
+       dan komentar review yang sudah dikirim oleh pelanggan.
+═════════════════════════════════════════════════════════════ */
+.order-review-result {
+    width: 100%;
+    padding: 0 24px;
+    background: #ffffff;
+    border-top: none;
+    box-sizing: border-box;
+}
+
+
+/* Mengatur jarak bawah, warna, ukuran, dan ketebalan teks
+    judul pada card hasil rating dan review.*/
+.order-review-result h3 {
+    padding: 20px 0px 25px;
+    color: #292524;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+/* Menyusun label, bintang rating, dan komentar secara
+    vertikal serta memberikan pemisah antarbagian.*/
+.order-review-result-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+    padding: 14px 0;
+    border-bottom: 1px solid #f0e9e4;
+    box-sizing: border-box;
+}
+
+/* Menghilangkan padding atas pada item pertama agar
+   posisinya lebih dekat dengan judul card. */
+.order-review-result-item:first-of-type {
+    padding-top: 0;
+}
+
+/* Menghilangkan padding bawah dan garis pemisah pada
+   item terakhir agar bagian akhir card tetap rapi. */
+.order-review-result-item:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+
+/* Mengatur warna, ukuran, dan ketebalan teks label
+       seperti Rating Kendaraan, Rating Sopir, dan Komentar.*/
+.order-review-result-item strong {
+    color: #51443b;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+
+/* Mengatur jarak, warna, ukuran, dan tinggi baris komentar.
+       Teks panjang dapat berpindah baris dan tetap ditampilkan
+       dengan mempertahankan pergantian baris yang dimasukkan.*/
+.order-review-result-item p {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 15px;
+    border: 1px solid #ca8f19b1;
+    border-radius: 4px;
+    background: #fffcf6;
+    color: #6b625c;
+    font-size: 14px;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    margin-bottom: 20px;
+}
+
+/* Mengatur area tombol rating */
+.review-button-area {
+    display: flex;
+    align-items: center;
+    padding: 20px 25px;
+    margin: 0;
+    border: none;
+    background: #ffffff;
+}
+
+.review-button-area .btn-review-open {
+    width: 100%;
+    margin: 0;
+    color: #ffb60a;
+    border: 2px solid #ffb60a;
+    background: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.review-button-area .btn-review-open:hover {
+    background: #ffd000;
+    color: #ffffff;
+}
+
+
+
+/* ═════════════════════════════════════════════════════════════
+   F.   SUSUNAN BINTANG RATING
+   ⤷ Menyusun bintang secara horizontal dengan jarak yang
+       konsisten serta mengizinkan perpindahan baris jika
+       ruang tampilan tidak mencukupi.
 ═════════════════════════════════════════════════════════════ */
 
+.order-review-result .review-stars {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+/* Mengatur ukuran dan tinggi baris setiap simbol bintang. */
+.order-review-result .review-star {
+    display: inline-block;
+    font-size: 23px;
+    line-height: 1;
+}
+
+/* Memberikan warna emas pada bintang yang terpilih. */
+.order-review-result .review-star.is-selected {
+    color: #f4a623;
+}
+
+/* Memberikan warna abu-abu pada bintang yang tidak terpilih. */
+.order-review-result .review-star:not(.is-selected) {
+    color: #d8d2cc;
+}
+
+
+
+/* ═════════════════════════════════════════════════════════════
+   G.   RESPONSIVE HASIL REVIEW
+   ⤷ Menyesuaikan padding, jarak, dan ukuran teks serta bintang
+       agar card tetap nyaman dibaca pada layar berukuran kecil.
+═════════════════════════════════════════════════════════════ */
+
+@media (max-width: 600px) {
+
+    /* Menyesuaikan jarak luar, padding, dan sudut card
+       pada perangkat dengan lebar layar maksimal 600px. */
+    .order-review-result {
+        margin: 18px 0;
+        padding: 18px;
+        border-radius: 12px;
+    }
+
+    /* Memperkecil ukuran judul dan jarak bawahnya. */
+    .order-review-result h3 {
+        margin-bottom: 14px;
+        font-size: 16px;
+    }
+
+    /* Mengurangi jarak vertikal setiap item review. */
+    .order-review-result-item {
+        padding: 12px 0;
+    }
+
+    /* Menyesuaikan ukuran teks label dan komentar
+       agar tetap proporsional pada layar kecil. */
+    .order-review-result-item strong,
+    .order-review-result-item p {
+        font-size: 13px;
+    }
+
+    /* Memperkecil bintang rating agar sesuai dengan
+       ruang tampilan pada perangkat seluler. */
+    .order-review-result .review-star {
+        font-size: 21px;
+    }
+}
+
+
+
+/* L.10. OVERLAY MODAL RATING DAN REVIEW
+       ⤷ Menyembunyikan modal ketika tidak aktif.
+         Tampilan overlay dan pemusatan modal mengikuti
+         struktur modal konfirmasi pembatalan.
+═════════════════════════════════════════════════════════════ */
 .review-modal-overlay {
     display: none;
 }
 
+
+/* L.10.a. Menampilkan overlay ketika modal rating aktif. */
 .review-modal-overlay.active {
     display: flex;
 }
 
+
+/* L.11. KOTAK MODAL RATING DAN REVIEW
+       ⤷ Membatasi lebar dan tinggi modal, menambahkan
+         gulir vertikal jika isi melebihi tinggi layar,
+         serta meratakan isi modal ke kiri.
+═════════════════════════════════════════════════════════════ */
 .review-modal {
     width: 100%;
     max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
+
     text-align: left;
 }
 
+
+/* L.11.a. Memastikan panel ulasan memenuhi lebar modal. */
 .review-modal .order-review-panel {
     width: 100%;
 }
 
+
+/* L.11.b. Mengatur jarak antarelemen formulir di dalam modal
+   tanpa memengaruhi formulir rating di luar modal. */
 .review-modal .order-review-form {
     display: flex;
     flex-direction: column;
     gap: 15px;
+}
+
+/* L.12.c. Mengatur teks pengantar pada modal rating dan review. */
+.review-modal .order-review-description {
+    margin: 0 0 15px;
+    color: #858585;
+    font-size: 14px;
+    line-height: 1.7;
+    text-align: center;
 }
 
 
