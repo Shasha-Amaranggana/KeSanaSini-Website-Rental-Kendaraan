@@ -448,6 +448,173 @@
 }
 
 
+/* F.15. Mengatur susunan timeline pembatalan
+   ═══════════════════════════════════════════════════════ */
+.cancellation-timeline {
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+    padding: 15px 0 20px;
+}
+
+/* F.16. Mengatur setiap tahap timeline pembatalan */
+.cancellation-timeline-step {
+    position: relative;
+    z-index: 0;
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    color: #888888;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* F.17. Membuat garis penghubung antartahap pembatalan */
+.cancellation-timeline-step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: 24px;
+    left: calc(50% + 25px);
+    width: calc(100% - 50px);
+    height: 4px;
+    background: #d4d7dc;
+}
+
+/* F.18. Mengatur ikon setiap tahap pembatalan */
+.cancellation-timeline-icon {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    border: 4px solid #d4d7dc;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #d0d3d8;
+    font-size: 22px;
+}
+
+/* F.19. Menandai tahap pembatalan yang telah selesai */
+.cancellation-timeline-step.completed
+.cancellation-timeline-icon {
+    border-color: #00bf67;
+    color: #00bf67;
+}
+
+/* F.20. Menandai garis setelah tahap yang selesai */
+.cancellation-timeline-step.completed:not(:last-child)::after {
+    background: #00bf67;
+}
+
+/* F.21. Menandai tahap pembatalan yang sedang berlangsung */
+.cancellation-timeline-step.current
+.cancellation-timeline-icon {
+    border-color: #00bf67;
+    background: #00bf67;
+    color: #ffffff;
+}
+
+/* F.22. Mengatur teks nama tahap pembatalan */
+.cancellation-timeline-step > span {
+    max-width: 140px;
+    line-height: 1.4;
+}
+
+/* F.23. Mengatur tanggal dan waktu tahap pembatalan */
+.cancellation-timeline-step > small {
+    display: block;
+    color: #888888;
+    font-size: 10px;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: center;
+}
+
+/* F.24. Mengatur alasan pembatalan */
+.cancellation-timeline-reason {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border-radius: 6px;
+    background: #f6efea;
+    color: #686868;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.cancellation-timeline-reason span:first-child {
+    font-weight: 700;
+    color: #333333;
+}
+
+/* F.25. Menyesuaikan timeline pembatalan pada layar kecil */
+@media (max-width: 700px) {
+    .cancellation-timeline {
+        padding: 15px 0;
+    }
+
+    .cancellation-timeline-step {
+        gap: 7px;
+        font-size: 10px;
+    }
+
+    .cancellation-timeline-icon {
+        width: 42px;
+        height: 42px;
+        border-width: 3px;
+        font-size: 15px;
+    }
+
+    .cancellation-timeline-step:not(:last-child)::after {
+        top: 19px;
+        left: calc(50% + 21px);
+        width: calc(100% - 42px);
+        height: 3px;
+    }
+
+    .cancellation-timeline-step > span {
+        max-width: 90px;
+    }
+}
+
+/* F.26. Mengatur judul rincian status tercatat */
+.recorded-status-heading {
+    margin: 0 -22px;
+    padding: 20px 24px 25px;
+    color: #080808;
+    border-top: 3px solid #ed812a;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+/* F.26. Pengumuman status pembatalan pesanan */
+.cancellation-status-announcement {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: 0 0 15px;
+    padding: 10px 16px;
+    border-radius: 5px;
+    background: #FEE2E2;
+    color: #B4533C;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.5;
+    text-align: center;
+}
+
 
 /* ═════════════════════════════════════════════════════════════
    G.   INFORMASI KENDARAAN DAN RINCIAN BIAYA
@@ -1116,24 +1283,6 @@
 }
 
 
-/* J.23. Isi keterangan pembatalan langsung
-   ═══════════════════════════════════════════════════════ */
-.timeline-cancelled-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 7px;
-    text-align: center;
-    line-height: 1.5;
-}
-
-.timeline-cancelled-content small {
-    color: #888888;
-    font-size: 11px;
-    font-weight: 400;
-}
-
-
 
 /* J.23. Pemberitahuan ketika permohonan pembatalan ditolak
    ═══════════════════════════════════════════════════════ */
@@ -1418,9 +1567,9 @@
 ═════════════════════════════════════════════════════════════ */
 .order-review-result {
     width: 100%;
-    padding: 0px 24px;
+    padding: 0 24px;
     background: #ffffff;
-    border-top: 3px solid #ed812a;
+    border-top: none;
     box-sizing: border-box;
 }
 
@@ -1492,7 +1641,7 @@
 .review-button-area {
     display: flex;
     align-items: center;
-    padding: 25px 25px 0px;
+    padding: 20px 25px;
     margin: 0;
     border: none;
     background: #ffffff;

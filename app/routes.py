@@ -1341,26 +1341,69 @@ def detail_pesanan(rental_id):
         cancellation.is_rejected if cancellation else False
     )
 
-    cancellation_steps = (
-        cancellation.timeline_steps
-        if cancellation and not cancellation.is_rejected
-        else []
-    )
-
+    # =====================================================
+    # TIMELINE STATUS PEMBATALAN PESANAN
+    # Menampilkan pengajuan dan keputusan admin.
+    # =====================================================
+    cancellation_steps = []
     cancellation_completed_steps = 0
 
-    if cancellation_steps:
-        if cancellation.status == RentalCancellation.STATUS_DIAJUKAN:
-            cancellation_completed_steps = 0
+    if cancellation and cancellation.initiated_by == 'customer':
 
-        elif cancellation.status == RentalCancellation.STATUS_MENUNGGU_REFUND:
-            cancellation_completed_steps = 1
+        # TAHAP 1: PELANGGAN MENGAJUKAN PEMBATALAN.
+        cancellation_steps.append((
+            'fa-file-circle-plus',
+            'Pembatalan Diajukan',
+            cancellation.requested_at
+        ))
+
+        # TAHAP 2: KEPUTUSAN ADMIN.
+        if cancellation.status == RentalCancellation.STATUS_DITOLAK:
+
+            cancellation_steps.append((
+                'fa-circle-xmark',
+                'Pembatalan Ditolak',
+                cancellation.rejected_at
+            ))
+
+            cancellation_completed_steps = 2
 
         elif cancellation.status in (
             RentalCancellation.STATUS_DISETUJUI,
-            RentalCancellation.STATUS_DANA_DIKEMBALIKAN,
+            RentalCancellation.STATUS_MENUNGGU_REFUND,
+            RentalCancellation.STATUS_DANA_DIKEMBALIKAN
         ):
-            cancellation_completed_steps = len(cancellation_steps)
+
+            cancellation_steps.append((
+                'fa-circle-check',
+                'Pembatalan Disetujui',
+                cancellation.approved_at
+            ))
+
+            cancellation_completed_steps = 2
+
+        else:
+
+            # Pengajuan sudah tercatat, tetapi belum diputuskan admin.
+            cancellation_steps.append((
+                'fa-clock',
+                'Menunggu Persetujuan',
+                None
+            ))
+
+            cancellation_completed_steps = 1
+
+    else:
+
+        # Mempertahankan timeline untuk pembatalan yang bukan
+        # diajukan oleh pelanggan.
+        cancellation_steps = (
+            cancellation.timeline_steps if cancellation else []
+        )
+
+        cancellation_completed_steps = (
+            cancellation.completed_steps_count if cancellation else 0
+        )
 
     # =====================================================
     #   WAKTU PERUBAHAN STATUS PESANAN

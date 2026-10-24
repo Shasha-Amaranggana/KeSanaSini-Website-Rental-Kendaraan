@@ -190,21 +190,28 @@ orders-page
 
                         {% endif %}
 
-                        <!-- TIMELINE PEMBATALAN YANG MEMILIKI CATATAN TERSENDIRI -->
+                        <!-- TIMELINE PEMBATALAN -->
                         {% if cancellation_steps %}
 
-                            <div class="timeline-steps">
+                            <!-- PENGUMUMAN PESANAN DIBATALKAN -->
+                            {% if not dibatalkan_otomatis %}
+                                <div class="cancellation-status-announcement">
+                                    Pesanan Dibatalkan oleh Anda
+                                </div>
+                            {% endif %}
+
+                            <div class="cancellation-timeline">
 
                                 {% for icon, label, waktu in cancellation_steps %}
 
-                                    <div class="timeline-step
+                                    <div class="cancellation-timeline-step
                                         {% if loop.index0 < cancellation_completed_steps %}
                                             completed
                                         {% elif loop.index0 == cancellation_completed_steps %}
                                             current
                                         {% endif %}">
 
-                                        <div class="timeline-icon">
+                                        <div class="cancellation-timeline-icon">
                                             <i class="fa-solid {{ icon }}"></i>
                                         </div>
 
@@ -226,8 +233,31 @@ orders-page
 
                             </div>
 
-                        <!-- PEMBATALAN LANGSUNG OLEH ADMIN ATAU SISTEM TANPA REFUND -->
-                        {% elif rental.status == rental.STATUS_BATAL %}
+                            <!-- ALASAN PEMBATALAN YANG TERSIMPAN -->
+                            {% set alasan_tersimpan =
+                                cancellation.reason
+                                if cancellation and cancellation.reason
+                                else rental.cancellation_reason
+                            %}
+
+                            {% if alasan_tersimpan %}
+                                <div class="cancellation-timeline-reason">
+                                    <span>Alasan Pembatalan:</span>
+                                    <span>{{ alasan_tersimpan }}</span>
+                                </div>
+                            {% endif %}
+
+                        {% endif %}
+
+                        <!-- JUDUL RINCIAN STATUS TERCATAT -->
+                        {% if cancellation_steps %}
+                            <h3 class="recorded-status-heading">
+                                Rincian Status Tercatat
+                            </h3>
+                        {% endif %}
+
+                        <!-- TIMELINE STATUS PENYEWAAN TETAP DITAMPILKAN -->
+                        {% if rental.status == rental.STATUS_BATAL %}
 
                             <div class="timeline-cancelled">
                                 <i class="fa-solid fa-circle-xmark"></i>
@@ -251,17 +281,15 @@ orders-page
                                         </small>
                                     {% endif %}
 
-                                    {% if rental.cancellation_reason %}
+                                    {% if rental.cancellation_reason and not cancellation_steps %}
                                         <small>
                                             Alasan: {{ rental.cancellation_reason }}
                                         </small>
                                     {% endif %}
 
                                 </div>
-
                             </div>
 
-                        <!-- TIMELINE PENYEWAAN NORMAL -->
                         {% else %}
 
                             <div class="timeline-steps">
