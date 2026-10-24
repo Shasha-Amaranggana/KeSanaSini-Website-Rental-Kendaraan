@@ -1187,6 +1187,7 @@ def batalkan_pesanan_user(rental_id):
         url_for('main.detail_pesanan', rental_id=rental.id)
     )
 
+
 # =========================================================
 #   REVIEW PESANAN YANG SUDAH SELESAI
 # =========================================================
@@ -1196,6 +1197,7 @@ def kirim_review_pesanan(rental_id):
         return redirect(url_for('main.login'))
 
     user = User.query.get(session['user_id'])
+
     if not user:
         session.clear()
         return redirect(url_for('main.login'))
@@ -1205,40 +1207,77 @@ def kirim_review_pesanan(rental_id):
         user_id=user.id
     ).first_or_404()
 
-    # Review hanya dibuka setelah proses pengembalian dinyatakan selesai.
+    # Review hanya dapat diberikan setelah pesanan selesai.
     if rental.status != Rental.STATUS_SELESAI:
-        flash('Review hanya dapat diberikan setelah pesanan selesai.', 'error')
-        return redirect(url_for('main.detail_pesanan', rental_id=rental.id))
+        flash(
+            'Review hanya dapat diberikan setelah pesanan selesai.',
+            'error'
+        )
+        return redirect(
+            url_for('main.detail_pesanan', rental_id=rental.id)
+        )
 
-    # Model Review belum menyimpan rental_id, sehingga duplikasi dicegah
-    # berdasarkan kombinasi pelanggan dan kendaraan.
+    # Cegah review ganda untuk pesanan yang sama.
     existing_review = Review.query.filter_by(
-        user_id=user.id,
-        vehicle_id=rental.vehicle_id
+        rental_id=rental.id
     ).first()
-    if existing_review:
-        flash('Kamu sudah memberikan review untuk kendaraan ini.', 'error')
-        return redirect(url_for('main.detail_pesanan', rental_id=rental.id))
 
+    if existing_review:
+        flash('Review untuk pesanan ini sudah pernah dikirim.', 'error')
+        return redirect(
+            url_for('main.detail_pesanan', rental_id=rental.id)
+        )
+
+    # Validasi rating kendaraan.
     try:
         rating = int(request.form.get('rating', '0'))
     except (TypeError, ValueError):
         rating = 0
 
-    comment = (request.form.get('comment') or '').strip()
     if rating not in (1, 2, 3, 4, 5):
-        flash('Pilih rating antara 1 sampai 5 bintang.', 'error')
-        return redirect(url_for('main.detail_pesanan', rental_id=rental.id))
+        flash('Pilih rating kendaraan antara 1 sampai 5 bintang.', 'error')
+        return redirect(
+            url_for('main.detail_pesanan', rental_id=rental.id)
+        )
 
-    db.session.add(Review(
+    # Rating sopir hanya diperlukan jika pesanan menggunakan sopir.
+    rating_driver = None
+
+    if rental.driver_id is not None:
+        try:
+            rating_driver = int(
+                request.form.get('rating_driver', '0')
+            )
+        except (TypeError, ValueError):
+            rating_driver = 0
+
+        if rating_driver not in (1, 2, 3, 4, 5):
+            flash('Pilih rating sopir antara 1 sampai 5 bintang.', 'error')
+            return redirect(
+                url_for('main.detail_pesanan', rental_id=rental.id)
+            )
+
+    # Komentar hanya untuk kendaraan.
+    comment = (request.form.get('comment') or '').strip()
+
+    review = Review(
         user_id=user.id,
         vehicle_id=rental.vehicle_id,
+        rental_id=rental.id,
+        driver_id=rental.driver_id,
         rating=rating,
+        rating_driver=rating_driver,
         comment=comment or None
-    ))
+    )
+
+    db.session.add(review)
     db.session.commit()
-    flash('Terima kasih, review kendaraan berhasil dikirim.', 'success')
-    return redirect(url_for('main.detail_pesanan', rental_id=rental.id))
+
+    flash('Terima kasih, review berhasil dikirim.', 'success')
+
+    return redirect(
+        url_for('main.detail_pesanan', rental_id=rental.id)
+    )
 
 
 # =========================================================
@@ -1262,6 +1301,11 @@ def detail_pesanan(rental_id):
         id=rental_id,
         user_id=user.id
     ).first_or_404()
+
+    # Ambil ulasan yang sudah dikirim untuk pesanan ini.
+    review_existing = Review.query.filter_by(
+        rental_id=rental.id
+    ).first()
 
     # [OOP - PEMANFAATAN PROPERTI ENKAPSULASI & ABSTRAKSI MODEL]
     # Mengambil objek RentalCancellation terbaru melalui properti enkapsulasi
@@ -1290,12 +1334,27 @@ def detail_pesanan(rental_id):
     cancellation_is_rejected = (
         cancellation.is_rejected if cancellation else False
     )
+
     cancellation_steps = (
-        cancellation.timeline_steps if cancellation else []
+        cancellation.timeline_steps
+        if cancellation and not cancellation.is_rejected
+        else []
     )
-    cancellation_completed_steps = (
-        cancellation.completed_steps_count if cancellation else 0
-    )
+
+    cancellation_completed_steps = 0
+
+    if cancellation_steps:
+        if cancellation.status == RentalCancellation.STATUS_DIAJUKAN:
+            cancellation_completed_steps = 0
+
+        elif cancellation.status == RentalCancellation.STATUS_MENUNGGU_REFUND:
+            cancellation_completed_steps = 1
+
+        elif cancellation.status in (
+            RentalCancellation.STATUS_DISETUJUI,
+            RentalCancellation.STATUS_DANA_DIKEMBALIKAN,
+        ):
+            cancellation_completed_steps = len(cancellation_steps)
 
     # =====================================================
     #   WAKTU PERUBAHAN STATUS PESANAN
@@ -1355,10 +1414,7 @@ def detail_pesanan(rental_id):
         user=user,
         rental=rental,
         cancellation=cancellation,
-        review_existing=Review.query.filter_by(
-            user_id=user.id,
-            vehicle_id=rental.vehicle_id
-        ).first(),
+        review_existing=review_existing,
         cancellation_steps=cancellation_steps,
         cancellation_completed_steps=cancellation_completed_steps,
         cancellation_is_pending=cancellation_is_pending,
