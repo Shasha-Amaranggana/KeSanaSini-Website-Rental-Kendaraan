@@ -147,6 +147,49 @@ orders-page
                     <!-- TIMELINE STATUS -->
                     <div class="timeline-section">
 
+                        <!-- PERINGATAN SEWA -->
+                        {% if rental.is_overdue %}
+
+                                <!-- PERINGATAN KETERLAMBATAN -->
+                            <div
+                                style=
+                                "margin-bottom:15px; padding:10px 14px;
+                                background:#FEE2E2; border-left:4px solid #DC2626;
+                                border-radius:6px; color:#991B1B;
+                                font-size:12px; line-height:1.5;">
+                                <strong>
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                    Keterlambatan:
+                                </strong>
+                                Masa sewa telah melewati batas waktu pengembalian. Dikenakan denda keterlambatan berjalan sebesar
+                                <strong>
+                                    Rp{{ "{:,.0f}".format(rental.active_fine).replace(",", ".") }}
+                                </strong>
+                                ({{ rental.late_days }} hari).
+                            </div>
+
+                        {% elif rental.is_due_soon %}
+                            
+                            <!-- PENGINGAT BATAS PENGEMBALIAN -->
+                            <div
+                                style=
+                                "margin-bottom:15px; padding:10px 14px;
+                                background:#FEF3C7; border-left:4px solid #D97706;
+                                border-radius:6px; color:#92400E;
+                                font-size:12px; line-height:1.5;">
+                                <strong>
+                                    <i class="fa-solid fa-clock"></i>
+                                    Pengingat:
+                                </strong>
+                                Masa sewa tersisa
+                                <strong>   
+                                    {{ rental.remaining_label }}
+                                </strong>
+                                . Batas pengembalian: {{ rental.end_date | tanggal_id }}, {{ rental.return_time }}.
+                            </div>
+
+                        {% endif %}
+
                         <!-- TIMELINE PEMBATALAN YANG MEMILIKI CATATAN TERSENDIRI -->
                         {% if cancellation_steps %}
 
@@ -301,51 +344,8 @@ orders-page
                         <!-- RINCIAN BIAYA -->
                         <div class="order-detail-pricing">
 
-                            <!-- PERINGATAN SEWA -->
-                            {% if rental.is_overdue %}
-
-                                 <!-- PERINGATAN KETERLAMBATAN -->
-                                <div
-                                    style=
-                                    "margin-bottom:15px; padding:10px 14px;
-                                    background:#FEE2E2; border-left:4px solid #DC2626;
-                                    border-radius:6px; color:#991B1B;
-                                    font-size:12px; line-height:1.5;">
-                                    <strong>
-                                        <i class="fa-solid fa-triangle-exclamation"></i>
-                                        Keterlambatan:
-                                    </strong>
-                                    Masa sewa telah melewati batas waktu pengembalian. Dikenakan denda keterlambatan berjalan sebesar
-                                    <strong>
-                                        Rp{{ "{:,.0f}".format(rental.active_fine).replace(",", ".") }}
-                                    </strong>
-                                    ({{ rental.late_days }} hari).
-                                </div>
-
-                            {% elif rental.is_due_soon %}
-                                
-                                <!-- PENGINGAT BATAS PENGEMBALIAN -->
-                                <div
-                                    style=
-                                    "margin-bottom:15px; padding:10px 14px;
-                                    background:#FEF3C7; border-left:4px solid #D97706;
-                                    border-radius:6px; color:#92400E;
-                                    font-size:12px; line-height:1.5;">
-                                    <strong>
-                                        <i class="fa-solid fa-clock"></i>
-                                        Pengingat:
-                                    </strong>
-                                    Masa sewa tersisa
-                                    <strong>   
-                                        {{ rental.remaining_label }}
-                                    </strong>
-                                    . Batas pengembalian: {{ rental.end_date | tanggal_id }}, {{ rental.return_time }}.
-                                </div>
-
-                            {% endif %}
-
                             <!-- BIAYA PENYEWAAN -->
-                            <h3>Rincian Biaya</h3>
+                            <h3>Rincian Biaya dan Informasi Pembayaran</h3>
 
                             <!-- BIAYA SEWA KENDARAAN -->
                             <p>
@@ -414,8 +414,6 @@ orders-page
                             {% endif %}
 
                             <!-- INFORMASI PEMBAYARAN -->
-                            <h3>Informasi Pembayaran</h3>
-
                             <p>
                                 <span>Status pembayaran</span>
                                 <strong>
@@ -423,174 +421,191 @@ orders-page
                                 </strong>
                             </p>
 
-                            <!-- TOMBOL PEMBAYARAN -->
-                            {% if rental.payment_status != 'Lunas'
-                            and rental.status == rental.STATUS_MENUNGGU_BAYAR
-                            and not cancellation_is_pending %}
+                            <!-- AREA TOMBOL PEMBAYARAN DAN PEMBATALAN -->
+                            <div class="detail-action-area">
 
-                                <a
-                                    href="{{ url_for('main.pembayaran', rental_id=rental.id) }}"
-                                    class="btn-pembayaran">
-                                    <i class="fa-solid fa-wallet"></i>
-                                    Lakukan Pembayaran
-                                </a>
+                                <!-- TOMBOL PEMBAYARAN -->
+                                {% if rental.payment_status != 'Lunas'
+                                and rental.status == rental.STATUS_MENUNGGU_BAYAR
+                                and not cancellation_is_pending %}
 
-                            {% endif %}
+                                    <a
+                                        href="{{ url_for('main.pembayaran', rental_id=rental.id) }}"
+                                        class="btn-pembayaran">
+                                        <i class="fa-solid fa-wallet"></i>
+                                        Lanjutkan Pembayaran
+                                    </a>
 
-                            <!-- TOMBOL BATALKAN PESANAN -->
-                            {% if rental.status in [
-                                rental.STATUS_MENUNGGU_BAYAR,
-                                rental.STATUS_MENUNGGU_KONFIRMASI,
-                                rental.STATUS_PENGAMBILAN
-                            ] and not cancellation_is_pending %}
-
-                            <div class="cancel-order-form">
-
-                                <!-- INFORMASI PEMBATALAN SETELAH PEMBAYARAN -->
-                                {% if rental.status != rental.STATUS_MENUNGGU_BAYAR %}
-                                    <p class="cancel-order-note">
-                                        Jika pembayaran sudah dilakukan, hubungi admin
-                                        untuk mengurus pengembalian dana.
-                                    </p>
                                 {% endif %}
 
-                                <!-- TOMBOL MEMBUKA MODAL PEMBATALAN -->
-                                <button
-                                    type="button"
-                                    class="btn-batalkan-pesanan"
-                                    onclick="bukaModalPembatalan()">
-                                    <i class="fa-solid fa-circle-xmark"></i>
-                                    Batalkan Pesanan
-                                </button>
+                                <!-- TOMBOL BATALKAN PESANAN -->
+                                {% if rental.status in [
+                                    rental.STATUS_MENUNGGU_BAYAR,
+                                    rental.STATUS_MENUNGGU_KONFIRMASI,
+                                    rental.STATUS_PENGAMBILAN
+                                ] and not cancellation_is_pending %}
 
-                            </div>
+                                    <div class="cancel-order-form">
 
-                            <!-- BENTUK KONFIRMASI PEMBATALAN -->
-                            <div
-                                class="cancel-modal-overlay"
-                                id="cancelConfirmModal"
-                                aria-hidden="true">
+                                        <!-- TOMBOL MEMBUKA MODAL PEMBATALAN -->
+                                        <button
+                                            type="button"
+                                            class="btn-batalkan-pesanan"
+                                            onclick="bukaModalPembatalan()">
+                                            <i class="fa-solid fa-circle-xmark"></i>
+                                            Batalkan Pesanan
+                                        </button>
 
-                                <div
-                                    class="cancel-modal"
-                                    role="dialog"
-                                    aria-modal="true"
-                                    aria-labelledby="cancelConfirmTitle">
-                                
-                                    <!-- IKON KONFIRMASI -->
-                                    <div class="cancel-modal-icon">
-                                        <i class="fa-solid fa-circle-exclamation"></i>
                                     </div>
 
-                                    <h2 id="cancelConfirmTitle">
-                                        Konfirmasi Pembatalan
-                                    </h2>
+                                {% endif %}
 
-                                    <p>
-                                        Apakah kamu yakin ingin membatalkan pesanan ini?
-                                    </p>
+                                <!-- TOMBOL RATING DAN REVIEW PESANAN SELESAI -->
+                                {% if rental.status == rental.STATUS_SELESAI and not review_existing %}
 
-                                    <!-- PERINGATAN PENGEMBALIAN DANA -->
-                                    {% if rental.payment_status == 'Lunas' %}
-                                        <p class="cancel-modal-warning">
-                                            Pengembalian dana harus dikoordinasikan
-                                            dengan admin.
+                                    <div class="cancel-order-form review-order-form">
+
+                                        <!-- TOMBOL MEMBUKA MODAL RATING DAN REVIEW -->
+                                        <button
+                                            type="button"
+                                            class="btn-batalkan-pesanan btn-review-open"
+                                            onclick="bukaModalReview()">
+                                            <i class="fa-solid fa-star"></i>
+                                            Beri Rating dan Review
+                                        </button>
+
+                                    </div>
+
+                                {% endif %}
+
+                                <!-- BENTUK KONFIRMASI PEMBATALAN -->
+                                <div
+                                    class="cancel-modal-overlay"
+                                    id="cancelConfirmModal"
+                                    aria-hidden="true">
+
+                                    <div
+                                        class="cancel-modal"
+                                        role="dialog"
+                                        aria-modal="true"
+                                        aria-labelledby="cancelConfirmTitle">
+                                    
+                                        <!-- IKON KONFIRMASI -->
+                                        <div class="cancel-modal-icon">
+                                            <i class="fa-solid fa-circle-exclamation"></i>
+                                        </div>
+
+                                        <h2 id="cancelConfirmTitle">
+                                            Konfirmasi Pembatalan
+                                        </h2>
+
+                                        <p>
+                                            Apakah kamu yakin ingin membatalkan pesanan ini?
                                         </p>
-                                    {% endif %}
 
-                                    <!-- TOMBOL AKSI KONFIRMASI -->
-                                    <div class="cancel-modal-actions">
-                                        <button
-                                            type="button"
-                                            class="cancel-modal-btn cancel-modal-back"
-                                            onclick="tutupModalPembatalan()">
-                                            Kembali
-                                        </button>
+                                        <!-- PERINGATAN PENGEMBALIAN DANA -->
+                                        {% if rental.payment_status == 'Lunas' %}
+                                            <p class="cancel-modal-warning">
+                                                Pengembalian dana harus dikoordinasikan
+                                                dengan admin.
+                                            </p>
+                                        {% endif %}
 
-                                        <button
-                                            type="button"
-                                            class="cancel-modal-btn cancel-modal-continue"
-                                            onclick="bukaAlasanPembatalan()">
-                                            Lanjutkan
-                                        </button>
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                            <!-- BENTUK ALASAN PEMBATALAN -->
-                            <div
-                                class="cancel-modal-overlay"
-                                id="cancelReasonModal"
-                                aria-hidden="true">
-
-                                <div
-                                    class="cancel-modal cancel-reason-modal"
-                                    role="dialog"
-                                    aria-modal="true"
-                                    aria-labelledby="cancelReasonTitle">
-
-                                    <!-- IKON ALASAN PEMBATALAN -->
-                                    <div class="cancel-modal-icon">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </div>
-
-                                    <h2 id="cancelReasonTitle">
-                                        Alasan Pembatalan
-                                    </h2>
-
-                                    <p>
-                                        Beri tahu kami alasan kamu membatalkan pesanan ini.
-                                    </p>
-
-                                    <!-- FORMULIR ALASAN PEMBATALAN -->
-                                    <form
-                                        method="POST"
-                                        action="{{ url_for('main.batalkan_pesanan_user', rental_id=rental.id ) }}"
-                                        id="cancelReasonForm">
-
-                                        <label for="cancellation_reason">
-                                            Alasan pembatalan
-                                        </label>
-
-                                        <select
-                                            id="cancellation_reason"
-                                            name="cancellation_reason"
-                                            required
-                                        >
-                                            <option value="" selected disabled>
-                                                Pilih alasan pembatalan
-                                            </option>
-
-                                            {% for alasan in alasan_pembatalan %}
-                                                <option value="{{ alasan }}">
-                                                    {{ alasan }}
-                                                </option>
-                                            {% endfor %}
-                                        </select>
-
-                                        <small class="cancel-reason-hint">
-                                            Silakan pilih alasan yang paling sesuai.
-                                        </small>
-
-                                        <!-- TOMBOL AKSI FORMULIR -->
+                                        <!-- TOMBOL AKSI KONFIRMASI -->
                                         <div class="cancel-modal-actions">
                                             <button
                                                 type="button"
                                                 class="cancel-modal-btn cancel-modal-back"
-                                                onclick="kembaliKeKonfirmasi()">
+                                                onclick="tutupModalPembatalan()">
                                                 Kembali
                                             </button>
 
                                             <button
-                                                type="submit"
-                                                class="cancel-modal-btn cancel-modal-submit">
-                                                Kirim Pembatalan
+                                                type="button"
+                                                class="cancel-modal-btn cancel-modal-continue"
+                                                onclick="bukaAlasanPembatalan()">
+                                                Lanjutkan
                                             </button>
                                         </div>
 
-                                    </form>
+                                    </div>
+
+                                </div>
+
+                                <!-- BENTUK ALASAN PEMBATALAN -->
+                                <div
+                                    class="cancel-modal-overlay"
+                                    id="cancelReasonModal"
+                                    aria-hidden="true">
+
+                                    <div
+                                        class="cancel-modal cancel-reason-modal"
+                                        role="dialog"
+                                        aria-modal="true"
+                                        aria-labelledby="cancelReasonTitle">
+
+                                        <!-- IKON ALASAN PEMBATALAN -->
+                                        <div class="cancel-modal-icon">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </div>
+
+                                        <h2 id="cancelReasonTitle">
+                                            Alasan Pembatalan
+                                        </h2>
+
+                                        <p>
+                                            Beri tahu kami alasan kamu membatalkan pesanan ini.
+                                        </p>
+
+                                        <!-- FORMULIR ALASAN PEMBATALAN -->
+                                        <form
+                                            method="POST"
+                                            action="{{ url_for('main.batalkan_pesanan_user', rental_id=rental.id ) }}"
+                                            id="cancelReasonForm">
+
+                                            <label for="cancellation_reason">
+                                                Alasan pembatalan
+                                            </label>
+
+                                            <select
+                                                id="cancellation_reason"
+                                                name="cancellation_reason"
+                                                required
+                                            >
+                                                <option value="" selected disabled>
+                                                    Pilih alasan pembatalan
+                                                </option>
+
+                                                {% for alasan in alasan_pembatalan %}
+                                                    <option value="{{ alasan }}">
+                                                        {{ alasan }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+
+                                            <small class="cancel-reason-hint">
+                                                Silakan pilih alasan yang paling sesuai.
+                                            </small>
+
+                                            <!-- TOMBOL AKSI FORMULIR -->
+                                            <div class="cancel-modal-actions">
+                                                <button
+                                                    type="button"
+                                                    class="cancel-modal-btn cancel-modal-back"
+                                                    onclick="kembaliKeKonfirmasi()">
+                                                    Kembali
+                                                </button>
+
+                                                <button
+                                                    type="submit"
+                                                    class="cancel-modal-btn cancel-modal-submit">
+                                                    Kirim Pembatalan
+                                                </button>
+                                            </div>
+
+                                        </form>
+
+                                    </div>
 
                                 </div>
 
@@ -600,6 +615,182 @@ orders-page
 
                     </div>
 
+                    <!-- REVIEW HANYA DAPAT DIBERIKAN SETELAH PESANAN SELESAI -->
+                    {% if rental.status == rental.STATUS_SELESAI %}
+                    <div
+                        class="cancel-modal-overlay review-modal-overlay"
+                        id="reviewModal"
+                        aria-hidden="true">
+
+                        <div
+                            class="cancel-modal review-modal"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="reviewModalTitle">
+
+                            <!-- IKON RATING -->
+                            <div class="cancel-modal-icon">
+                                <i class="fa-solid fa-star"></i>
+                            </div>
+
+                            <h2 id="reviewModalTitle">Ulasan Pesanan</h2>
+
+                            <section class="order-review-panel">
+
+                                <h3>
+                                    <i class="fa-solid fa-star"></i>
+                                    Ulasan Pesanan
+                                </h3>
+
+                                {% if review_existing %}
+
+                                    <p class="order-review-thanks">
+                                        Kamu sudah memberikan ulasan untuk pesanan ini.
+                                    </p>
+
+                                    <!-- Rating kendaraan yang sudah tersimpan -->
+                                    <div class="review-item">
+                                        <strong>Rating Kendaraan</strong>
+
+                                        <div class="review-stars review-stars-static"
+                                            aria-label="Rating kendaraan {{ review_existing.rating }} dari 5">
+                                            {% for angka in range(1, 6) %}
+                                                <span class="review-star
+                                                    {% if angka <= review_existing.rating %}is-selected{% endif %}">
+                                                    ★
+                                                </span>
+                                            {% endfor %}
+                                        </div>
+
+                                        {% if review_existing.comment %}
+                                            <p class="review-saved-comment">
+                                                {{ review_existing.comment }}
+                                            </p>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Rating sopir hanya jika pesanan menggunakan sopir -->
+                                    {% if rental.driver_id is not none %}
+                                    <div class="review-item">
+                                        <strong>Rating Sopir</strong>
+
+                                        {% if review_existing.rating_driver %}
+                                            <div class="review-stars review-stars-static"
+                                                aria-label="Rating sopir {{ review_existing.rating_driver }} dari 5">
+                                                {% for angka in range(1, 6) %}
+                                                    <span class="review-star
+                                                        {% if angka <= review_existing.rating_driver %}is-selected{% endif %}">
+                                                        ★
+                                                    </span>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <p>Rating sopir belum tersedia.</p>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+
+                                {% else %}
+
+                                    <p class="order-review-description">
+                                        Pesanan selesai! Bagikan pengalamanmu menyewa kendaraan ini.
+                                    </p>
+
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for('main.kirim_review_pesanan', rental_id=rental.id) }}"
+                                        class="order-review-form"
+                                        id="order-review-form">
+
+                                        <!-- RATING KENDARAAN -->
+                                        <div class="review-item">
+                                            <label>Rating Kendaraan</label>
+
+                                            <div class="review-stars"
+                                                data-rating-target="rating"
+                                                role="radiogroup"
+                                                aria-label="Rating kendaraan">
+
+                                                {% for angka in range(1, 6) %}
+                                                <button
+                                                    type="button"
+                                                    class="review-star"
+                                                    data-value="{{ angka }}"
+                                                    role="radio"
+                                                    aria-checked="false"
+                                                    aria-label="{{ angka }} dari 5 bintang">
+                                                    ★
+                                                </button>
+                                                {% endfor %}
+                                            </div>
+
+                                            <input type="hidden" name="rating" id="review-rating" required>
+
+                                            <small class="review-rating-hint" data-rating-hint="rating">
+                                                Pilih rating kendaraan
+                                            </small>
+                                        </div>
+
+                                        <!-- RATING SOPIR -->
+                                        {% if rental.driver_id is not none %}
+                                        <div class="review-item">
+                                            <label>Rating Sopir</label>
+
+                                            <div class="review-stars"
+                                                data-rating-target="rating_driver"
+                                                role="radiogroup"
+                                                aria-label="Rating sopir">
+
+                                                {% for angka in range(1, 6) %}
+                                                <button
+                                                    type="button"
+                                                    class="review-star"
+                                                    data-value="{{ angka }}"
+                                                    role="radio"
+                                                    aria-checked="false"
+                                                    aria-label="{{ angka }} dari 5 bintang">
+                                                    ★
+                                                </button>
+                                                {% endfor %}
+                                            </div>
+
+                                            <input type="hidden"
+                                                name="rating_driver"
+                                                id="review-rating-driver"
+                                                required>
+
+                                            <small class="review-rating-hint"
+                                                data-rating-hint="rating_driver">
+                                                Pilih rating sopir
+                                            </small>
+                                        </div>
+                                        {% endif %}
+
+                                        <!-- KOMENTAR KHUSUS KENDARAAN -->
+                                        <div class="review-item">
+                                            <label for="review-comment">
+                                                Komentar Kendaraan (opsional)
+                                            </label>
+
+                                            <textarea
+                                                id="review-comment"
+                                                name="comment"
+                                                rows="4"
+                                                maxlength="1000"
+                                                placeholder="Ceritakan pengalamanmu menggunakan kendaraan ini..."></textarea>
+                                        </div>
+
+                                        <button type="submit" class="review-submit-btn">
+                                            Kirim Ulasan
+                                        </button>
+
+                                    </form>
+
+                                {% endif %}
+
+                            </section>
+                        </div>
+                    </div>
                     {% endif %}
 
                     <!-- HUBUNGI ADMIN JIKA ADA PERTANYAAN -->
@@ -707,7 +898,7 @@ orders-page
             bukaModalPembatalan();
         }
 
-        // Menutup modal ketika area gelap di luar modal diklik.        document.querySelectorAll('.cancel-modal-overlay').forEach(function (overlay) {
+        // Menutup modal ketika area gelap di luar modal diklik.
         document.querySelectorAll('.cancel-modal-overlay').forEach(function (overlay) {
             overlay.addEventListener('click', function (event) {
                 if (event.target === overlay) {
@@ -717,6 +908,32 @@ orders-page
             });
         });
 
+        // Membuka modal rating dan review.
+        function bukaModalReview() {
+            const modal = document.getElementById('reviewModal');
+
+            if (modal) {
+                modal.classList.add('active');
+                modal.setAttribute('aria-hidden', 'false');
+            }
+        }
+
+        // Menutup modal rating dan review.
+        function tutupModalReview() {
+            const modal = document.getElementById('reviewModal');
+
+            if (modal) {
+                modal.classList.remove('active');
+                modal.setAttribute('aria-hidden', 'true');
+            }
+        }
+
+        // Menutup modal rating ketika area luar diklik.
+        document.getElementById('reviewModal')?.addEventListener('click', function (event) {
+            if (event.target === this) {
+                tutupModalReview();
+            }
+        });
     </script>
     
 {% endblock %}

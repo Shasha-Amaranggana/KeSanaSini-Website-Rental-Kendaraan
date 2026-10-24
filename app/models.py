@@ -1680,6 +1680,13 @@ class Review(db.Model):
         self.__vehicle_id = value
     vehicle_id = synonym("_Review__vehicle_id", descriptor=property(get_vehicle_id, set_vehicle_id))
 
+    __rental_id = db.Column("rental_id", db.Integer, db.ForeignKey("rental.id"), nullable=True)
+    def get_rental_id(self):
+        return self.__rental_id
+    def set_rental_id(self, value):
+        self.__rental_id = value
+    rental_id = synonym("_Review__rental_id", descriptor=property(get_rental_id, set_rental_id))
+
 
     # Nilai ulasan menggunakan skala 1 sampai 5:
 
@@ -1690,7 +1697,17 @@ class Review(db.Model):
     def set_rating(self, value):
         self.__rating = value
     rating = synonym("_Review__rating", descriptor=property(get_rating, set_rating))
-    
+
+    # Rating sopir menggunakan skala 1 sampai 5.
+    # Kosong jika penyewaan tidak menggunakan sopir.
+    __rating_driver = db.Column("rating_driver", db.Integer, nullable=True)
+    # Getter dan setter untuk atribut privat rating_driver.
+    def get_rating_driver(self):
+        return self.__rating_driver
+    def set_rating_driver(self, value):
+        self.__rating_driver = value
+    rating_driver = synonym("_Review__rating_driver", descriptor=property(get_rating_driver, set_rating_driver))
+
     __comment     = db.Column("comment", db.Text, nullable=True)
     # Getter dan setter untuk atribut privat comment.
     def get_comment(self):
@@ -1710,7 +1727,7 @@ class Review(db.Model):
     # Menghubungkan ulasan dengan pelanggan dan kendaraan.
     user        = db.relationship('User', backref=db.backref('reviews', lazy=True))
     vehicle     = db.relationship('Vehicle', backref=db.backref('reviews', lazy=True))
-
+    rental      = db.relationship('Rental', backref=db.backref('reviews', lazy=True))
 
 
 # ═════════════════════════════════════════════════════════════
