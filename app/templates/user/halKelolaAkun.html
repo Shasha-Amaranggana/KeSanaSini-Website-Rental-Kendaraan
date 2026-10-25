@@ -366,7 +366,12 @@ Kelola Akun - KeSanaSini
 
                                     <div class="form-group">
                                         <label for="emergency-phone">No Darurat</label>
-                                        <input ... >
+                                        <input
+                                            type="tel"
+                                            id="emergency-phone"
+                                            name="emergency_phone"
+                                            value="{{ user.emergency_phone or '' }}"
+                                            placeholder="08xxxxxxxxxx">
                                     </div>
                                 </div>
 
@@ -470,6 +475,7 @@ Kelola Akun - KeSanaSini
                                             data-target="confirm-password"
                                             title="Tahan untuk melihat password">
                                         </i>
+                                    </div>
                                 </div>
 
                                 <!-- TOMBOL SIMPAN PASSWORD -->
