@@ -74,7 +74,7 @@
         <div class="card-detail">
             <div class="card-title">Pembayaran</div>
             <div class="flex-between">
-                <span>Biaya Sewa Mobil ({{ rental.duration_days }}x)</span>
+                <span>Biaya Sewa {{ rental.vehicle.vehicle_type or 'Kendaraan' }} ({{ rental.duration_days }}x)</span>
                 <span>Rp {{ rental.vehicle_cost|rupiah }}</span>
             </div>
             {% if rental.with_driver %}
@@ -131,13 +131,13 @@
     <div>
         <div class="card-detail" style="margin-bottom: 20px;">
             <div class="card-title">Kendaraan</div>
-            <img src="{{ url_for('static', filename='images/' + rental.vehicle.photo) }}" alt="Mobil" style="width: 100%; height: 140px; object-fit: contain; background: #2A2F3D; border-radius: 6px; margin-bottom: 15px;">
+            <img src="{{ url_for('static', filename='images/' + rental.vehicle.photo) }}" alt="{{ rental.vehicle.full_name }}" style="width: 100%; height: 140px; object-fit: contain; background: #2A2F3D; border-radius: 6px; margin-bottom: 15px;">
             
             <div class="info-label">Tipe</div>
             <div class="info-val">{{ rental.vehicle.vehicle_type }} {{ rental.vehicle.full_name }}</div>
             
-            <div class="info-label">Kapasitas Kursi</div>
-            <div class="info-val">{{ rental.vehicle.seats }} Kursi</div>
+            <div class="info-label">Kapasitas</div>
+            <div class="info-val">{{ rental.vehicle.seats }} {{ 'Penumpang' if rental.vehicle.vehicle_type|lower == 'motor' else 'Kursi' }}</div>
             
             <div class="info-label">Nomor Plat</div>
             <div class="info-val" style="margin-bottom:0;">{{ rental.vehicle.vehicle_number }}</div>
@@ -163,6 +163,21 @@
             
             <div class="info-label" style="margin-top: 12px;">Durasi</div>
             <div class="info-val" style="margin-bottom:0;">{{ rental.duration_days }} Hari</div>
+
+            {% if rental.special_request %}
+            <div style="margin-top: 15px; padding: 12px 14px; background: #FFF7ED; border-left: 4px solid #F07F2A; border-radius: 6px;">
+                <div class="info-label" style="font-weight: 700; color: #C2410C; margin-bottom: 4px;">
+                    <i class="fa-solid fa-note-sticky"></i> Permintaan Khusus Pelanggan
+                </div>
+                <div style="font-size: 13px; color: #7C2D12; line-height: 1.5; font-style: italic;">
+                    "{{ rental.special_request }}"
+                </div>
+            </div>
+            {% else %}
+            <div style="margin-top: 15px; padding: 8px 12px; background: #F9FAFB; border: 1px dashed #E5E7EB; border-radius: 6px; font-size: 12px; color: #9CA3AF;">
+                <i class="fa-regular fa-note-sticky"></i> Tidak ada permintaan khusus dari pelanggan.
+            </div>
+            {% endif %}
         </div>
     </div>
 
@@ -178,10 +193,251 @@
                 {% endif %}
             </div>
             
+            {% if rental.status == 'Batal' %}
+            <div style="margin-bottom: 18px; padding: 12px 14px; background: #FEF2F2; border-left: 4px solid #DC2626; border-radius: 6px; color: #991B1B; font-size: 13px; line-height: 1.5;">
+                <div style="font-weight: 700; margin-bottom: 4px;">
+                    <i class="fa-solid fa-circle-xmark"></i> Pesanan Dibatalkan
+                </div>
+                <div>
+                    <strong>Alasan:</strong> {{ rental.cancellation_reason or 'Tidak ada alasan pembatalan yang tercatat.' }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- TIMELINE VISUAL PEMBATALAN & PENGEMBALIAN DANA (SINKRON DENGAN PELANGGAN) -->
+            {% if cancellation_steps %}
+            <div style="margin-bottom: 18px; padding: 14px 16px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px;">
+                <div style="font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-timeline" style="color: #F07F2A;"></i> Timeline Pembatalan &amp; Refund
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    {% for icon, label, waktu in cancellation_steps %}
+                        {% set is_done = loop.index0 < cancellation_completed_steps %}
+                        {% set is_current = loop.index0 == cancellation_completed_steps %}
+                        <div style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px;">
+                            <div style="width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px;
+                                {% if is_done %}background: #DCFCE7; color: #15803D; border: 1px solid #86EFAC;
+                                {% elif is_current %}background: #FFEDD5; color: #C2410C; border: 1px solid #FDBA74;
+                                {% else %}background: #F1F5F9; color: #94A3B8; border: 1px solid #CBD5E1;{% endif %}">
+                                <i class="fa-solid {{ icon }}"></i>
+                            </div>
+                            <div style="flex: 1; line-height: 1.4;">
+                                <div style="font-weight: 600; color: {% if is_done %}#166534{% elif is_current %}#9A3412{% else %}#64748B{% endif %};">
+                                    {{ label }}
+                                    {% if is_done %}
+                                        <span style="font-size: 10px; background: #DCFCE7; color: #15803D; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">Selesai</span>
+                                    {% elif is_current %}
+                                        <span style="font-size: 10px; background: #FFEDD5; color: #C2410C; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">Menunggu Tindakan Admin</span>
+                                    {% endif %}
+                                </div>
+                                <div style="font-size: 11px; color: #64748B; margin-top: 2px;">
+                                    {% if waktu %}
+                                        {{ waktu | tanggal_id }}, pukul {{ waktu.strftime('%H:%M') }}
+                                    {% else %}
+                                        Menunggu konfirmasi admin
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- PANEL PERMOHONAN PEMBATALAN DARI PELANGGAN -->
+            {% if cancellation
+                and cancellation.initiated_by == 'customer'
+                and cancellation.status == 'Pembatalan Diajukan' %}
+
+            <div class="card-detail"
+                style="margin-bottom: 20px; border: 1px solid #FDBA74; background: #FFFBEB;">
+
+                <div class="card-title" style="color: #9A3412; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-bell"></i> Permohonan Pembatalan Pelanggan
+                </div>
+
+                <p style="font-size: 13px; line-height: 1.6; margin-bottom: 6px;">
+                    <strong>Alasan Pelanggan:</strong> {{ cancellation.reason }}
+                </p>
+
+                <p style="font-size: 12px; color: #666; margin-bottom: 10px;">
+                    Diajukan pada
+                    {{ cancellation.requested_at | tanggal_id }},
+                    pukul {{ cancellation.requested_at.strftime('%H:%M') }}
+                </p>
+
+                <div style="margin-bottom: 12px; padding: 8px 10px; border-radius: 5px; font-size: 12px;
+                    {% if perlu_refund or cancellation.refund_amount is not none %}background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A;
+                    {% else %}background: #F1F5F9; color: #334155; border: 1px solid #CBD5E1;{% endif %}">
+                    {% if perlu_refund or cancellation.refund_amount is not none %}
+                        <i class="fa-solid fa-wallet"></i> <strong>Pesanan Sudah Dibayar (Rp {{ rental.total_price | rupiah }}):</strong>
+                        Jika disetujui, status pesanan menjadi <b>Batal</b> dan masuk ke tahap <b>Pengembalian Dana</b>.
+                    {% else %}
+                        <i class="fa-solid fa-circle-info"></i> <strong>Pesanan Belum Dibayar:</strong>
+                        Jika disetujui, pesanan langsung dibatalkan tanpa proses pengembalian dana.
+                    {% endif %}
+                </div>
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'main.admin_proses_pembatalan',
+                        rental_id=rental.id,
+                        cancellation_id=cancellation.id
+                    ) }}">
+
+                    <div style="margin-bottom: 12px;">
+                        <label for="admin_note" class="info-label" style="font-weight: 600; color: #333; display: block; margin-bottom: 4px;">
+                            Catatan Admin <span style="font-weight: 400; color: #666;">(Opsional, ditampilkan ke pelanggan jika permohonan ditolak)</span>
+                        </label>
+                        <textarea
+                            id="admin_note"
+                            name="admin_note"
+                            rows="2"
+                            maxlength="500"
+                            placeholder="Tuliskan alasan/catatan jika Anda menolak permohonan pembatalan ini..."
+                            style="width: 100%; padding: 8px 10px; border: 1px solid #CBD5E1; border-radius: 5px; font-size: 13px; font-family: inherit; resize: vertical; background: #fff;"></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button
+                            type="submit"
+                            name="action"
+                            value="approve"
+                            style="padding: 10px 14px; border: none;
+                                border-radius: 5px; background: #16A34A;
+                                color: white; cursor: pointer; font-weight: 600;">
+                            <i class="fa-solid fa-check"></i> Setujui Pembatalan
+                        </button>
+
+                        <button
+                            type="submit"
+                            name="action"
+                            value="reject"
+                            style="padding: 10px 14px; border: 1px solid #DC2626;
+                                border-radius: 5px; background: white;
+                                color: #DC2626; cursor: pointer; font-weight: 600;"
+                            onclick="return confirm('Yakin menolak permohonan pembatalan ini? Status pesanan akan tetap berjalan seperti sebelumnya.');">
+                            <i class="fa-solid fa-xmark"></i> Tolak Permohonan
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+            {% endif %}
+
+            <!-- RIWAYAT PERMOHONAN PEMBATALAN YANG DITOLAK -->
+            {% if cancellation and cancellation.status == 'Pembatalan Ditolak' %}
+            <div style="margin-bottom: 18px; padding: 12px 14px; background: #F8FAFC; border-left: 4px solid #64748B; border-radius: 6px; color: #334155; font-size: 13px; line-height: 1.5;">
+                <div style="font-weight: 700; margin-bottom: 4px;">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Permohonan Pembatalan Pelanggan Ditolak
+                </div>
+                <div><strong>Alasan Pengajuan:</strong> {{ cancellation.reason }}</div>
+                {% if cancellation.admin_note %}
+                <div><strong>Catatan Admin:</strong> {{ cancellation.admin_note }}</div>
+                {% endif %}
+                {% if cancellation.rejected_at %}
+                <div style="font-size: 11px; color: #64748B; margin-top: 4px;">
+                    Ditolak pada {{ cancellation.rejected_at | tanggal_id }}, pukul {{ cancellation.rejected_at.strftime('%H:%M') }}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+
+            <!-- PANEL PENGEMBALIAN DANA -->
+            {% if cancellation
+                and cancellation.refund_amount is not none
+                and cancellation.refunded_at is none
+                and cancellation.status in [
+                    'Pembatalan Disetujui',
+                    'Menunggu Pengembalian Dana'
+                ] %}
+
+            <div class="card-detail"
+                style="margin-bottom: 20px; border: 1px solid #FDBA74; background: #FFFBEB;">
+
+                <div class="card-title" style="color: #9A3412; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-wallet"></i> Konfirmasi Pengembalian Dana (Refund)
+                </div>
+
+                <p style="font-size: 13px; line-height: 1.6; margin-bottom: 12px;">
+                    Pesanan berbayar ini telah dibatalkan, namun dana belum dicatat sebagai selesai dikembalikan.
+                    Setelah refund ditransfer ke pelanggan, konfirmasi nominalnya di bawah ini untuk memperbarui timeline pelanggan menjadi <strong>"Dana dikembalikan"</strong>.
+                </p>
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'main.admin_proses_pembatalan',
+                        rental_id=rental.id,
+                        cancellation_id=cancellation.id
+                    ) }}">
+
+                    <label for="refund_amount"
+                        class="info-label"
+                        style="font-weight: 600; color: #333;">
+                        Nominal dana yang dikembalikan (Rp)
+                    </label>
+
+                    <input
+                        type="number"
+                        id="refund_amount"
+                        name="refund_amount"
+                        min="0"
+                        max="{{ rental.total_price }}"
+                        value="{{ cancellation.refund_amount }}"
+                        required
+                        style="display: block; width: 100%;
+                            padding: 10px; margin: 8px 0 16px;
+                            border: 1px solid #ccc; border-radius: 5px; background: #fff;">
+
+                    <button
+                        type="submit"
+                        name="action"
+                        value="refund"
+                        style="padding: 10px 14px; border: none;
+                            border-radius: 5px; background: #16A34A;
+                            color: white; cursor: pointer; font-weight: 600;"
+                        onclick="return confirm('Konfirmasi bahwa dana sebesar nominal tersebut benar-benar sudah dikembalikan ke pelanggan?');">
+                        <i class="fa-solid fa-circle-check"></i> Catat Dana Dikembalikan
+                    </button>
+
+                </form>
+
+            </div>
+            {% endif %}
+
+
+            <!-- INFORMASI REFUND YANG SUDAH SELESAI -->
+            {% if cancellation and cancellation.refunded_at %}
+
+            <div class="card-detail"
+                style="margin-bottom: 20px; border: 1px solid #86EFAC; background: #F0FDF4;">
+
+                <div class="card-title" style="color: #15803D; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-circle-check"></i> Dana Berhasil Dikembalikan
+                </div>
+
+                <p style="font-size: 13px; margin-bottom: 4px;">
+                    <strong>Nominal Refund:</strong>
+                    Rp {{ cancellation.refund_amount | rupiah }}
+                </p>
+
+                <p style="font-size: 12px; color: #166534;">
+                    <strong>Waktu Konfirmasi:</strong>
+                    {{ cancellation.refunded_at | tanggal_id }},
+                    pukul {{ cancellation.refunded_at.strftime('%H:%M') }}
+                </p>
+
+            </div>
+            {% endif %}
+            
             <form method="POST" action="{{ url_for('main.admin_penyewaan_edit', id=rental.id) }}">
                 <div style="margin-bottom: 20px;">
                     <label class="info-label" style="font-weight: 600; color: #333;">Ubah Status</label>
-                    <select name="status" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px;">
+                    <select name="status" id="statusSelect" onchange="toggleCancelReasonField()" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px;">
                         {% for s in statuses %}
                             <option value="{{ s }}" {% if rental.status == s %}selected{% endif %}>{{ s }}</option>
                         {% endfor %}
@@ -198,7 +454,7 @@
                 {% endif %}
 
                 {% if rental.with_driver %}
-                <div style="margin-bottom: 30px;">
+                <div style="margin-bottom: 20px;">
                     <label class="info-label" style="font-weight: 600; color: #333;">Tugaskan Sopir</label>
                     <select name="driver_id" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px;">
                         <option value="none">-- Belum Ada Sopir --</option>
@@ -211,14 +467,19 @@
                 </div>
                 {% endif %}
 
+                {% set has_pending_req = cancellation and cancellation.initiated_by == 'customer' and cancellation.status == 'Pembatalan Diajukan' %}
+                {% set show_tolak = (rental.status in ['Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Kendaraan Dalam Pengambilan']) and not has_pending_req %}
+                <div id="cancelReasonWrapper" style="margin-bottom: 20px; {% if rental.status != 'Batal' and not show_tolak %}display: none;{% endif %}">
+                    <label class="info-label" style="font-weight: 600; color: #333;">
+                        Alasan Pembatalan / Penolakan <span style="font-weight: 400; color: #888;">(Opsional saat tolak/batal)</span>
+                    </label>
+                    <textarea name="cancellation_reason" rows="3" maxlength="500" placeholder="Tuliskan alasan jika pesanan ditolak atau dibatalkan..." style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 13px; font-family: inherit; resize: vertical;">{{ rental.cancellation_reason or '' }}</textarea>
+                </div>
+
                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
                     <!-- Tombol Tolak hanya muncul jika belum sampai tahap dipakai/selesai/batal -->
-                    {% if rental.status in [
-                        'Menunggu Pembayaran', 
-                        'Menunggu Konfirmasi', 
-                        'Kendaraan Dalam Pengambilan'
-                    ] %}
-                    <button type="submit" name="btn_tolak" value="1" style="padding: 10px 24px; border: 1px solid #ccc; background: #fff; border-radius: 4px; cursor: pointer; font-weight: 600;" onclick="return confirm('Yakin ingin menolak/membatalkan pesanan ini?');">
+                    {% if show_tolak %}
+                    <button type="submit" name="btn_tolak" value="1" style="padding: 10px 24px; border: 1px solid #DC2626; color: #DC2626; background: #fff; border-radius: 4px; cursor: pointer; font-weight: 600;" onclick="return confirm('Yakin ingin menolak/membatalkan pesanan ini?');">
                         Tolak
                     </button>
                     {% endif %}
@@ -232,5 +493,20 @@
         </div>
     </div>
 </div>
+
+<script>
+function toggleCancelReasonField() {
+    var sel = document.getElementById('statusSelect');
+    var wrapper = document.getElementById('cancelReasonWrapper');
+    var showTolak = {{ 'true' if show_tolak else 'false' }};
+    if (sel && wrapper) {
+        if (sel.value === 'Batal' || showTolak) {
+            wrapper.style.display = 'block';
+        } else {
+            wrapper.style.display = 'none';
+        }
+    }
+}
+</script>
 
 {% endblock %}

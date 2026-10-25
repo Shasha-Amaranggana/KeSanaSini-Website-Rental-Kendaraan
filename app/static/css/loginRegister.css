@@ -1,7 +1,16 @@
+/* ═════════════════════════════════════════════════════════════
+    CSS LOGIN REGISTER WEBSITE KeSanaSini
+    ⤷ Mengatur tampilan umum halaman login register.
+═════════════════════════════════════════════════════════════ */
 
-/* =====================================================
-        RESET
-===================================================== */
+
+
+/* ═════════════════════════════════════════════════════════════
+   A.   RESET DAN PENGATURAN DASAR
+═════════════════════════════════════════════════════════════ */
+
+/* A.1. Reset margin, padding, dan perhitungan ukuran elemen
+   ════════════════════════════════════════════════════════  */
 * {
     margin: 0;
     padding: 0;
@@ -10,24 +19,22 @@
 }
 
 
-/* =====================================================
-    HTML
-===================================================== */
+/* A.2.   Pengaturan dasar HTML
+   ════════════════════════════════════════════════════════  */
 html {
     width: 100%;
     min-height: 100%;
 }
 
 
+/* A.3.   Pengaturan dasar body dan background halaman
+   ════════════════════════════════════════════════════════  */
 /* =====================================================
     BODY
-    
     LOGIN.svg = 1920 × 1080
     Rasio = 16 : 9
-    
     56.25vw = tinggi background jika lebarnya 100vw
 ===================================================== */
-
 body {
     width: 100%;
     min-height: max(100vh, 56.25vw);
@@ -46,9 +53,13 @@ body {
 }
 
 
-/* =====================================================
-    AREA KIRI
-===================================================== */
+
+/* ═════════════════════════════════════════════════════════════
+   B.   LAYOUT UTAMA HALAMAN AUTHENTICATION
+═════════════════════════════════════════════════════════════ */
+
+/* B.1.   Area kiri halaman
+   ════════════════════════════════════════════════════════  */
 .left-area {
     width: 40%;
     min-height: max(100vh, 56.25vw);
@@ -58,9 +69,8 @@ body {
 }
 
 
-/* =====================================================
-    AREA KANAN
-===================================================== */
+/* B.2.   Area kanan halaman
+   ════════════════════════════════════════════════════════  */
 .right-area {
     width: 60%;
     min-height: max(100vh, 56.25vw);
@@ -82,9 +92,8 @@ body {
 }
 
 
-/* =====================================================
-    LOGIN CONTAINER
-===================================================== */
+/* B.3.   Container form login, register, dan password
+   ════════════════════════════════════════════════════════  */
 .auth-container {
     width: 15vw;
     max-width: 450px;
@@ -105,6 +114,9 @@ body {
     transform: translateX(50px);
 }
 
+
+/* B.4.   Animasi masuk container dari kanan
+   ════════════════════════════════════════════════════════  */
 @keyframes slideInRight {
     to {
         opacity: 1;
@@ -113,9 +125,13 @@ body {
 }
 
 
-/* =====================================================
-    JUDUL
-===================================================== */
+
+/* ═════════════════════════════════════════════════════════════
+   C.   JUDUL DAN PESAN NOTIFIKASI - KANAN ALIAS FORM
+═════════════════════════════════════════════════════════════ */
+
+/* C.1.   Judul halaman
+   ════════════════════════════════════════════════════════  */
 h1 {
     font-weight: 800;
     font-size: 2vw;
@@ -131,9 +147,8 @@ h1 {
 }
 
 
-/* =====================================================
-    PESAN ERROR
-===================================================== */
+/* C.2.   Pesan flash, error, atau notifikasi
+   ════════════════════════════════════════════════════════  */
 .flash-msg {
     background-color: #D62828;
     color: white;
@@ -144,9 +159,13 @@ h1 {
 }
 
 
-/* =====================================================
-    INPUT GROUP
-===================================================== */
+
+/* ═════════════════════════════════════════════════════════════
+   D.   INPUT FORM DAN IKON
+═════════════════════════════════════════════════════════════ */
+
+/* D.1.   Kerangka Form
+   ════════════════════════════════════════════════════════  */
 .input-group {
     position: relative;
     width: 100%;
@@ -154,6 +173,8 @@ h1 {
 }
 
 
+/* D.2.   Ikon di dalam input
+   ════════════════════════════════════════════════════════  */
 .input-group i {
     position: absolute;
     left: 20px;
@@ -166,9 +187,8 @@ h1 {
 }
 
 
-/* =====================================================
-    INPUT
-===================================================== */
+/* D.3.   Tampilan input form
+   ════════════════════════════════════════════════════════  */
 .form-input {
     width: 100%;
     padding: 10px 20px 10px 50px;
@@ -183,18 +203,33 @@ h1 {
     transition: all 0.3s ease;
 }
 
+/* Menyembunyikan ikon kalender bawaan browser */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    position: absolute;
+    right: 0;
+    width: 40px;
+    height: 100%;
+    cursor: pointer;
+}
 
+/* D.4.   Warna teks placeholder input
+   ════════════════════════════════════════════════════════  */
 .form-input::placeholder {
     color: #908472;
     font-weight: 500;
 }
 
 
+/* D.5.   Perubahan ikon ketika input aktif
+   ════════════════════════════════════════════════════════  */
 .input-group:focus-within i {
     color: #FFBE0C;
 }
 
 
+/* D.6.   Perubahan tampilan ketika input aktif
+   ════════════════════════════════════════════════════════  */
 .input-group:focus-within .form-input {
     background-color: #fff;
     border-color: #FFBE0C;
@@ -205,14 +240,20 @@ h1 {
 }
 
 
-/* =====================================================
-    PASSWORD TOGGLE
-===================================================== */
 
+/* ═════════════════════════════════════════════════════════════
+   E.   INPUT PASSWORD DAN TOGGLE MATA
+═════════════════════════════════════════════════════════════ */
+
+/* E.1.   Ruang untuk ikon toggle password
+   ════════════════════════════════════════════════════════  */
 .password-group .form-input {
     padding-right: 50px;
 }
 
+
+/* E.2.   Ikon untuk menampilkan password ketika ditekan
+   ════════════════════════════════════════════════════════  */
 .password-toggle {
     position: absolute;
     left: auto !important;
@@ -225,19 +266,29 @@ h1 {
     z-index: 3;
 }
 
+
+/* E.3.   Warna ikon toggle ketika diarahkan kursor
+   ════════════════════════════════════════════════════════  */
 .password-toggle:hover {
     color: #333;
 }
 
+
+/* E.4.   Menyembunyikan ikon password bawaan browser Microsoft
+   ════════════════════════════════════════════════════════  */
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
     display: none;
 }
 
 
-/* =====================================================
-    LUPA PASSWORD
-===================================================== */
+
+/* ═════════════════════════════════════════════════════════════
+   F.   LINK LUPA PASSWORD
+═════════════════════════════════════════════════════════════ */
+
+/* F.1.   Tampilan link lupa password
+   ════════════════════════════════════════════════════════  */
 .forgot-pass {
     display: block;
     text-align: right;
@@ -250,9 +301,13 @@ input[type="password"]::-ms-clear {
 }
 
 
-/* =====================================================
-    BUTTON LOGIN
-===================================================== */
+
+/* ═════════════════════════════════════════════════════════════
+   G.   TOMBOL LOGIN DAN GOOGLE
+═════════════════════════════════════════════════════════════ */
+
+/* G.1.   Tombol utama
+   ════════════════════════════════════════════════════════  */
 .btn-auth {
     width: 110px;
     padding: 10px;
@@ -260,6 +315,7 @@ input[type="password"]::-ms-clear {
     color: #111;
     border: none;
     border-radius: 15px;
+
     font-size: 18px;
     font-weight: 800;
     cursor: pointer;
@@ -275,6 +331,8 @@ input[type="password"]::-ms-clear {
 }
 
 
+/* G.2.   Efek hover tombol utama
+   ════════════════════════════════════════════════════════  */
 .btn-auth:hover {
     transform: translateY(-2px);
 
@@ -287,6 +345,8 @@ input[type="password"]::-ms-clear {
 }
 
 
+/* G.3.   Efek ketika tombol utama ditekan
+   ════════════════════════════════════════════════════════  */
 .btn-auth:active {
     transform: translateY(4px);
 
@@ -295,21 +355,24 @@ input[type="password"]::-ms-clear {
 }
 
 
-/* =====================================================
-    DIVIDER
-===================================================== */
-
+/* G.4.   Garis pemisah antar metode autentikasi
+   ════════════════════════════════════════════════════════  */
 .divider {
     display: flex;
     align-items: center;
     text-align: center;
     color: #555;
+
     font-family: 'Poppins', sans-serif;
     font-weight: 500;
     font-size: 14px;
+
     margin-bottom: 40px;
 }
 
+
+/* G.5.   Garis dekoratif di kiri dan kanan divider
+   ════════════════════════════════════════════════════════  */
 .divider::before,
 .divider::after {
     content: '';
@@ -317,6 +380,9 @@ input[type="password"]::-ms-clear {
     border-bottom: 1px solid #999;
 }
 
+
+/* G.6.   Jarak teks divider dari garis
+   ════════════════════════════════════════════════════════  */
 .divider:not(:empty)::before {
     margin-right: .5em;
 }
@@ -326,9 +392,8 @@ input[type="password"]::-ms-clear {
 }
 
 
-/* =====================================================
-    GOOGLE BUTTON
-===================================================== */
+/* G.7.   Tombol login menggunakan Google
+   ════════════════════════════════════════════════════════  */
 .btn-google {
     display: flex;
     align-items: center;
@@ -337,16 +402,22 @@ input[type="password"]::-ms-clear {
     width: 150px;
     margin: 0 auto;
     padding: 10px;
+
     background-color: rgba(255, 255, 255, 0);
     border: 1px solid #111;
     border-radius: 25px;
+
     font-weight: 700;
     font-size: 14px;
     color: #111;
+
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
+
+/* G.8.   Efek hover tombol Google
+   ════════════════════════════════════════════════════════  */
 .btn-google:hover {
     background-color: #f5f5f5;
 
@@ -356,35 +427,37 @@ input[type="password"]::-ms-clear {
 }
 
 
-/* =====================================================
-    REGISTER FORM
-===================================================== */
 
+/* ═════════════════════════════════════════════════════════════
+   H.   FORM REGISTER
+═════════════════════════════════════════════════════════════ */
+
+/* H.1.   Lebar form register
+   ════════════════════════════════════════════════════════  */
 .register-form {
     width: 100%;
 }
 
 
-/* =====================================================
-    REGISTER - DUA KOLOM
-===================================================== */
-
+/* H.2.   Susunan input register dalam dua kolom
+   ════════════════════════════════════════════════════════  */
 .input-row {
     display: flex;
     gap: 10px;
     width: 100%;
 }
 
+
+/* H.3.   Pembagian lebar input dalam satu baris
+   ════════════════════════════════════════════════════════  */
 .input-row .input-group {
     flex: 1;
     min-width: 0;
 }
 
 
-/* =====================================================
-    REGISTER - SELECT
-===================================================== */
-
+/* H.4.   Tampilan dropdown pilihan pada form register
+   ════════════════════════════════════════════════════════  */
 .input-row select.form-input {
     appearance: none;
     -webkit-appearance: none;
@@ -393,27 +466,28 @@ input[type="password"]::-ms-clear {
 }
 
 
-/* =====================================================
-    REGISTER - BUTTON
-===================================================== */
-
+/* H.5.   Jarak tombol register
+   ════════════════════════════════════════════════════════  */
 .register-btn {
     margin-top: 30px;
     margin-bottom: 45px;
 }
 
 
-/* =====================================================
-    REGISTER - DIVIDER
-===================================================== */
-
+/* H.6.   Jarak divider pada halaman register
+   ════════════════════════════════════════════════════════  */
 .register-divider {
     margin-bottom: 40px;
 }
 
-/* =====================================================
-    REGISTER
-===================================================== */
+
+
+/* ═════════════════════════════════════════════════════════════
+   I.   TEKS PERPINDAHAN HALAMAN AUTENTIKASI
+═════════════════════════════════════════════════════════════ */
+
+/* I.1.   Teks ajak berpindah halaman login/register
+   ════════════════════════════════════════════════════════  */
 .switch-text {
     margin-top: 40px;
 
@@ -424,6 +498,9 @@ input[type="password"]::-ms-clear {
     font-weight: 400;
 }
 
+
+/* I.2.   Link pada teks perpindahan halaman
+   ════════════════════════════════════════════════════════  */
 .switch-text a {
     color: #51b7ff;
 
@@ -434,10 +511,12 @@ input[type="password"]::-ms-clear {
 
 
 
+/* ═════════════════════════════════════════════════════════════
+   J.   DESKRIPSI LUPA PASSWORD DAN RESET PASSWORD
+═════════════════════════════════════════════════════════════ */
 
-
-
-
+/* J.1.   Teks penjelasan pada halaman lupa password
+   ════════════════════════════════════════════════════════  */
 .forgot-description {
     font-size: 14px;
     line-height: 1.6;
@@ -445,12 +524,20 @@ input[type="password"]::-ms-clear {
     margin-bottom: 25px;
 }
 
-/* =====================================================
-    RESPONSIVE
-    
-    Kalau layar sangat kecil, jangan sampai form
-    keluar dari layar secara horizontal.
-===================================================== */
+/* J.2.   Jarak tombol kirim pada halaman lupa password
+   ════════════════════════════════════════════════════════  */
+.auth-container form .btn-auth {
+    margin-top: 30px !important;
+}
+
+
+
+/* ═════════════════════════════════════════════════════════════
+   K.   RESPONSIVE HALAMAN AUTHENTICATION
+═════════════════════════════════════════════════════════════ */
+
+/* K.1.   Penyesuaian form pada layar kecil
+   ════════════════════════════════════════════════════════  */
 @media (max-width: 900px) {
     .auth-container {
         width: 80%;
@@ -460,5 +547,4 @@ input[type="password"]::-ms-clear {
     h1 {
         font-size: 28px;
     }
-
 }

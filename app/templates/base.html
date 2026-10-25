@@ -1,12 +1,23 @@
+<!-- ═════════════════════════════════════════════════════════════
+    HTML GLOBAL WEBSITE KeSanaSini
+    ⤷ Mengatur bagian web umum yang sering dipakai.
+═════════════════════════════════════════════════════════════ -->
+
+
 <!DOCTYPE html>
 <html lang="id">
 
+
+<!-- ═════════════════════════════════════════════════════════════
+    A.   HEAD/TAJUK
+═════════════════════════════════════════════════════════════ -->
 <head>
 
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     1.    INFORMASI DASAR HALAMAN                    -->
+    <!-- ════════════════════════════════════════════════════ -->
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>
         {% block title %}
@@ -15,87 +26,104 @@
     </title>
 
 
-    <!-- CSS GLOBAL -->
-
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='css/style.css') }}">
-
-
-    <!-- FONT AWESOME -->
-
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     2.     CSS GLOBAL WEBSITE                        -->
+    <!--            Digunakan untuk styling umum seluruh halaman. -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}">
 
 
-    <!-- CSS KHUSUS HALAMAN -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     3.     FONT AWESOME                              -->
+    <!--            Menyediakan ikon untuk navbar, dropdown, dan modal. -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     4.     CSS KHUSUS HALAMAN                        -->
+    <!--            Diisi oleh template turunan melalui block css. -->
+    <!-- ════════════════════════════════════════════════════ -->
     {% block css %}
     {% endblock %}
 
 </head>
 
 
+
+<!-- ═════════════════════════════════════════════════════════════
+    B.   BODY/ISI
+═════════════════════════════════════════════════════════════ -->
 <body class="user-page {% block body_class %}{% endblock %}">
 
-    <!-- NAVBAR -->
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     5.     NAVBAR UTAMA                              -->
+    <!--            Berisi logo, navigasi, dan menu akun pengguna. -->
+    <!-- ════════════════════════════════════════════════════ -->
     <header class="navbar">
 
+        <!-- 5.1. LOGO WEBSITE                -->
+        <!-- ════════════════════════════════ -->
         <a href="{{ url_for('main.index') }}"
-           class="navbar-logo">
-
+            class="navbar-logo">
             <img
                 src="{{ url_for('static', filename='images/logo-navbar.png') }}"
-                alt="KeSanaSini"
-            >
-
+                alt="KeSanaSini">
         </a>
 
-
+        <!-- 5.2. MENU NAVIGASI UTAMA         -->
+        <!-- ════════════════════════════════ -->
         <nav class="nav-menu">
 
+            <!-- MENU UTAMA -->
             <a href="{{ url_for('main.index') }}"
-            class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}">
+                class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}">
                 Menu Utama
             </a>
 
+            <!-- PESANAN YANG SEDANG DIKELOLA PENGGUNA  -->
             <a href="{{ url_for('main.kelola_pesanan') }}"
-            class="nav-link {{ 'active' if request.endpoint in ['main.kelola_pesanan', 'main.detail_pesanan'] else '' }}">
+                class="nav-link {{ 'active' if request.endpoint in ['main.kelola_pesanan', 'main.detail_pesanan'] else '' }}">
                 Pesanan Saya
-
             </a>
 
+            <!-- RIWAYAT PESANAN YANG TELAH DILAKUKAN  -->
             <a href="{{ url_for('main.riwayat_pesanan') }}"
-            class="nav-link {{ 'active' if request.endpoint == 'main.riwayat_pesanan' else '' }}">
+                class="nav-link {{ 'active' if request.endpoint == 'main.riwayat_pesanan' else '' }}">
                 Riwayat Pesanan
             </a>
 
         </nav>
 
-
+        <!-- 5.3. MENU PROFIL PENGGUNA        -->
+        <!-- ════════════════════════════════ -->
         {% if user %}
-
         <div class="user-menu">
 
+            <!-- 5.3.1. MENU PROFIL PENGGUNA        -->
+            <!-- ════════════════════════════════ -->
             <div class="user-icon">
-
                 <i class="fa-regular fa-user"></i>
-
             </div>
 
-
             <span class="user-email">
-
                 {{ user.email }}
-
             </span>
-
 
             <i class="fa-solid fa-chevron-down user-arrow"></i>
 
-
+            <!-- 5.3.1. DROPDOWN MENU PENGGUNA DIBUKA   -->
+            <!-- ════════════════════════════════ -->
             <div class="user-dropdown">
 
+                <!-- INFORMASI PROFIL PENGGUNA  -->
                 <div class="dropdown-profile">
+
                     <div class="dropdown-profile-photo">
                         <i class="fa-regular fa-user"></i>
                     </div>
@@ -107,8 +135,10 @@
                             {{ user.email }}
                         </span>
                     </div>
+
                 </div>
 
+                <!-- DAFTAR MENU PADA DROPDOWN PENGGUNA  -->
                 <div class="dropdown-menu-list">
 
                     <a href="{{ url_for('main.kelola_akun') }}">
@@ -146,104 +176,142 @@
 
     </header>
 
-    <!-- ISI HALAMAN -->
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     6.     KONTEN UTAMA HALAMAN                      -->
+    <!--            Setiap halaman turunan mengisi block content -->
+    <!-- ════════════════════════════════════════════════════ -->
     {% block content %}
     {% endblock %}
 
-    <!-- FOOTER -->
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     7.     FOOTER WEBSITE                            -->
+    <!--            Struktur footer umum untuk halaman pengguna. -->
+    <!-- ════════════════════════════════════════════════════ -->
     <footer class="footer">
     </footer>
 
-    <!-- JAVASCRIPT GLOBAL -->
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     8.     KONFIRMASI LOGOUT                         -->
+    <!--            Ditampilkan sebelum pengguna benar-benar keluar -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <div id="logoutModal" class="logout-modal">
+
+        <div class="logout-modal-content">
+
+            <!-- 9.1. IKON LOGOUT                 -->
+            <!-- ════════════════════════════════ -->
+            <div class="logout-modal-icon">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+
+            <!-- 9.2. JUDUL DAN PESAN KONFIRMASI  -->
+            <!-- ════════════════════════════════ -->
+            <h3>Konfirmasi Logout</h3>
+            <p>Apakah kamu yakin ingin keluar dari akunmu?</p>
+
+            <!-- 9.3. TOMBOL KONFIRMASI DAN PEMBATALAN  -->
+            <!-- ════════════════════════════════ -->
+            <div class="logout-modal-actions">
+
+                <!-- JAWABAN BATAL LOGOUT  -->
+                <button
+                    type="button"
+                    id="cancelLogout"
+                    class="btn-cancel-logout">
+                    Batalkan
+                </button>
+
+                <!-- JAWABAN IYA LOGOUT  -->
+                <form action="{{ url_for('main.logout') }}" method="POST">
+                    <button
+                        type="submit"
+                        class="btn-confirm-logout">
+                        Ya, Logout
+                    </button>
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ═════════════════════════════════════════════════════════════
+        C.   JAVASCRIPT
+    ═════════════════════════════════════════════════════════════ -->
     <script>
 
-        const userMenu =
-            document.querySelector('.user-menu');
+        // ════════════════════════════════════════════════════
+        //     9.    JAVASCRIPT MODAL LOGOUT                    
+        //           Menangani tombol logout, pembatalan, dan penutupan
+        //           modal melalui klik di luar area atau tombol Escape.
+        // ════════════════════════════════════════════════════
+        document.addEventListener('DOMContentLoaded', function () {
 
+            // Mengambil elemen modal dan tombol pembatalan
+            const logoutModal = document.getElementById('logoutModal');
+            const cancelLogout = document.getElementById('cancelLogout');
 
-        if (userMenu) {
+            // Hentikan proses jika elemen yang diperlukan tidak tersedia
+            if (!logoutModal || !cancelLogout) {
+                return;
+            }
 
-            userMenu.addEventListener(
-                'click',
-                function () {
-
-                    this.classList.toggle('open');
-
-                }
+            // Menangkap link logout pada navbar dan sidebar
+            const logoutLinks = document.querySelectorAll(
+                'a[href*="/logout"], a[data-logout]'
             );
 
+            // Tampilkan modal ketika link logout diklik
+            logoutLinks.forEach(function (link) {
+                link.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    logoutModal.classList.add('show');
+                });
+            });
+
+            // Tutup pertanyaan konfirmasi keluar jika pengguna memilih batal
+            cancelLogout.addEventListener('click', function () {
+                logoutModal.classList.remove('show');
+            });
+
+            // Tutup pertanyaan konfirmasi keluar jika pengguna klik luar kotak
+            logoutModal.addEventListener('click', function (event) {
+                if (event.target === logoutModal) {
+                    logoutModal.classList.remove('show');
+                }
+            });
+
+            // Tutup pertanyaan konfirmasi keluar jika pengguna klik escape
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    logoutModal.classList.remove('show');
+                }
+            });
+
+        });
+
+
+        // ════════════════════════════════════════════════════
+        //      8.     JAVASCRIPT DROPDOWN PENGGUNA             
+        //             Mengatur buka dan tutup menu profil di navbar.
+        // ════════════════════════════════════════════════════
+        const userMenu = document.querySelector('.user-menu');
+
+        if (userMenu) {
+            userMenu.addEventListener('click', function () {
+                    this.classList.toggle('open');
+                }
+            );
         }
 
     </script>
 
 
-    <!-- Modal Konfirmasi Logout -->
-    <div id="logoutModal" class="logout-modal">
-        <div class="logout-modal-content">
-            <div class="logout-modal-icon">
-                <i class="fas fa-sign-out-alt"></i>
-            </div>
-
-            <h3>Konfirmasi Logout</h3>
-            <p>Apakah kamu yakin ingin keluar dari akunmu?</p>
-
-            <div class="logout-modal-actions">
-                <button type="button" id="cancelLogout" class="btn-cancel-logout">
-                    Batalkan
-                </button>
-
-                <form action="{{ url_for('main.logout') }}" method="POST">
-                    <button type="submit" class="btn-confirm-logout">
-                        Ya, Logout
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const logoutModal = document.getElementById('logoutModal');
-        const cancelLogout = document.getElementById('cancelLogout');
-
-        if (!logoutModal || !cancelLogout) return;
-
-        // Tangkap semua link logout di sidebar dan navbar
-        const logoutLinks = document.querySelectorAll(
-            'a[href*="/logout"], a[data-logout]'
-        );
-
-        logoutLinks.forEach(function (link) {
-            link.addEventListener('click', function (event) {
-                event.preventDefault();
-                logoutModal.classList.add('show');
-            });
-        });
-
-        // Batalkan logout
-        cancelLogout.addEventListener('click', function () {
-            logoutModal.classList.remove('show');
-        });
-
-        // Klik area gelap untuk menutup modal
-        logoutModal.addEventListener('click', function (event) {
-            if (event.target === logoutModal) {
-                logoutModal.classList.remove('show');
-            }
-        });
-
-        // Tutup modal dengan tombol Escape
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape') {
-                logoutModal.classList.remove('show');
-            }
-        });
-    });
-    </script>
-
-
-
 </body>
-
 </html>

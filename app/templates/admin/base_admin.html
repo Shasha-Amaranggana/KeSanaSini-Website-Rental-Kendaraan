@@ -24,18 +24,32 @@
         </form>
 
         <div class="topbar-right">
-            <!-- Notifikasi: penyewaan yang menunggu konfirmasi -->
+            <!-- Notifikasi: penyewaan menunggu konfirmasi & pembatalan/refund -->
+            {% set cancel_list = pending_cancellations | default([]) %}
+            {% set total_admin_notif = (pending_rentals | length) + (cancel_list | length) %}
             <div class="notif" id="notif">
                 <button class="notif-btn" type="button" onclick="toggleDropdown('notif')">
                     <i class="fa-regular fa-bell"></i>
-                    {% if pending_rentals %}
-                        <span class="notif-badge">{{ pending_rentals|length }}</span>
+                    {% if total_admin_notif > 0 %}
+                        <span class="notif-badge">{{ total_admin_notif }}</span>
                     {% endif %}
                 </button>
                 <div class="dropdown">
-                    <div class="dropdown-header">Menunggu Konfirmasi</div>
+                    {% if cancel_list %}
+                    <div class="dropdown-header" style="color:#C2410C;">Pembatalan &amp; Refund ({{ cancel_list|length }})</div>
+                    {% for c in cancel_list %}
+                        <a href="{{ url_for('main.admin_penyewaan_edit', id=c.rental_id) }}" class="dropdown-item notif-item">
+                            <i class="fa-solid {{ 'fa-bell' if c.status == 'Pembatalan Diajukan' else 'fa-wallet' }}" style="color:#DC2626"></i>
+                            <div>
+                                {{ c.rental.booking_code }} — {{ c.rental.user.name }}
+                                <small>{{ c.status }}{% if c.refund_amount %} · Rp {{ c.refund_amount|rupiah }}{% endif %}</small>
+                            </div>
+                        </a>
+                    {% endfor %}
+                    {% endif %}
+                    <div class="dropdown-header">Menunggu Konfirmasi ({{ pending_rentals|length }})</div>
                     {% for r in pending_rentals %}
-                        <a href="{{ url_for('main.admin_dashboard', q=r.booking_code) }}" class="dropdown-item notif-item">
+                        <a href="{{ url_for('main.admin_penyewaan_edit', id=r.id) }}" class="dropdown-item notif-item">
                             <i class="fa-solid fa-clock" style="color:#F07F2A"></i>
                             <div>
                                 {{ r.booking_code }} — {{ r.user.name }}
@@ -43,7 +57,9 @@
                             </div>
                         </a>
                     {% else %}
-                        <div class="dropdown-empty">Tidak ada reservasi baru 🎉</div>
+                        {% if not cancel_list %}
+                        <div class="dropdown-empty">Tidak ada antrean tindakan baru 🎉</div>
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>
@@ -106,6 +122,27 @@
         {% block content %}{% endblock %}
     </main>
 
+    <!-- ================= MODAL KONFIRMASI LOGOUT ================= -->
+    <div id="logoutModal" class="logout-modal">
+        <div class="logout-modal-content">
+            <div class="logout-modal-icon">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <h3>Konfirmasi Logout</h3>
+            <p>Apakah kamu yakin ingin keluar dari akunmu?</p>
+            <div class="logout-modal-actions">
+                <button type="button" id="cancelLogout" class="btn-cancel-logout">
+                    Batalkan
+                </button>
+                <form action="{{ url_for('main.logout') }}" method="POST">
+                    <button type="submit" class="btn-confirm-logout">
+                        Ya, Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Buka/tutup dropdown notifikasi & profil
         function toggleDropdown(id) {
@@ -121,6 +158,39 @@
                 document.getElementById('notif').classList.remove('open');
                 document.getElementById('profile').classList.remove('open');
             }
+        });
+
+        // Modal Konfirmasi Logout (Sinkron dengan User)
+        document.addEventListener('DOMContentLoaded', function () {
+            var logoutModal = document.getElementById('logoutModal');
+            var cancelLogout = document.getElementById('cancelLogout');
+            if (!logoutModal || !cancelLogout) return;
+
+            var logoutLinks = document.querySelectorAll('a[href*="/logout"], a[data-logout]');
+            logoutLinks.forEach(function (link) {
+                link.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    var profileDropdown = document.getElementById('profile');
+                    if (profileDropdown) profileDropdown.classList.remove('open');
+                    logoutModal.classList.add('show');
+                });
+            });
+
+            cancelLogout.addEventListener('click', function () {
+                logoutModal.classList.remove('show');
+            });
+
+            logoutModal.addEventListener('click', function (event) {
+                if (event.target === logoutModal) {
+                    logoutModal.classList.remove('show');
+                }
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    logoutModal.classList.remove('show');
+                }
+            });
         });
     </script>
     {% block scripts %}{% endblock %}

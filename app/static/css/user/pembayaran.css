@@ -1,10 +1,72 @@
 /* Halaman pembayaran: static/css/pembayaran.css */
-:root{--o:#E8812E;--o-dark:#E26F12;--cream:#FFF1DF;--ink:#333;--line:#d9d9d9}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
 
-body.pay-page{font-family:'Poppins',sans-serif;color:var(--ink);min-height:100vh;
-  background:linear-gradient(#FFE9D2,#FFF3E6 60%,#FFF1DF) fixed}
-.pay{max-width:1000px;margin:0 auto;padding:36px 20px 60px;display:flex;gap:56px;justify-content:center;align-items:flex-start}
-.pay-main{flex:0 1 590px}
+:root{--o:#E8812E;--o-dark:#E26F12;--cream:#FFF1DF;--ink:#333;--line:#d9d9d9}
+html {
+    min-height: 100%;
+}
+body.pay-page{
+  font-family:'Poppins',sans-serif;
+  color:var(--ink);
+  min-height:100vh;
+  background: linear-gradient(
+    to bottom,
+    #FFD9A6 0%,
+    #FFE6C4 55%,
+    #FFF0D8 100%);
+    position: relative;
+    isolation: isolate;}
+body.pay-page::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    background-image: url("../../images/vehicle-pattern.png");
+    background-repeat: repeat;
+    background-position: center;
+    background-size: 500px auto;
+
+    z-index: -1;
+    pointer-events: none;
+}
+/* Area utama halaman pembayaran mengisi ruang kosong yang tersedia */
+body.pay-page > main {
+    flex: 1;
+}
+
+/* Footer berada di bawah meskipun konten halaman sedikit */
+body.pay-page > footer {
+    margin-top: auto;
+    flex-shrink: 0;
+}
+.pay {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 36px 40px 60px;
+
+    display: flex;
+    gap: 48px;
+    justify-content: center;
+    align-items: flex-start;
+    grid-template-columns: minmax(0, 1fr) 350px;
+}
+.pay-main {
+    flex: 1;
+    min-width: 0;
+    max-width: 850px;
+}
+
+/* Area proses penyewaan di sebelah kanan */
+.pay-side {
+    width: 8000px;
+    flex-shrink: 0;
+}
 .orange{color:var(--o)}
 
 .pay-back{display:inline-flex;gap:8px;align-items:center;color:var(--ink);text-decoration:none;font-size:15px}
@@ -42,16 +104,21 @@ body.pay-page{font-family:'Poppins',sans-serif;color:var(--ink);min-height:100vh
 .confirm-actions .btn-fill,.confirm-actions .btn-line{width:120px;padding:9px 0;font-size:11px;cursor:pointer;font-family:'Poppins',sans-serif}
 
 /* Sisi kanan */
-.pay-side{flex:0 0 200px;padding-top:12px}
-.side-title{font-size:14px;font-weight:600;margin-bottom:22px}
+.pay-side{flex:0 0 220px;padding-top:12px}
+.side-title{font-size:20px;font-weight:600;margin-bottom:22px}
 .steps{list-style:none;position:relative}
 .steps li{display:flex;align-items:center;gap:16px;font-size:12px;font-weight:500;min-height:42px;margin-bottom:16px;position:relative}
 .steps li:not(:last-child)::after{content:"";position:absolute;left:11px;top:34px;width:3px;height:30px;background:#cfcfcf}
 .steps li.done:not(:last-child)::after{background:var(--o)}
 .steps span{flex:0 0 24px;height:24px;border-radius:50%;border:1.5px solid var(--o);background:#fff;color:var(--o);
   display:grid;place-items:center;font-size:10px;font-weight:600}
-.steps li.done{color:var(--o)}
+.steps li.done{font-size:14px;font-weight:600;color:var(--o)}
 .steps li.done span{background:var(--o);color:#fff}
+.pay-side .steps li {
+    font-size: 13px;   /* Ukuran teks */
+    font-weight: 600;  /* Ketebalan teks */
+}
+
 
 .info-box{margin-top:26px;border:1px solid #f1c79f;background:#FFF4E8;border-radius:6px;padding:12px;box-shadow:0 1px 4px rgba(232,129,46,.25);font-size:10px;width:230px}
 .info-box ol{margin:10px 0 0 16px;line-height:1.9}

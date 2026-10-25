@@ -1,43 +1,67 @@
+<!-- ═════════════════════════════════════════════════════════════
+    HTML TAMPILAN OPENING WEBSITE KeSanaSini
+    ⤷ Mengatur bagian tampilan opening website saat pertama kali dibuka.
+═════════════════════════════════════════════════════════════ -->
+
+
 <!DOCTYPE html>
 <html lang="id">
 
-<head>
-    <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+<!-- ═════════════════════════════════════════════════════════════
+    A.   HEAD/TAJUK
+═════════════════════════════════════════════════════════════ -->
+<head>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     1.    INFORMASI DASAR HALAMAN                    -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>KeSanaSini</title>
 
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     2.     CSS KHUSUS HALAMAN WELCOME                    -->
+    <!-- ════════════════════════════════════════════════════ -->
     <link
         rel="stylesheet"
-        href="{{ url_for('static', filename='css/welcome.css') }}"
-    >
+        href="{{ url_for('static', filename='css/welcome.css') }}">
+
 </head>
 
+
+
+<!-- ═════════════════════════════════════════════════════════════
+    B.   BODY/ISI
+═════════════════════════════════════════════════════════════ -->
 <body>
 
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     3.     HALAMAN WELCOME                               -->
+    <!--            Berisi background, logo, dan petunjuk pengguna. -->
+    <!-- ════════════════════════════════════════════════════ -->
     <main class="welcome-page">
 
-        <!-- Background gelap transparan agar logo lebih menonjol -->
+        <!-- 3.1. LAPISAN BACKGROUND -->
+        <!-- ═════════════════════════════════ -->
         <div class="welcome-overlay"></div>
 
-        <!-- Logo yang bisa diklik -->
+        <!-- 3.2. LOGO WEBSITE -->
+        <!-- ═════════════════════════════════ -->
         <button
             class="welcome-logo"
             id="welcomeLogo"
             type="button"
-            aria-label="Masuk ke KeSanaSini"
-        >
+            aria-label="Masuk ke KeSanaSini">
             <img
                 src="{{ url_for('static', filename='images/logo1.png') }}"
-                alt="Logo KeSanaSini"
-            >
+                alt="Logo KeSanaSini">
         </button>
 
-        <!-- Teks kecil -->
+        <!-- 3.3. PETUNJUK PENGGUNA -->
+        <!-- ═════════════════════════════════ -->
         <p class="welcome-text">
             Klik logo untuk melanjutkan
         </p>
@@ -45,10 +69,23 @@
     </main>
 
 
+
+    <!-- ═════════════════════════════════════════════════════════════
+        C.   JAVASCRIPT
+    ═════════════════════════════════════════════════════════════ -->
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     4.    INTERAKSI LOGO DAN NAVIGASI LOGIN              -->
+    <!--           Menjalankan animasi keluar sebelum berpindah   -->
+    <!--           ke halaman login.                              -->
+    <!-- ════════════════════════════════════════════════════ -->
     <script>
+
+        // Mengambil elemen halaman dan logo
         const welcomePage = document.querySelector('.welcome-page');
         const welcomeLogo = document.getElementById('welcomeLogo');
 
+        // Menangani klik pada logo
         welcomeLogo.addEventListener('click', function () {
 
             // Tambahkan animasi keluar
@@ -60,8 +97,8 @@
             }, 550);
 
         });
+
     </script>
 
 </body>
-
 </html>

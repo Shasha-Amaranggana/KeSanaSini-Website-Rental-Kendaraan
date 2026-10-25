@@ -56,7 +56,7 @@
             <tr>
                 <th>ID Booking</th>
                 <th>Pelanggan</th>
-                <th>Mobil</th>
+                <th>Kendaraan</th>
                 <th>Tanggal Sewa</th>
                 <th>Tanggal Kembali</th>
                 <th class="center">Status</th>
@@ -66,30 +66,60 @@
         <tbody>
             {% for r in pagination.items %}
             <tr>
-                <td>#{{ r.booking_code }}</td>
+                <td>
+                    #{{ r.booking_code }}
+                    {% if r.special_request %}
+                    <i class="fa-solid fa-note-sticky" style="color:#F07F2A; margin-left:4px; font-size:11px;" title="Permintaan khusus: {{ r.special_request }}"></i>
+                    {% endif %}
+                </td>
                 <td>{{ r.user.name }}</td>
-                <td>{{ r.vehicle.full_name }}</td>
+                <td>
+                    <i class="fa-solid {{ 'fa-motorcycle' if r.vehicle.vehicle_type|lower == 'motor' else 'fa-car-side' }}" style="color:#777; margin-right:6px; font-size:12px;" title="{{ r.vehicle.vehicle_type }}"></i>{{ r.vehicle.full_name }}
+                </td>
                 <td>{{ r.start_date|tanggal_id }}</td>
                 <td>{{ r.end_date|tanggal_id }}</td>
-                <td class="center"><span class="badge badge-{{ r.status }}">{{ r.status }}</span></td>
+                <td class="center">
+                    <span class="badge badge-{{ r.status }}">{{ r.status }}</span>
+                    {% if r.has_pending_cancellation %}
+                    <br><span style="display:inline-block; margin-top:4px; padding:2px 7px; background:#FFF7ED; color:#C2410C; border:1px solid #FDBA74; border-radius:3px; font-size:10px; font-weight:700;">
+                        <i class="fa-solid fa-bell"></i> Permohonan Batal
+                    </span>
+                    {% elif r.needs_refund %}
+                    <br><span style="display:inline-block; margin-top:4px; padding:2px 7px; background:#FEF3C7; color:#92400E; border:1px solid #FDE68A; border-radius:3px; font-size:10px; font-weight:700;">
+                        <i class="fa-solid fa-wallet"></i> Menunggu Refund
+                    </span>
+                    {% elif r.is_refunded %}
+                    <br><span style="display:inline-block; margin-top:4px; padding:2px 7px; background:#ECFDF5; color:#15803D; border:1px solid #86EFAC; border-radius:3px; font-size:10px; font-weight:700;">
+                        <i class="fa-solid fa-circle-check"></i> Dana Dikembalikan
+                    </span>
+                    {% endif %}
+                </td>
                 <td class="center">
                     <button class="btn-sm" type="button"
                         onclick="openView(this)"
                         data-code="{{ r.booking_code }}"
                         data-user="{{ r.user.name }}"
                         data-phone="{{ r.user.phone }}"
-                        data-vehicle="{{ r.vehicle.full_name }}"
+                        data-vehicle="{{ r.vehicle.vehicle_type }} - {{ r.vehicle.full_name }}"
                         data-plate="{{ r.vehicle.vehicle_number }}"
                         data-start="{{ r.start_date|tanggal_id }}"
                         data-end="{{ r.end_date|tanggal_id }}"
                         data-days="{{ r.duration_days }}"
                         data-total="Rp {{ '{:,.0f}'.format(r.total_price).replace(',', '.') }}"
-                        data-status="{{ r.status }}">View</button>
+                        data-status="{{ r.status }}"
+                        data-special-request="{{ r.special_request or '' }}"
+                        data-cancel-reason="{{ r.cancellation_reason or (r.latest_cancellation.reason if r.latest_cancellation else '') }}"
+                        data-cancel-state="{{ r.latest_cancellation.status if r.latest_cancellation else '' }}">View</button>
+                    {% if r.has_pending_cancellation or r.needs_refund %}
+                    <a href="{{ url_for('main.admin_penyewaan_edit', id=r.id) }}" class="btn-sm" style="display:inline-block; text-decoration:none; color:#C2410C; border-color:#FDBA74; background:#FFF7ED; font-weight:600;">Proses</a>
+                    {% else %}
                     <button class="btn-sm" type="button"
                         onclick="openEdit(this)"
                         data-code="{{ r.booking_code }}"
                         data-status="{{ r.status }}"
+                        data-cancel-reason="{{ r.cancellation_reason or '' }}"
                         data-action="{{ url_for('main.admin_update_rental_status', rental_id=r.id) }}">Edit</button>
+                    {% endif %}
                 </td>
             </tr>
             {% else %}
@@ -138,11 +168,15 @@
             <button class="modal-close" type="button" onclick="hideModal('editModal')">&times;</button></h3>
         <form method="POST" id="editForm">
             <label for="editStatus">Status penyewaan</label>
-            <select name="status" id="editStatus">
+            <select name="status" id="editStatus" onchange="toggleDashboardCancelReason()">
                 {% for s in statuses %}
                     <option value="{{ s }}">{{ s }}</option>
                 {% endfor %}
             </select>
+            <div id="editCancelReasonGroup" style="display:none; margin-top:12px;">
+                <label for="editCancelReason">Alasan pembatalan</label>
+                <textarea name="cancellation_reason" id="editCancelReason" rows="3" maxlength="500" placeholder="Tuliskan alasan pembatalan..." style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:4px; font-family:inherit; font-size:13px; margin-top:4px;"></textarea>
+            </div>
             <button type="submit" class="btn-primary">Simpan Perubahan</button>
         </form>
     </div>
@@ -172,16 +206,35 @@
             ['Total Biaya', d.total],
             ['Status', '<span class="badge badge-' + d.status + '">' + d.status + '</span>']
         ];
+        if (d.specialRequest) {
+            rows.push(['Permintaan Khusus', '<span style="color:#C2410C;font-style:italic;">"' + d.specialRequest + '"</span>']);
+        }
+        if (d.cancelState) {
+            rows.push(['Status Pembatalan', '<span style="color:#C2410C;font-weight:600;">' + d.cancelState + '</span>']);
+        }
+        if ((d.status === 'Batal' || d.cancelState) && d.cancelReason) {
+            rows.push(['Alasan Batal', '<span style="color:#DC2626;font-weight:500;">' + d.cancelReason + '</span>']);
+        }
         document.getElementById('viewBody').innerHTML = rows.map(function (r) {
             return '<div class="detail-row"><span>' + r[0] + '</span><span>' + r[1] + '</span></div>';
         }).join('');
         showModal('viewModal');
     }
 
+    function toggleDashboardCancelReason() {
+        var statusEl = document.getElementById('editStatus');
+        var groupEl = document.getElementById('editCancelReasonGroup');
+        if (statusEl && groupEl) {
+            groupEl.style.display = (statusEl.value === 'Batal') ? 'block' : 'none';
+        }
+    }
+
     function openEdit(btn) {
         document.getElementById('editCode').textContent = '#' + btn.dataset.code;
         document.getElementById('editStatus').value = btn.dataset.status;
+        document.getElementById('editCancelReason').value = btn.dataset.cancelReason || '';
         document.getElementById('editForm').action = btn.dataset.action;
+        toggleDashboardCancelReason();
         showModal('editModal');
     }
 </script>

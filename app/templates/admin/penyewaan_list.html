@@ -44,7 +44,7 @@
             <tr>
                 <th>ID Booking</th>
                 <th>Pelanggan</th>
-                <th>Mobil</th>
+                <th>Kendaraan</th>
                 <th>Tanggal Sewa</th>
                 <th>Tanggal Kembali</th>
                 <th class="center">Status</th>
@@ -54,9 +54,16 @@
         <tbody>
             {% for r in pagination.items %}
             <tr>
-                <td style="font-weight: 600;">#{{ r.booking_code }}</td>
+                <td style="font-weight: 600;">
+                    #{{ r.booking_code }}
+                    {% if r.special_request %}
+                    <i class="fa-solid fa-note-sticky" style="color:#F07F2A; margin-left:4px; font-size:11px;" title="Permintaan khusus: {{ r.special_request }}"></i>
+                    {% endif %}
+                </td>
                 <td>{{ r.user.name }}</td>
-                <td>{{ r.vehicle.full_name }}</td>
+                <td>
+                    <i class="fa-solid {{ 'fa-motorcycle' if r.vehicle.vehicle_type|lower == 'motor' else 'fa-car-side' }}" style="color:#777; margin-right:6px; font-size:12px;" title="{{ r.vehicle.vehicle_type }}"></i>{{ r.vehicle.full_name }}
+                </td>
                 <td>{{ r.start_date|tanggal_id }}<br><small style="color:#777;">{{ r.pickup_time }}</small></td>
                 <td>{{ r.end_date|tanggal_id }}<br><small style="color:#777;">{{ r.return_time }}</small></td>
                 <td class="center">
@@ -67,6 +74,19 @@
                         {% else %}badge-Berjalan{% endif %}">
                         {{ r.status }}
                     </span>
+                    {% if r.has_pending_cancellation %}
+                    <br><span style="display:inline-block; margin-top:4px; padding:2px 7px; background:#FFF7ED; color:#C2410C; border:1px solid #FDBA74; border-radius:3px; font-size:10px; font-weight:700;">
+                        <i class="fa-solid fa-bell"></i> Permohonan Batal
+                    </span>
+                    {% elif r.needs_refund %}
+                    <br><span style="display:inline-block; margin-top:4px; padding:2px 7px; background:#FEF3C7; color:#92400E; border:1px solid #FDE68A; border-radius:3px; font-size:10px; font-weight:700;">
+                        <i class="fa-solid fa-wallet"></i> Menunggu Refund
+                    </span>
+                    {% elif r.is_refunded %}
+                    <br><span style="display:inline-block; margin-top:4px; padding:2px 7px; background:#ECFDF5; color:#15803D; border:1px solid #86EFAC; border-radius:3px; font-size:10px; font-weight:700;">
+                        <i class="fa-solid fa-circle-check"></i> Dana Dikembalikan
+                    </span>
+                    {% endif %}
                     {% if r.is_overdue %}
                     <br><span style="display:inline-block; margin-top:4px; padding:2px 6px; background:#FEE2E2; color:#B91C1C; border-radius:3px; font-size:10px; font-weight:700;">
                         <i class="fa-solid fa-triangle-exclamation"></i> Telat {{ r.late_days }}hr
@@ -74,6 +94,10 @@
                     {% elif r.is_due_soon %}
                     <br><span style="display:inline-block; margin-top:4px; padding:2px 6px; background:#FEF3C7; color:#92400E; border-radius:3px; font-size:10px; font-weight:600;">
                         <i class="fa-solid fa-clock"></i> Sisa {{ r.remaining_label }}
+                    </span>
+                    {% elif r.status == 'Batal' and r.cancellation_reason %}
+                    <br><span title="{{ r.cancellation_reason }}" style="display:inline-block; max-width:170px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:4px; padding:2px 6px; background:#FEF2F2; color:#991B1B; border:1px solid #FECACA; border-radius:3px; font-size:10px; font-weight:500;">
+                        <i class="fa-solid fa-comment-dots"></i> {{ r.cancellation_reason }}
                     </span>
                     {% endif %}
                 </td>

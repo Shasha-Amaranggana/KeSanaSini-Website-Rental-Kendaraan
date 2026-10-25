@@ -1,5 +1,9 @@
-{# Komponen kecil yang dipakai bersama oleh halaman Pelanggan & Admin #}
+{# =========================================================
+   Macro bersama untuk halaman Kelola Pelanggan & Kelola Admin.
+   Dipakai lewat: {% from 'admin/_macros_pengguna.html' import ... %}
+   ========================================================= #}
 
+{# avatar(path): foto profil bulat; path relatif ke static, ikon default jika kosong #}
 {% macro avatar(path) %}
 <div class="kp-avatar">
     {% if path %}
@@ -10,6 +14,7 @@
 </div>
 {% endmacro %}
 
+{# field(label, value): baris data baca-saja; nilai kosong ditampilkan "-" #}
 {% macro field(label, value) %}
 <div class="kp-field">
     <label>{{ label }}</label>
@@ -17,21 +22,28 @@
 </div>
 {% endmacro %}
 
-{# Pagination: |<  <  1 2 3  >  >| #}
+{# pager(pagination, endpoint, keyword, selected): navigasi |<  <  1 2 3  >  >|
+   Kata kunci (q) dan baris terpilih (id) ikut dibawa di setiap link.
+   Tombol awal/akhir diberi kelas "off" bila tidak ada halaman sebelum/sesudahnya. #}
 {% macro pager(pagination, endpoint, keyword, selected) %}
 {% set sel_id = selected.id if selected else None %}
 <div class="kp-pager">
+    {# Ke halaman pertama & sebelumnya #}
     <a class="{{ 'off' if not pagination.has_prev }}" href="{{ url_for(endpoint, page=1, q=keyword or None, id=sel_id) }}">|&lt;</a>
     <a class="{{ 'off' if not pagination.has_prev }}" href="{{ url_for(endpoint, page=pagination.prev_num or 1, q=keyword or None, id=sel_id) }}">&lt;</a>
+    {# Nomor halaman; yang aktif diberi kelas "on" #}
     {% for i in range(1, pagination.pages + 1) %}
         <a class="{{ 'on' if i == pagination.page }}" href="{{ url_for(endpoint, page=i, q=keyword or None, id=sel_id) }}">{{ i }}</a>
     {% endfor %}
+    {# Ke halaman berikutnya & terakhir #}
     <a class="{{ 'off' if not pagination.has_next }}" href="{{ url_for(endpoint, page=pagination.next_num or pagination.page, q=keyword or None, id=sel_id) }}">&gt;</a>
     <a class="{{ 'off' if not pagination.has_next }}" href="{{ url_for(endpoint, page=pagination.pages or 1, q=keyword or None, id=sel_id) }}">&gt;|</a>
 </div>
 {% endmacro %}
 
-{# Saklar status akun + tombol Simpan Perubahan #}
+{# status_form(selected, action_url, pagination, keyword): saklar status akun + tombol simpan.
+   Form dikirim lewat POST ke action_url. Halaman dan kata kunci dikirim lewat hidden input
+   supaya posisi list tetap sama setelah simpan. Tanpa akun terpilih, form dinonaktifkan. #}
 {% macro status_form(selected, action_url, pagination, keyword) %}
 <form method="post" action="{{ action_url if selected else '#' }}" class="kp-status-form">
     <input type="hidden" name="page" value="{{ pagination.page }}">
@@ -39,10 +51,12 @@
     <fieldset {{ 'disabled' if not selected }}>
         <div class="kp-status">
             <span>Status Akun</span>
+            {# Checkbox dicentang = aktif; tampilannya diatur CSS .kp-slider #}
             <label class="kp-switch">
                 <input type="checkbox" name="is_active" value="1" {{ 'checked' if selected and selected.is_active }}>
                 <span class="kp-slider"></span>
             </label>
+            {# Label status awal, diperbarui oleh switch_script() saat saklar digeser #}
             {% if selected and selected.is_active %}
                 <b class="kp-state on">Aktif</b>
             {% else %}
@@ -55,7 +69,8 @@
 </form>
 {% endmacro %}
 
-{# JavaScript kecil: label Aktif/Tidak Aktif ikut berubah saat saklar digeser #}
+{# switch_script(): JS kecil agar label Aktif/Tidak Aktif langsung berubah saat saklar digeser
+   (hanya tampilan; perubahan baru tersimpan setelah klik "Simpan Perubahan") #}
 {% macro switch_script() %}
 <script>
     document.querySelectorAll('.kp-switch input').forEach(function (cb) {

@@ -1,343 +1,564 @@
+<!-- ═════════════════════════════════════════════════════════════
+    HTML HALAMAN KELOLA PESANAN WEBSITE KeSanaSini
+    ⤷ Menampilkan daftar pesanan aktif dan riwayat pesanan,
+      filter status, pencarian, informasi kendaraan, harga,
+      serta akses menuju detail pesanan.
+═════════════════════════════════════════════════════════════ -->
+
+
 {% extends "base.html" %}
 
+
+
+<!-- ═════════════════════════════════════════════════════════════
+    A.   INFORMASI HALAMAN
+═════════════════════════════════════════════════════════════ -->
 {% block title %}
 Kelola Pesanan - KeSanaSini
 {% endblock %}
 
-{% block body_class %}orders-page{% endblock %}
 
-{% block css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/user/halKelolaPesanan.css') }}">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- ═════════════════════════════════════════════════════════════
+    B.   KELAS BODY HALAMAN
+═════════════════════════════════════════════════════════════ -->
+{% block body_class %}
+orders-page
 {% endblock %}
 
 
-<!-- =================================================================================== -->
-<!-- KONTEN UTAMA PESANAN -->
-<!-- =================================================================================== -->
+
+<!-- ═════════════════════════════════════════════════════════════
+    C.   CSS HALAMAN
+═════════════════════════════════════════════════════════════ -->
+{% block css %}
+
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     1.     CSS KHUSUS HALAMAN KELOLA PESANAN           -->
+    <!--            Mengatur tampilan daftar dan kartu pesanan. -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/user/halKelolaPesanan.css') }}">
+
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     2.     FONT WEBSITE                               -->
+    <!--            Menyediakan font Inter dan Poppins.        -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+{% endblock %}
+
+
+
+<!-- ═════════════════════════════════════════════════════════════
+    D.   KONTEN UTAMA HALAMAN
+═════════════════════════════════════════════════════════════ -->
 {% block content %}
-<main class="account-page">
-    <div class="account-layout">
 
-        <!-- BAGIAN KIRI - AKSES SIDEBAR DI SIDEBAR HTML CSS -->
-        <!-- =================================================================================== -->
-        {% include 'user/sidebarKelola.html' %}
 
-        
-        <!-- BAGIAN KANAN - ISI UTAMA PESANAN -->
-        <!-- =================================================================================== -->
-        <section class="account-content">
-            <h1>
-                {% if halaman == 'riwayat' %}
-                    Riwayat Pesanan
-                {% else %}
-                    Daftar Pesanan Aktif
-                {% endif %}
-            </h1>
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     1.     KERANGKA UTAMA HALAMAN                      -->
+    <!--            Menampung sidebar dan konten kelola pesanan. -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <main class="account-page">
 
-            <!-- NAVBAR STATUS PESANAN -->
-            <!-- =================================================================================== -->
-            {% if halaman != 'riwayat' %}
-                <nav class="order-tabs" id="order-tabs">
-                    <a href="#semua"
-                    class="order-tab active"
-                    data-status="semua">
-                        Semua
-                    </a>
+        <div class="account-layout">
 
-                    <a href="#belum-dibayar"
-                    class="order-tab"
-                    data-status="belum-dibayar">
-                        Belum Dibayar
-                    </a>
 
-                    <a href="#sedang-diproses"
-                    class="order-tab"
-                    data-status="sedang-diproses">
-                        Sedang Diproses
-                    </a>
+            <!-- ════════════════════════════════════════════ -->
+            <!--     1.1.   SIDEBAR KELOLA AKUN                 -->
+            <!--            Menampilkan navigasi pelanggan.    -->
+            <!-- ════════════════════════════════════════════ -->
+            {% include 'user/sidebarKelola.html' %}
 
-                    <a href="#sedang-digunakan"
-                    class="order-tab"
-                    data-status="sedang-digunakan">
-                        Sedang Digunakan
-                    </a>
 
-                    <a href="#dibatalkan"
-                    class="order-tab"
-                    data-status="dibatalkan">
-                        Dibatalkan
-                    </a>
-                </nav>
-            {% endif %}
+            <!-- ════════════════════════════════════════════ -->
+            <!--     1.2.   KONTEN KELOLA PESANAN               -->
+            <!--            Menampilkan daftar pesanan aktif   -->
+            <!--            atau riwayat pesanan pelanggan.    -->
+            <!-- ════════════════════════════════════════════ -->
+            <section class="account-content">
 
-            <!-- PENCARIAN PESANAN -->
-            <!-- =================================================================================== -->
-            <div class="order-search" id="order-search-container">
-                <i class="fa-solid fa-magnifying-glass"></i>
-
-                <input
-                    type="search"
-                    id="search-order"
-                    placeholder="Cari pesanan..."
-                    aria-label="Cari pesanan"
-                >
-            </div>
-
-            <!-- DAFTAR CARD PESANAN -->
-            <!-- =================================================================================== -->
-            <div class="order-list" id="order-list">
-
-                {% for rental in pesanan %}
-
-                {% set filter_status = 'semua' %}
-
-                {% if rental.status == 'Menunggu Pembayaran' %}
-                    {% set filter_status = 'belum-dibayar' %}
-                {% elif rental.status in ['Menunggu Konfirmasi', 'Kendaraan Dalam Pengambilan'] %}
-                    {% set filter_status = 'sedang-diproses' %}
-                {% elif rental.status in ['Kendaraan Sedang Dipakai', 'Dalam Proses Pengembalian'] %}
-                    {% set filter_status = 'sedang-digunakan' %}
-                {% elif rental.status == 'Batal' %}
-                    {% set filter_status = 'dibatalkan' %}
-                {% endif %}
-
-                <article
-                    class="order-card"
-                    data-status="{{ rental.status }}"
-                    data-filter-status="{{ filter_status }}"
-                    data-name="{{ rental.vehicle.brand }} {{ rental.vehicle.model }}"
-                    data-booking-code="{{ rental.booking_code }}"
-                    data-start-date="{{ rental.start_date | tanggal_id }}"
-                    data-end-date="{{ rental.end_date | tanggal_id }}"
-                    data-duration="{{ rental.duration_days }}"
-                    data-driver="{{ 'Dengan Sopir' if rental.with_driver else 'Lepas Kunci' }}"
-                    data-vehicle-cost="{{ rental.vehicle_cost }}"
-                    data-driver-cost="{{ rental.driver_cost }}"
-                    data-accessories-cost="{{ rental.accessories_cost }}"
-                    data-insurance-cost="{{ rental.insurance_cost }}"
-                    data-total-price="{{ rental.total_price }}"
-                    data-payment-method="{{ rental.payment_method or 'Belum dipilih' }}"
-                    data-payment-status="{{ rental.payment_status }}"
-                >
-
-                    <!-- HEADER -->
-                    <div class="order-card-header">
-                        <div class="order-vehicle-name">
-                            <h3>{{ rental.vehicle.brand }} {{ rental.vehicle.model }}</h3>
-                            <span class="order-code">
-                                Kode: {{ rental.booking_code }}
-                            </span>
-                            {% if rental.is_overdue %}
-                                <div style="margin-top:6px; display:inline-flex; align-items:center; gap:6px; padding:3px 10px; background:#FEE2E2; border:1px solid #FCA5A5; color:#B91C1C; border-radius:4px; font-size:11px; font-weight:700;">
-                                    <i class="fa-solid fa-triangle-exclamation"></i> Terlambat {{ rental.late_days }} hari (Denda Rp{{ "{:,.0f}".format(rental.active_fine).replace(",", ".") }})
-                                </div>
-                            {% elif rental.is_due_soon %}
-                                <div style="margin-top:6px; display:inline-flex; align-items:center; gap:6px; padding:3px 10px; background:#FEF3C7; border:1px solid #FCD34D; color:#92400E; border-radius:4px; font-size:11px; font-weight:600;">
-                                    <i class="fa-solid fa-clock"></i> Sisa waktu: {{ rental.remaining_label }}
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        <span class="order-status">
-                            {{ rental.status }}
-                        </span>
-                    </div>
-
-                    <!-- BODY -->
-                    <div class="order-card-body">
-
-                        <div class="order-vehicle-image">
-                            {% if rental.vehicle.photo %}
-                                <img
-                                    src="{{ url_for('static', filename='images/' ~ rental.vehicle.photo) }}"
-                                    alt="{{ rental.vehicle.brand }} {{ rental.vehicle.model }}"
-                                >
-                            {% else %}
-                                <i class="fa-solid fa-car"></i>
-                            {% endif %}
-                        </div>
-
-                        <div class="order-vehicle-info">
-                            <p>
-                                <i class="fa-solid fa-users"></i>
-                                {{ rental.vehicle.seats }} Penumpang
-                            </p>
-
-                            <p>
-                                <i class="fa-solid fa-suitcase"></i>
-                                {{ rental.vehicle.luggage }} Bagasi
-                            </p>
-
-                            <p>
-                                <i class="fa-solid fa-car-side"></i>
-                                {{ 'Dengan Sopir' if rental.with_driver else 'Lepas Kunci' }}
-                            </p>
-
-                            <p>
-                                <i class="fa-regular fa-clock"></i>
-                                Durasi {{ rental.duration_days }} hari
-                            </p>
-                        </div>
-
-                        <div class="order-price">
-                            <span>Harga kendaraan</span>
-
-                            <strong>
-                                Rp{{ "{:,.0f}".format(rental.vehicle.price_per_day).replace(",", ".") }}/hari
-                            </strong>
-
-                            {% if rental.with_driver %}
-                            <small>
-                                + Rp{{ "{:,.0f}".format(rental.DRIVER_FEE).replace(",", ".") }}/hari
-                                (sopir)
-                            </small>
-                            {% endif %}
-                        </div>
-
-                    </div>
-
-                    <!-- FOOTER -->
-                    <div class="order-card-footer">
-                        <div class="order-date-range">
-                            {{ rental.start_date | tanggal_id }}
-                            – {{ rental.end_date | tanggal_id }}
-                        </div>
-
-                        <div class="order-total">
-                            <span>Total pesanan:</span>
-                            <strong>
-                                Rp{{ "{:,.0f}".format(rental.total_price).replace(",", ".") }}
-                            </strong>
-                        </div>
-
-                        <a href="{{ url_for('main.detail_pesanan', rental_id=rental.id) }}"
-                        class="order-detail-button">
-                            Lihat Detail
-                        </a>
-                    </div>
-
-                </article>
-
-                {% else %}
-                <div class="empty-order">
-                    <i class="fa-regular fa-clipboard"></i>
-
+                <!--     1.2.1. JUDUL HALAMAN                 -->
+                <!-- ════════════════════════════════════════ -->
+                <h1>
                     {% if halaman == 'riwayat' %}
-                        <h3>Belum Ada Riwayat Pesanan</h3>
-                        <p>Pesanan yang sudah selesai akan muncul di sini.</p>
+                        Riwayat Pesanan
                     {% else %}
-                        <h3>Belum Ada Pesanan</h3>
-                        <p>Pesanan penyewaan kamu akan muncul di sini.</p>
-                        <a href="{{ url_for('main.index') }}">Cari Kendaraan</a>
+                        Daftar Pesanan Aktif
                     {% endif %}
-                </div>
-                {% endfor %}
+                </h1>
 
-                {% if pesanan %}
-                <div class="empty-order" id="no-filter-results" hidden>
-                    <i class="fa-regular fa-clipboard"></i>
-                    <h3>Pesanan Tidak Ditemukan</h3>
-                    <p>Tidak ada pesanan yang sesuai dengan pencarian atau status.</p>
-                </div>
+                <!--     1.2.2. NAVIGASI FILTER STATUS         -->
+                <!-- ════════════════════════════════════════ -->
+                {% if halaman != 'riwayat' %}
+
+                    <nav class="order-tabs" id="order-tabs">
+
+                        <!-- FILTER SEMUA PESANAN -->
+                        <a
+                            href="#semua"
+                            class="order-tab active"
+                            data-status="semua">
+                            Semua
+                        </a>
+
+                        <!-- FILTER PESANAN BELUM DIBAYAR -->
+                        <a
+                            href="#belum-dibayar"
+                            class="order-tab"
+                            data-status="belum-dibayar">
+                            Belum Dibayar
+                        </a>
+
+                        <!-- FILTER PESANAN SEDANG DIPROSES -->
+                        <a
+                            href="#sedang-diproses"
+                            class="order-tab"
+                            data-status="sedang-diproses">
+                            Sedang Diproses
+                        </a>
+
+                        <!-- FILTER PESANAN SEDANG DIGUNAKAN -->
+                        <a
+                            href="#sedang-digunakan"
+                            class="order-tab"
+                            data-status="sedang-digunakan">
+                            Sedang Digunakan
+                        </a>
+
+                        <!-- FILTER PESANAN DIBATALKAN -->
+                        <a
+                            href="#dibatalkan"
+                            class="order-tab"
+                            data-status="dibatalkan">
+                            Dibatalkan
+                        </a>
+
+                    </nav>
+
                 {% endif %}
 
-            </div>
+                <!--     1.2.3. PENCARIAN PESANAN              -->
+                <!-- ════════════════════════════════════════ -->
+                <div class="order-search" id="order-search-container">
 
-            <!-- PANEL DETAIL PESANAN -->
-            <!-- =================================================================================== -->
-            <div class="order-detail-panel" id="order-detail-panel" hidden>
-                <button type="button" class="back-to-orders" id="back-to-orders">
-                    <i class="fa-solid fa-arrow-left"></i>
-                    Kembali ke Daftar Pesanan
-                </button>
+                    <i class="fa-solid fa-magnifying-glass"></i>
 
-                <div id="order-detail-content"></div>
-            </div>
+                    <input
+                        type="search"
+                        id="search-order"
+                        placeholder="Cari pesanan..."
+                        aria-label="Cari pesanan">
+                </div>
+
+                <!--     1.2.4. DAFTAR KARTU PESANAN           -->
+                <!-- ════════════════════════════════════════ -->
+                <div class="order-list" id="order-list">
+
+                    <!-- PERULANGAN DATA PESANAN -->
+                    {% for rental in pesanan %}
+
+                        <!-- MENENTUKAN KATEGORI FILTER BERDASARKAN STATUS -->
+                        {% set filter_status = 'semua' %}
+
+                        {% if rental.status == 'Menunggu Pembayaran' %}
+                            {% set filter_status = 'belum-dibayar' %}
+
+                        {% elif rental.status in ['Menunggu Konfirmasi', 'Kendaraan Dalam Pengambilan'] %}
+                            {% set filter_status = 'sedang-diproses' %}
+
+                        {% elif rental.status in ['Kendaraan Sedang Dipakai', 'Dalam Proses Pengembalian'] %}
+                            {% set filter_status = 'sedang-digunakan' %}
+
+                        {% elif rental.status == 'Batal' %}
+                            {% set filter_status = 'dibatalkan' %}
+
+                        {% endif %}
+
+                        <!--  KARTU PESANAN  -->
+                        <article
+                            class="order-card"
+                            data-status="{{ rental.status }}"
+                            data-filter-status="{{ filter_status }}"
+                            data-name="{{ rental.vehicle.brand }} {{ rental.vehicle.model }}"
+                            data-booking-code="{{ rental.booking_code }}"
+                            data-start-date="{{ rental.start_date | tanggal_id }}"
+                            data-end-date="{{ rental.end_date | tanggal_id }}"
+                            data-duration="{{ rental.duration_days }}"
+                            data-driver="{{ 'Dengan Sopir' if rental.with_driver else 'Lepas Kunci' }}"
+                            data-vehicle-cost="{{ rental.vehicle_cost }}"
+                            data-driver-cost="{{ rental.driver_cost }}"
+                            data-accessories-cost="{{ rental.accessories_cost }}"
+                            data-insurance-cost="{{ rental.insurance_cost }}"
+                            data-total-price="{{ rental.total_price }}"
+                            data-payment-method="{{ rental.payment_method or 'Belum dipilih' }}"
+                            data-payment-status="{{ rental.payment_status }}">
+
+                            <!-- HEADER -->
+                            <div class="order-card-header">
+
+                                <!-- NAMA DAN KODE KENDARAAN -->
+                                <div class="order-vehicle-name">
+
+                                    <h3>
+                                        {{ rental.vehicle.brand }} 
+                                        {{ rental.vehicle.model }}</h3>
+                                    <span class="order-code">
+                                        Kode: {{ rental.booking_code }}
+                                    </span>
+
+                                    <!-- PERINGATAN KETERLAMBATAN -->
+                                    {% if rental.is_overdue %}
+                                        <div
+                                            style="margin-top:6px; display:inline-flex; align-items:center;
+                                            gap:6px; padding:3px 10px; background:#FEE2E2; border:1px solid #FCA5A5;
+                                            color:#B91C1C; border-radius:4px; font-size:11px; font-weight:700;">
+                                            <i class="fa-solid fa-triangle-exclamation"></i> 
+                                            Terlambat {{ rental.late_days }} hari (Denda Rp{{ "{:,.0f}".format(rental.active_fine).replace(",", ".") }})
+                                        </div>
+
+                                    <!-- PENGINGAT BATAS WAKTU SEWA -->
+                                    {% elif rental.is_due_soon %}
+                                        <div style="margin-top:6px; display:inline-flex; align-items:center;
+                                        gap:6px; padding:3px 10px; background:#FEF3C7; border:1px solid #FCD34D;
+                                        color:#92400E; border-radius:4px; font-size:11px; font-weight:600;">
+                                            <i class="fa-solid fa-clock"></i> 
+                                            Sisa waktu: {{ rental.remaining_label }}
+                                        </div>
+
+                                    <!-- ALASAN PEMBATALAN PESANAN -->
+                                    {% elif rental.status == 'Batal' and rental.cancellation_reason %}
+                                        <div style="margin-top:6px; display:inline-flex; align-items:center;
+                                        gap:6px; padding:3px 10px; background:#FEF2F2; border:1px solid #FECACA;
+                                        color:#991B1B; border-radius:4px; font-size:11px; font-weight:500;">
+                                            <i class="fa-solid fa-circle-info"></i> 
+                                            Alasan: {{ rental.cancellation_reason }}
+                                        </div>
+                                    {% endif %}
+
+                                    {% if rental.needs_refund %}
+                                        <div style="margin-top:6px; display:inline-flex; align-items:center;
+                                        gap:6px; padding:3px 10px; background:#FEF3C7; border:1px solid #FDE68A;
+                                        color:#92400E; border-radius:4px; font-size:11px; font-weight:600;">
+                                            <i class="fa-solid fa-wallet"></i>
+                                            Menunggu Pengembalian Dana (Rp{{ "{:,.0f}".format(rental.latest_cancellation.refund_amount).replace(",", ".") }})
+                                        </div>
+                                    {% elif rental.is_refunded %}
+                                        <div style="margin-top:6px; display:inline-flex; align-items:center;
+                                        gap:6px; padding:3px 10px; background:#ECFDF5; border:1px solid #86EFAC;
+                                        color:#15803D; border-radius:4px; font-size:11px; font-weight:600;">
+                                            <i class="fa-solid fa-circle-check"></i>
+                                            Dana Dikembalikan (Rp{{ "{:,.0f}".format(rental.latest_cancellation.refund_amount).replace(",", ".") }})
+                                        </div>
+                                    {% endif %}
+
+                                </div>
+
+                                <!-- STATUS PESANAN -->
+                                <span class="order-status">
+                                    {% if rental.has_pending_cancellation %}
+                                        Pembatalan Diajukan
+                                    {% else %}
+                                        {{ rental.status }}
+                                    {% endif %}
+                                </span>
+
+                            </div>
+
+                            <!-- BODY -->
+                            <div class="order-card-body">
+
+                                <!-- FOTO KENDARAAN -->
+                                <div class="order-vehicle-image">
+
+                                    {% if rental.vehicle.photo %}
+                                        <img
+                                            src="{{ url_for('static', filename='images/' ~ rental.vehicle.photo) }}"
+                                            alt="{{ rental.vehicle.brand }} {{ rental.vehicle.model }}">
+
+                                    {% else %}
+                                        <i class="fa-solid fa-car"></i>
+
+                                    {% endif %}
+                                    
+                                </div>
+
+                                <!-- INFORMASI KENDARAAN DAN PENYEWAAN -->
+                                <div class="order-vehicle-info">
+
+                                    <!-- KAPASITAS PENUMPANG -->
+                                    <p>
+                                        <i class="fa-solid fa-users"></i>
+                                        {{ rental.vehicle.seats }} Penumpang
+                                    </p>
+
+                                    <!-- KAPASITAS BAGASI -->
+                                    <p>
+                                        <i class="fa-solid fa-suitcase"></i>
+                                        {{ rental.vehicle.luggage }} Bagasi
+                                    </p>
+
+                                    <!-- JENIS LAYANAN SEWA -->
+                                    <p>
+                                        <i class="fa-solid fa-car-side"></i>
+                                        {{ 'Dengan Sopir' if rental.with_driver else 'Lepas Kunci' }}
+                                    </p>
+
+                                    <!-- DURASI PENYEWAAN -->
+                                    <p>
+                                        <i class="fa-regular fa-clock"></i>
+                                        Durasi {{ rental.duration_days }} hari
+                                    </p>
+
+                                </div>
+
+                                <!-- HARGA SEWA KENDARAAN -->
+                                <div class="order-price">
+                                    <span>Harga kendaraan</span>
+
+                                    <strong>
+                                        Rp{{ "{:,.0f}".format(rental.vehicle.price_per_day).replace(",", ".") }}/hari
+                                    </strong>
+
+                                    <!-- TAMBAHAN BIAYA SOPIR -->
+                                    {% if rental.with_driver %}
+                                        <small>
+                                            + Rp{{ "{:,.0f}".format(rental.DRIVER_FEE).replace(",", ".") }}/hari
+                                            (sopir)
+                                        </small>
+                                    {% endif %}
+                                </div>
+
+                            </div>
+
+                            <!-- FOOTER -->
+                            <div class="order-card-footer">
+
+                                <!-- RENTANG TANGGAL PENYEWAAN -->
+                                <div class="order-date-range">
+                                    {{ rental.start_date | tanggal_id }}
+                                    – {{ rental.end_date | tanggal_id }}
+                                </div>
+
+                                <!-- TOTAL BIAYA PESANAN -->
+                                <div class="order-total">
+                                    <span>Total pesanan:</span>
+                                    <strong>
+                                        Rp{{ "{:,.0f}".format(rental.total_price).replace(",", ".") }}
+                                    </strong>
+                                </div>
+
+                                <!-- TOMBOL MENUJU DETAIL PESANAN -->
+                                <a
+                                    href="{{ url_for('main.detail_pesanan', rental_id=rental.id) }}"
+                                    class="order-detail-button">
+                                    Lihat Detail
+                                </a>
+
+                            </div>
+
+                        </article>
+
+                    <!-- KONDISI JIKA DAFTAR PESANAN KOSONG -->
+                    {% else %}
+
+                        <div class="empty-order">
+                            <i class="fa-regular fa-clipboard"></i>
+
+                            <!-- PESAN KOSONG UNTUK HALAMAN RIWAYAT -->
+                            {% if halaman == 'riwayat' %}
+                                <h3>Belum Ada Riwayat Pesanan</h3>
+                                <p>Pesanan yang sudah selesai akan muncul di sini.</p>
+                            
+                            <!-- PESAN KOSONG UNTUK DAFTAR PESANAN AKTIF -->
+                            {% else %}
+                                <h3>Belum Ada Pesanan</h3>
+                                <p>Pesanan penyewaan kamu akan muncul di sini.</p>
+                                <a href="{{ url_for('main.index') }}">Cari Kendaraan</a>
+                            
+                            {% endif %}
+
+                        </div>
+
+                    {% endfor %}
+
+                    <!-- PESAN JIKA FILTER ATAU PENCARIAN TIDAK MENEMUKAN HASIL -->
+                    {% if pesanan %}
+                        <div class="empty-order" id="no-filter-results" hidden>
+                            <i class="fa-regular fa-clipboard"></i>
+                            <h3>Pesanan Tidak Ditemukan</h3>
+                            <p>Tidak ada pesanan yang sesuai dengan pencarian atau status.</p>
+                        </div>
+                    {% endif %}
+
+                </div>
+
+                <!--     1.2.4. PANEL DETAIL PESANAN          -->
+                <!-- ════════════════════════════════════════ -->
+                <div class="order-detail-panel" id="order-detail-panel" hidden>
+
+                    <!-- TOMBOL KEMBALI KE DAFTAR PESANAN -->
+                    <button
+                        type="button"
+                        class="back-to-orders"
+                        id="back-to-orders">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        Kembali ke Daftar Pesanan
+                    </button>
+
+                    <!-- AREA KONTEN DETAIL PESANAN -->
+                    <div id="order-detail-content"></div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
 
 
-        </section>
 
-    </div>
-</main>
+    <!-- ═════════════════════════════════════════════════════════════
+        E.   JAVASCRIPT HALAMAN KELOLA PESANAN
+             ⤷ Mengatur filter status, pencarian, dan format harga.
+    ═════════════════════════════════════════════════════════════ -->
 
 
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     1.     SCRIPT FILTER DAN PENCARIAN PESANAN        -->
+    <!--            Menangani interaksi daftar pesanan.       -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <script>
 
-<!-- =================================================================================== -->
-<!-- SCRIPT UTAMA PESANAN -->
-<!-- =================================================================================== -->
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const tabs = document.querySelectorAll('.order-tab');
-    const cards = document.querySelectorAll('.order-card');
-    const searchInput = document.getElementById('search-order');
-    const emptyResult = document.getElementById('no-filter-results');
+        // Menjalankan script setelah struktur HTML selesai dimuat.
+        document.addEventListener('DOMContentLoaded', function () {
 
-    const orderList = document.getElementById('order-list');
-    const detailPanel = document.getElementById('order-detail-panel');
-    const detailContent = document.getElementById('order-detail-content');
-    const backButton = document.getElementById('back-to-orders');
-    const orderTabs = document.getElementById('order-tabs');
-    const searchContainer = document.getElementById('order-search-container');
 
-    let activeStatus = 'semua';
+            // ════════════════════════════════════════════
+            // 1.1. MENGAMBIL ELEMEN HTML
+            //      Menyiapkan elemen yang digunakan script.
+            // ════════════════════════════════════════════
+            const tabs = document.querySelectorAll('.order-tab');
+            const cards = document.querySelectorAll('.order-card');
+            const searchInput = document.getElementById('search-order');
+            const emptyResult = document.getElementById('no-filter-results');
 
-    // FORMAT RUPIAH
-    function rupiah(value) {
-        return 'Rp' + Number(value || 0).toLocaleString('id-ID');
-    }
+            const orderList = document.getElementById('order-list');
+            const detailPanel = document.getElementById('order-detail-panel');
+            const detailContent = document.getElementById('order-detail-content');
+            const backButton = document.getElementById('back-to-orders');
+            const orderTabs = document.getElementById('order-tabs');
+            const searchContainer = document.getElementById('order-search-container');
 
-    // FILTER STATUS DAN PENCARIAN
-    function filterOrders() {
-        const keyword = searchInput.value.trim().toLowerCase();
-        let visibleCount = 0;
+            // Menyimpan status filter yang sedang aktif.
+            let activeStatus = 'semua';
 
-        cards.forEach(function (card) {
-            const status = card.dataset.filterStatus;
-            const name = (card.dataset.name || '').toLowerCase();
-            const code = (
-                card.querySelector('.order-code')?.textContent || ''
-            ).toLowerCase();
 
-            const matchesStatus =
-                activeStatus === 'semua' || status === activeStatus;
-
-            const matchesSearch =
-                name.includes(keyword) || code.includes(keyword);
-
-            const visible = matchesStatus && matchesSearch;
-
-            card.hidden = !visible;
-
-            if (visible) {
-                visibleCount++;
+            // ════════════════════════════════════════════
+            // 1.2. FORMAT HARGA RUPIAH
+            //      Mengubah angka menjadi format mata uang.
+            // ════════════════════════════════════════════
+            function rupiah(value) {
+                return 'Rp' + Number(value || 0).toLocaleString('id-ID');
             }
-        });
 
-        emptyResult.hidden = visibleCount > 0;
-    }
 
-    // KLIK TAB STATUS
-    tabs.forEach(function (tab) {
-        tab.addEventListener('click', function (event) {
-            event.preventDefault();
+            // ════════════════════════════════════════════
+            // 1.3. FILTER STATUS DAN PENCARIAN
+            //      Menampilkan kartu yang sesuai dengan
+            //      status aktif dan kata kunci pencarian.
+            // ════════════════════════════════════════════
+            function filterOrders() {
 
-            activeStatus = tab.dataset.status;
+                // Mengambil kata kunci dan mengabaikan spasi di tepiny
+                const keyword = searchInput.value.trim().toLowerCase();
+                
+                // Menghitung jumlah kartu yang ditampilkan.
+                let visibleCount = 0;
 
-            tabs.forEach(function (item) {
-                item.classList.toggle('active', item === tab);
+                // Memeriksa setiap kartu pesanan.
+                cards.forEach(function (card) {
+                    const status = card.dataset.filterStatus;
+                    const name = (card.dataset.name || '').toLowerCase();
+                    
+                    // Mengambil kode pesanan dari teks pada kartu.
+                    const code = (
+                        card.querySelector('.order-code')?.textContent || ''
+                    ).toLowerCase();
+
+                    // Memeriksa kesesuaian status dengan tab aktif
+                    const matchesStatus =
+                        activeStatus === 'semua' || status === activeStatus;
+
+                    // Memeriksa kesesuaian nama kendaraan atau kode pesanan.
+                    const matchesSearch =
+                        name.includes(keyword) || code.includes(keyword);
+
+                    // Kartu tampil jika status dan pencarian sama-sama cocok.
+                    const visible = matchesStatus && matchesSearch;
+
+                    card.hidden = !visible;
+
+                    // Menambah jumlah kartu yang lolos filter.
+                    if (visible) {
+                        visibleCount++;
+                    }
+
+                });
+
+                // Menampilkan pesan jika tidak ada hasil yang cocok.
+                if (emptyResult) {
+                    emptyResult.hidden = visibleCount > 0;
+                }
+            }
+
+
+            // ════════════════════════════════════════════
+            // 1.4. INTERAKSI TAB STATUS
+            //      Mengganti kategori filter ketika tab diklik.
+            // ════════════════════════════════════════════
+            tabs.forEach(function (tab) {
+                tab.addEventListener('click', function (event) {
+
+                    // Mencegah tautan berpindah ke fragmen URL.
+                    event.preventDefault();
+
+                    // Menyimpan kategori status yang dipilih.
+                    activeStatus = tab.dataset.status;
+
+                    // Memperbarui tampilan tab aktif.
+                    tabs.forEach(function (item) {
+                        item.classList.toggle('active', item === tab);
+                    });
+
+                    // Memperbarui daftar sesuai tab yang dipilih.
+                    filterOrders();
+                });
             });
 
-            filterOrders();
+
+            // ════════════════════════════════════════════
+            // 1.5. INTERAKSI PENCARIAN
+            //      Memfilter daftar setiap kali input berubah.
+            // ════════════════════════════════════════════
+            if (searchInput) {
+                searchInput.addEventListener('input', filterOrders);
+            }
+
+            // Menjalankan filter saat halaman pertama kali dibuka.
+            if (searchInput) {
+                filterOrders();
+            }
+
         });
-    });
 
-    // PENCARIAN
-    searchInput.addEventListener('input', filterOrders);
-
-    filterOrders();
-});
-</script>
-
+    </script>
 
 {% endblock %}

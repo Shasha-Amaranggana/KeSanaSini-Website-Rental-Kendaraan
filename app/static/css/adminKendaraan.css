@@ -1,242 +1,86 @@
-/* adminKendaraan.css */
-.form-panel {
-    background: #fff;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-}
+/* ═══════════════════════════════════════════════════════════
+   CSS HALAMAN KENDARAAN WEBSITE KeSanaSini
+   ↳ Mengatur tampilan halaman daftar, tambah, dan ubah kendaraan
+     pada panel admin.
+   ↳ Awalan kelas: "vh-" (halaman daftar), "vf-" (form tambah/ubah).
+═══════════════════════════════════════════════════════════ */
 
-/* Varian Grid */
-.form-grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
-    margin-top: 20px;
-}
+/* ═══════════════════════════════════════════════════════════
+   A.   KARTU STATISTIK
+═══════════════════════════════════════════════════════════ */
 
-.form-grid-3 {
-    display: grid;
-    grid-template-columns: 1fr 1.5fr;
-    gap: 30px;
-    margin-top: 20px;
-}
+/* A.1. Angka total pada kartu statistik
+   ═══════════════════════════════════════════════════════ */
+.stat-total { font-size: 2rem; font-weight: 700; line-height: 1.2; }
 
-/* Sub-Grid untuk Kolom Kanan: Foto di kiri, Teknis di kanan */
-.form-grid-sub {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
+/* ═══════════════════════════════════════════════════════════
+   B.   PANEL DAFTAR KENDARAAN
+═══════════════════════════════════════════════════════════ */
 
-/* Layout khusus untuk Blok Kiri (Data Fisik) */
-.form-grid-kiri {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    /* Membagi ruang menjadi 2 kolom presisi */
-    gap: 15px 20px;
-    /* Jarak atas-bawah 15px, kiri-kanan 20px */
-}
+/* B.1. Judul panel dan jumlah hasil
+   ═══════════════════════════════════════════════════════ */
+.panel-title .vh-count { margin-left: 10px; font-size: 12.5px; font-weight: 500; color: #64748b; }
+.vh-head-tools { display: flex; align-items: center; gap: 12px; }
 
-/* Memaksa elemen tunggal membentang selebar 2 kolom jika diperlukan */
-.span-2-kolom {
-    grid-column: span 2;
+/* B.2. Form pencarian
+   ═══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   Kotak pencarian berukuran tetap (300 x 40 px).
+   Saat input fokus, border dan bayangan berubah oranye.
+═══════════════════════════════════════════════════════ */
+.vh-search {
+    display: flex; align-items: center; gap: 8px;
+    width: 300px; height: 40px; padding: 0 12px;
+    border: 1px solid #cbd5e1; border-radius: 6px; background: #fff;
+    transition: border-color .15s, box-shadow .15s;
 }
-
-/* Varian Form Group: Label di Atas (Untuk form Edit & kolom kiri form Tambah) */
-.form-group-vertical {
-    margin-bottom: 15px;
+.vh-search:focus-within { border-color: #F07F2A; box-shadow: 0 0 0 3px rgba(240, 127, 42, .18); }
+.vh-search > i { font-size: 14px; color: #64748b; }
+.vh-search input {
+    flex: 1; min-width: 0; border: 0; outline: 0; background: transparent;
+    font: inherit; font-size: 14px; color: #1e293b;
 }
+.vh-search input::placeholder { color: #94a3b8; }
 
-.form-group-vertical label {
-    display: block;
-    font-weight: 500;
-    margin-bottom: 8px;
-    color: #333;
+/* Tombol "x" untuk menghapus kata kunci pencarian */
+.vh-search-clear { padding: 2px 4px; font-size: 13px; color: #64748b; }
+.vh-search-clear:hover { color: #F07F2A; }
+
+/* B.3. Tombol "Tambah Kendaraan"
+   ═══════════════════════════════════════════════════════ */
+.vh-btn-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    height: 40px; padding: 10px 20px; border-radius: 6px;
+    background: #F07F2A; color: #fff;
+    font-size: 14px; font-weight: 600; text-decoration: none;
+    transition: background .15s;
 }
+.vh-btn-primary:hover { background: #d96d1c; }
 
-/* Varian Form Group: Label di Samping (Untuk kolom kanan form Tambah) */
-.form-group-horizontal {
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-}
-
-.form-group-horizontal label {
-    display: block;
-    font-weight: 500;
-    margin-bottom: 0;
-    color: #333;
-    flex: 0 0 150px;
-}
-
-/* Input control berlaku untuk keduanya */
-.form-control {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #ccc;
+/* B.4. Sel kendaraan pada tabel (foto, nama, spesifikasi)
+   ═══════════════════════════════════════════════════════ */
+.vh-unit { display: flex; align-items: center; gap: 12px; }
+.vh-thumb {
+    width: 64px;
+    height: 44px;
+    object-fit: cover;
     border-radius: 6px;
-    font-family: inherit;
-    box-sizing: border-box;
+    background: #e2e8f0;
+    flex-shrink: 0;
 }
+.vh-name  { font-weight: 600; }
+.vh-meta  { font-size: .8rem; color: #64748b; margin-top: 2px; }
 
-.image-card {
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 15px;
-    text-align: center;
-    margin-bottom: 15px;
-}
+/* Plat nomor: dipakai di tabel daftar dan header halaman ubah */
+.vh-plate { font-weight: 600; letter-spacing: .5px; white-space: nowrap; }
 
-.img-preview {
-    width: 100%;
-    height: 200px;
-    object-fit: contain;
-    border-radius: 8px;
-    border: 1px solid #eee;
-    margin-bottom: 10px;
-}
-
-.btn-upload-new {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    text-align: center;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    color: #333;
-}
-
-.bottom-actions {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 15px;
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
-}
-
-.btn-danger {
-    padding: 10px 20px;
-    background: #dc2626;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.right-actions {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.btn-submit {
-    padding: 10px 20px;
-    border: none;
-    background: #F07F2A;
-    color: white;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-/* Toggle Switch CSS */
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 24px;
-}
-
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: .4s;
-    border-radius: 34px;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 16px;
-    width: 16px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-}
-
-input:checked+.slider {
-    background-color: #3b82f6;
-}
-
-input:checked+.slider:before {
-    transform: translateX(26px);
-}
-
-/* Styles from kendaraan_tambah_2.html */
-.photo-upload-box {
-    border: 2px dashed #ccc;
-    border-radius: 8px;
-    padding: 40px;
-    text-align: center;
-    background-color: #f8fafc;
-    cursor: pointer;
-    margin-bottom: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.photo-upload-box:hover {
-    border-color: #F07F2A;
-}
-
-.photo-upload-box i {
-    font-size: 40px;
-    color: #a1a1aa;
-    margin-bottom: 10px;
-}
-
-.btn-action-group {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
-}
-
-.btn-outline {
-    padding: 10px 20px;
-    border: 1px solid #ccc;
-    background: #f1f5f9;
-    color: #333;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    text-decoration: none;
-}
-
+/* B.5. Badge status pada tabel
+   ═══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   Nama kelas mengikuti nilai current_status (huruf besar
+   di awal), sehingga harus sama persis dengan nilai dari
+   view. Unit nonaktif memakai badge-nonaktif.
+═══════════════════════════════════════════════════════ */
 .badge {
     display: inline-block; min-width: 46px;
     padding: 5px 7px; border-radius: 3px;
@@ -245,4 +89,296 @@ input:checked+.slider:before {
 .badge-Tersedia      { background: #7ED957; color: #1F8F2E; }
 .badge-Disewa        { background: #F7A41D; color: #5A2C00; }
 .badge-Diperbaiki    { background: #F26464; color: #8A0000; }
-.badge-Menunggu      { background: #8EC5FF; color: #0B3F7A; }
+.badge-nonaktif      { background: #e2e8f0; color: #475569; }
+
+/* B.6. Pagination
+   ═══════════════════════════════════════════════════════ */
+/* Tombol pagination yang disabled tidak boleh bisa diklik */
+.pagination .page-btn.disabled { pointer-events: none; opacity: .5; }
+
+/* ═══════════════════════════════════════════════════════════
+   C.   FORM TAMBAH & UBAH KENDARAAN
+═══════════════════════════════════════════════════════════ */
+
+/* C.1. Wadah halaman dan header
+   ═══════════════════════════════════════════════════════ */
+.vf-page { max-width: 1180px; margin: 0 auto; }
+.vf-head { margin-bottom: 20px; }
+.vf-crumb { font-size: .8rem; color: #64748b; margin-bottom: 6px; }
+.vf-crumb a { color: #64748b; text-decoration: none; }
+.vf-crumb a:hover { color: #F07F2A; }
+.vf-title { font-size: 1.5rem; font-weight: 700; color: #1e293b; margin: 0; line-height: 1.3; }
+.vf-sub { margin: 4px 0 0; font-size: .9rem; color: #64748b; }
+
+/* C.2. Pesan kesalahan
+   ═══════════════════════════════════════════════════════ */
+.vf-alert {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 12px 16px; margin-bottom: 20px;
+    border: 1px solid #fecaca; border-radius: 10px;
+    background: #fef2f2; color: #991b1b; font-size: .88rem; line-height: 1.5;
+}
+.vf-alert i { margin-top: 3px; }
+
+/* C.3. Layout dua kolom
+   ═══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   Kiri (vf-main)  : kartu data kendaraan.
+   Kanan (vf-side) : foto, status, informasi unit; lebar
+   tetap 340px dan menempel (sticky) saat halaman di-scroll.
+═══════════════════════════════════════════════════════ */
+.vf-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 20px;
+    align-items: start;
+}
+.vf-main { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.vf-side { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 16px; }
+
+/* C.4. Kartu seksi
+   ═══════════════════════════════════════════════════════ */
+.vf-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 22px 24px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+}
+.vf-card-title {
+    display: flex; align-items: center; gap: 10px;
+    margin: 0 0 18px;
+    font-size: 1rem; font-weight: 600; color: #1e293b;
+}
+.vf-card-title i {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 8px;
+    background: #fff3e8; color: #F07F2A; font-size: .85rem;
+}
+
+/* C.5. Grid field
+   ═══════════════════════════════════════════════════════ */
+.vf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 20px; }
+.vf-span-2 { grid-column: 1 / -1; }   /* field melebar penuh (2 kolom) */
+.vf-field { min-width: 0; }
+
+/* C.6. Label, input, select, dan textarea
+   ═══════════════════════════════════════════════════════ */
+.vf-label { display: block; margin-bottom: 6px; font-size: .85rem; font-weight: 500; color: #334155; }
+.vf-req { color: #dc2626; }   /* tanda bintang kolom wajib */
+
+.vf-input {
+    width: 100%; box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1; border-radius: 8px;
+    background: #fff; color: #1e293b;
+    font: inherit; font-size: .92rem;
+    transition: border-color .15s, box-shadow .15s;
+}
+.vf-input::placeholder { color: #94a3b8; }
+.vf-input:hover { border-color: #94a3b8; }
+.vf-input:focus { outline: none; border-color: #F07F2A; box-shadow: 0 0 0 3px rgba(240, 127, 42, .18); }
+.vf-input:user-invalid { border-color: #dc2626; }   /* merah setelah pengguna berinteraksi */
+
+/* Dropdown: panah kustom (SVG) menggantikan panah bawaan browser */
+select.vf-input {
+    appearance: none; -webkit-appearance: none;
+    padding-right: 36px; cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%2364748b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+select.vf-input:invalid { color: #94a3b8; }   /* placeholder "Pilih ..." */
+select.vf-input option { color: #1e293b; }
+textarea.vf-input { min-height: 96px; resize: vertical; line-height: 1.5; }
+
+/* Plat nomor: otomatis huruf kapital, placeholder tetap normal */
+.vf-plate { text-transform: uppercase; letter-spacing: .5px; }
+.vf-plate::placeholder { text-transform: none; letter-spacing: normal; }
+
+/* Teks bantuan di bawah input; is-error dipasang oleh JavaScript */
+.vf-hint { margin: 5px 0 0; font-size: .76rem; line-height: 1.4; color: #64748b; }
+.vf-hint.is-error { color: #dc2626; }
+
+/* C.7. Input dengan awalan / akhiran (Rp, /hari, cc, orang)
+   ═══════════════════════════════════════════════════════ */
+.vf-group {
+    display: flex; align-items: stretch; overflow: hidden;
+    border: 1px solid #cbd5e1; border-radius: 8px; background: #fff;
+    transition: border-color .15s, box-shadow .15s;
+}
+.vf-group:hover { border-color: #94a3b8; }
+.vf-group:focus-within { border-color: #F07F2A; box-shadow: 0 0 0 3px rgba(240, 127, 42, .18); }
+.vf-group .vf-input { flex: 1; min-width: 0; border: 0; border-radius: 0; box-shadow: none; }
+.vf-addon {
+    display: flex; align-items: center; padding: 0 12px;
+    background: #f1f5f9; color: #64748b;
+    font-size: .85rem; font-weight: 500; white-space: nowrap;
+}
+.vf-addon:first-child { border-right: 1px solid #e2e8f0; }
+.vf-addon:last-child  { border-left: 1px solid #e2e8f0; }
+
+/* C.8. Area unggah foto
+   ═══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   Input file transparan menutupi seluruh area agar bisa
+   diklik. Kelas status (dipasang oleh JavaScript):
+   - is-drag     : file sedang diseret di atas area
+   - has-image   : pratinjau foto tampil
+   - is-changed  : pengguna memilih foto pengganti (ubah)
+═══════════════════════════════════════════════════════ */
+.vf-drop {
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    aspect-ratio: 4 / 3; box-sizing: border-box; padding: 16px;
+    border: 2px dashed #cbd5e1; border-radius: 10px;
+    background: #f8fafc; cursor: pointer; text-align: center;
+    transition: border-color .15s, background .15s;
+}
+.vf-drop:hover, .vf-drop.is-drag { border-color: #F07F2A; background: #fff7f0; }
+.vf-drop input[type="file"] {
+    position: absolute; inset: 0; z-index: 2;
+    width: 100%; height: 100%; margin: 0;
+    opacity: 0; cursor: pointer;
+}
+.vf-drop-body { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.vf-drop-ico {
+    display: flex; align-items: center; justify-content: center;
+    width: 52px; height: 52px; margin-bottom: 4px; border-radius: 50%;
+    background: #fff3e8; color: #F07F2A; font-size: 1.25rem;
+}
+.vf-drop-title { font-size: .92rem; font-weight: 600; color: #1e293b; }
+.vf-drop-sub { font-size: .78rem; color: #64748b; }
+
+/* Pratinjau dan tombol "Ganti foto" hanya tampil bila has-image aktif */
+.vf-preview { display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.vf-replace {
+    display: none; position: absolute; left: 50%; bottom: 12px; z-index: 1;
+    transform: translateX(-50%); padding: 6px 14px; border-radius: 999px;
+    background: rgba(15, 23, 42, .72); color: #fff; font-size: .78rem; font-weight: 500;
+    pointer-events: none; white-space: nowrap;
+}
+.vf-drop.has-image { border-style: solid; border-color: #e2e8f0; background: #fff; }
+.vf-drop.has-image .vf-preview, .vf-drop.has-image .vf-replace { display: block; }
+.vf-drop.has-image .vf-drop-body { display: none; }
+
+/* Penanda "Foto baru" (halaman ubah, setelah memilih file pengganti) */
+.vf-newtag {
+    display: none; position: absolute; top: 10px; left: 10px; z-index: 1;
+    padding: 4px 10px; border-radius: 999px;
+    background: #F07F2A; color: #fff; font-size: .74rem; font-weight: 600;
+    pointer-events: none;
+}
+.vf-drop.is-changed .vf-newtag { display: block; }
+
+/* C.9. Saklar status aktif / nonaktif
+   ═══════════════════════════════════════════════════════ */
+.vf-toggle { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.vf-toggle-text strong { display: block; font-size: .92rem; color: #1e293b; }
+.vf-toggle-text span { display: block; margin-top: 2px; font-size: .78rem; line-height: 1.4; color: #64748b; }
+.vf-switch { position: relative; flex-shrink: 0; width: 46px; height: 26px; }
+.vf-switch input {
+    position: absolute; inset: 0; z-index: 1;
+    width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer;
+}
+.vf-switch i {
+    position: absolute; inset: 0; border-radius: 999px;
+    background: #cbd5e1; transition: background .2s;
+}
+.vf-switch i::before {
+    content: ""; position: absolute; top: 3px; left: 3px;
+    width: 20px; height: 20px; border-radius: 50%; background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .25); transition: transform .2s;
+}
+.vf-switch input:checked + i { background: #F07F2A; }
+.vf-switch input:checked + i::before { transform: translateX(20px); }
+.vf-switch input:focus-visible + i { box-shadow: 0 0 0 3px rgba(240, 127, 42, .3); }
+
+/* Saklar dikunci saat unit sedang disewa (halaman ubah) */
+.vf-switch input:disabled { cursor: not-allowed; }
+.vf-switch input:disabled + i { opacity: .5; }
+
+/* C.10. Bilah aksi bawah
+   ═══════════════════════════════════════════════════════ */
+/* Menempel di dasar layar (sticky) agar tombol Simpan selalu terjangkau */
+.vf-footer {
+    position: sticky; bottom: 12px; z-index: 5;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    margin-top: 20px; padding: 14px 20px;
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, .08);
+}
+.vf-footer-note { font-size: .82rem; color: #64748b; }
+.vf-footer-btns { display: flex; gap: 10px; }
+
+/* C.11. Tombol form
+   ═══════════════════════════════════════════════════════ */
+.vf-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 20px; border: 1px solid transparent; border-radius: 8px;
+    font: inherit; font-size: .92rem; font-weight: 600;
+    text-decoration: none; cursor: pointer; transition: background .15s, border-color .15s;
+}
+.vf-btn-primary { background: #F07F2A; color: #fff; }
+.vf-btn-primary:hover { background: #d96d1c; }
+.vf-btn-primary:disabled { opacity: .6; cursor: not-allowed; }   /* saat proses menyimpan */
+.vf-btn-ghost { background: #fff; border-color: #cbd5e1; color: #334155; }
+.vf-btn-ghost:hover { background: #f1f5f9; }
+.vf-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(240, 127, 42, .3); }
+
+/* C.12. Khusus halaman ubah: nama unit dan plat di header
+   ═══════════════════════════════════════════════════════ */
+.vf-subline { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 6px; }
+.vf-sub-name { font-size: .95rem; font-weight: 500; color: #334155; }
+.vf-subline .vh-plate {
+    padding: 2px 10px; border: 1px solid #cbd5e1; border-radius: 6px;
+    background: #fff; font-size: .82rem; color: #1e293b;
+}
+
+/* C.13. Khusus halaman ubah: kartu Informasi Unit
+   ═══════════════════════════════════════════════════════ */
+.vf-info { margin: 0; }
+.vf-info > div {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: .88rem;
+}
+.vf-info > div:last-child { border-bottom: 0; padding-bottom: 0; }
+.vf-info > div:first-child { padding-top: 0; }
+.vf-info dt { color: #64748b; }
+.vf-info dd { margin: 0; font-weight: 600; color: #1e293b; }
+
+/* Badge status sewa (pill). Nama varian = current_status huruf kecil */
+.vh-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: .8rem;
+    font-weight: 600;
+}
+.vh-badge--tersedia { background: #dcfce7; color: #166534; }
+.vh-badge--disewa   { background: #ffedd5; color: #9a3412; }
+.vh-badge--nonaktif { background: #e2e8f0; color: #475569; }
+
+/* ═══════════════════════════════════════════════════════════
+   D.   RESPONSIF
+═══════════════════════════════════════════════════════════ */
+
+/* D.1. Tablet (lebar <= 1024px)
+   ═══════════════════════════════════════════════════════ */
+/* Layout jadi satu kolom; foto & status dipindah ke atas form */
+@media (max-width: 1024px) {
+    .vf-layout { grid-template-columns: 1fr; }
+    .vf-side { position: static; order: -1; }
+    .vf-drop { aspect-ratio: 16 / 9; }
+}
+
+/* D.2. Ponsel (lebar <= 640px)
+   ═══════════════════════════════════════════════════════ */
+/* Grid field jadi satu kolom; bilah aksi bawah ditumpuk */
+@media (max-width: 640px) {
+    .vf-grid { grid-template-columns: 1fr; }
+    .vf-card { padding: 18px; }
+    .vf-footer { flex-direction: column-reverse; align-items: stretch; }
+    .vf-footer-note { text-align: center; }
+    .vf-footer-btns .vf-btn { flex: 1; }
+}

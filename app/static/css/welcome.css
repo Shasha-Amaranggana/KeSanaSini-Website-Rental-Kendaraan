@@ -1,6 +1,15 @@
-/* =========================================================
-   RESET
-========================================================= */
+/* ═════════════════════════════════════════════════════════════
+    CSS TAMPILAN OPENING WEBSITE KeSanaSini
+    ⤷ Mengatur tampilan  opening website saat pertama kali dibuka.
+═════════════════════════════════════════════════════════════ */
+
+
+/* ═════════════════════════════════════════════════════════════
+   A.   RESET DAN PENGATURAN DASAR
+═════════════════════════════════════════════════════════════ */
+
+/* A.1. Reset margin, padding, dan perhitungan ukuran elemen
+   ════════════════════════════════════════════════════════  */
 * {
     margin: 0;
     padding: 0;
@@ -8,23 +17,29 @@
 }
 
 
-/* =========================================================
-   BODY
-========================================================= */
-html,
-body {
+/* A.2. Pengaturan ukuran halaman
+   ════════════════════════════════════════════════════════  */
+html, body {
     width: 100%;
     height: 100%;
 }
+
+
+/* A.3. Pengaturan dasar body 
+   ════════════════════════════════════════════════════════  */
 body {
     overflow: hidden;
     font-family: 'Inter', Arial, sans-serif;
 }
 
 
-/* =========================================================
-   HALAMAN OPENING UTAMANYA (Yang BG mobil-mobil)
-========================================================= */
+
+/* ═════════════════════════════════════════════════════════════
+   B.   BACKGROUND DAN LAYOUT HALAMAN WELCOME
+═════════════════════════════════════════════════════════════ */
+
+/* B.1.   Kerangka utama halaman opening 
+   ════════════════════════════════════════════════════════  */
 .welcome-page {
     position: relative;
 
@@ -35,8 +50,7 @@ body {
     justify-content: center;
     align-items: center;
 
-    background-image: url("../images/welcome-bg.svg");
-
+    background-image: url("../images/welcome-bg.png");
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -50,23 +64,31 @@ body {
         transform 0.55s ease;
 }
 
+
+/* B.2.   Lapisan gelap transparan pada background
+   ════════════════════════════════════════════════════════  */
 .welcome-overlay {
     position: absolute;
     inset: 0;
+
     background:
         linear-gradient(
             180deg,
             rgba(0, 0, 0, 0.08),
             rgba(0, 0, 0, 0.18)
         );
+
     pointer-events: none;
 }
 
 
-/* =========================================================
-   LOGO
-========================================================= */
-/*ATUR UKURAN POSISI TOMBOL LOGO*/
+
+/* ═════════════════════════════════════════════════════════════
+   C.   LOGO WEBSITE DI TENGAH2 HALAMAN WELCOME
+═════════════════════════════════════════════════════════════ */
+
+/* C.1.   Kerangka dan posisi tombol logo website 
+   ════════════════════════════════════════════════════════  */
 .welcome-logo {
     position: relative;
     z-index: 2;
@@ -98,7 +120,9 @@ body {
         transform 0.3s ease;
 }
 
-/*ATUR GAMBAR LOGONYA*/
+
+/* C.2. Ukuran dan tampilan gambar logo
+   ════════════════════════════════════════════════════════  */
 .welcome-logo img {
     width: 50%;
     height: 50%;
@@ -112,11 +136,16 @@ body {
         filter 0.3s ease;
 }
 
-/*ATUR HOVER (KEK ANIMASI KALO KURSOR NGARAH KE LOGONYA)*/
+
+/* C.3. Efek hover pada tombol logo
+   ════════════════════════════════════════════════════════  */
 .welcome-logo:hover {
     transform: scale(1.15) translateY(-3px);
 }
 
+
+/* C.4. Efek bayangan gambar logo saat hover
+   ════════════════════════════════════════════════════════  */
 .welcome-logo:hover img {
     filter:
         drop-shadow(
@@ -124,36 +153,37 @@ body {
         );
 }
 
-/*ATUR ANIMASI KALAU LOGO DIKLIK DIA KAYAK NGECIL*/
+
+/* C.5. Efek saat tombol logo ditekan
+   ════════════════════════════════════════════════════════  */
 .welcome-logo:active {
     transform:
         scale(0.96);
 }
 
 
-/*ATUR ANIMASI MASUK LOGONYA*/
+/* C.6. Animasi kemunculan logo
+   ════════════════════════════════════════════════════════  */
 @keyframes logoAppear {
     0% {
         opacity: 0;
-
-        transform:
-            scale(0.85)
-            translateY(10px);
+        transform: scale(0.85) translateY(10px);
     }
+
     100% {
         opacity: 1;
-
-        transform:
-            scale(1)
-            translateY(0);
+        transform: scale(1) translateY(0);
     }
 }
 
 
-/* =========================================================
-   TEKS
-========================================================= */
-/*ATUR UKURAN POSISI TEX "Tekan logo untuk lanjut"*/
+
+/* ═════════════════════════════════════════════════════════════
+   D.   TEKS PETUNJUK DI BAWAH HALAMAN WELCOME
+═════════════════════════════════════════════════════════════ */
+
+/* D.1.   Posisi dan tampilan teks petunjuk
+   ════════════════════════════════════════════════════════  */
 .welcome-text {
     position: absolute;
     z-index: 2;
@@ -179,7 +209,9 @@ body {
     pointer-events: none;
 }
 
-/*ATUR ANIMASI MASUK TEKSNYA*/
+
+/* D.2. Animasi kemunculan teks petunjuk
+   ════════════════════════════════════════════════════════  */
 @keyframes textAppear {
     0% {
         opacity: 0;
@@ -192,35 +224,43 @@ body {
 }
 
 
-/* =========================================================
-   ANIMASI KELUAR SEMUANYA
-========================================================= */
+
+/* ═════════════════════════════════════════════════════════════
+   E.   ANIMASI KELUAR DARI HALAMAN WELCOME
+═════════════════════════════════════════════════════════════ */
+
+/* E.1.   Efek halaman saat logo diklik
+   ════════════════════════════════════════════════════════  */
 .welcome-page.exit {
     opacity: 0;
-
-    transform:
-        scale(1.03);
+    transform: scale(1.03);
 }
 
 
-/* =========================================================
-   RESPONSIVE
-========================================================= */
+
+/* ═════════════════════════════════════════════════════════════
+   F.   RESPONSIVE HALAMAN WELCOME
+═════════════════════════════════════════════════════════════ */
+
+/* F.1.   Penyesuaian tampilan pada tablet dan ponsel
+   ════════════════════════════════════════════════════════  */
 @media (max-width: 768px) {
     .welcome-logo {
         width: 52vw;
         max-width: 280px;
     }
+
     .welcome-text {
         bottom: 6%;
-
         font-size: 12px;
     }
 }
 
+
+/* F.2. Penyesuaian interaksi pada perangkat tanpa hover
+   ════════════════════════════════════════════════════════  */
 @media (hover: none) {
     .welcome-logo:active {
-        transform:
-            scale(0.95);
+        transform: scale(0.95);
     }
 }

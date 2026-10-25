@@ -1,3 +1,8 @@
+{# =========================================================
+   Halaman Kelola Pelanggan (Admin).
+   3 panel: daftar | detail & status akun | riwayat penyewaan.
+   Data dari PelangganListView: pagination, keyword, selected, rentals.
+   ========================================================= #}
 {% extends 'admin/base_admin.html' %}
 {% from 'admin/_macros_pengguna.html' import avatar, field, pager, status_form, switch_script %}
 
@@ -9,6 +14,7 @@
     <!-- ===== PANEL 1: DAFTAR PELANGGAN ===== -->
     <section class="kp-card">
         <h2>Daftar Pelanggan</h2>
+        {# Pencarian lewat GET (?q=) #}
         <form class="kp-search" method="get" action="{{ url_for('kelola_pelanggan.daftar') }}">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" name="q" value="{{ keyword }}" placeholder="Cari pelanggan berdasarkan ID, nama, ..." autocomplete="off">
@@ -18,12 +24,15 @@
             <thead><tr><th>ID Pelanggan</th><th>Nama</th></tr></thead>
             <tbody>
             {% for c in pagination.items %}
+                {# Link baris: memilih pelanggan (id) sambil mempertahankan halaman & kata kunci #}
                 {% set link = url_for('kelola_pelanggan.daftar', id=c.id, page=pagination.page, q=keyword or None) %}
+                {# Baris terpilih diberi kelas "selected" #}
                 <tr class="{{ 'selected' if selected and selected.id == c.id }}">
                     <td><a href="{{ link }}">#{{ c.code }}</a></td>
                     <td><a href="{{ link }}">{{ c.name }}</a></td>
                 </tr>
             {% else %}
+                {# Tampil jika hasil pencarian kosong #}
                 <tr><td colspan="2" class="kp-empty">Pelanggan tidak ditemukan</td></tr>
             {% endfor %}
             </tbody>
@@ -33,6 +42,7 @@
     </section>
 
     <!-- ===== PANEL 2: DETAIL & EDIT PELANGGAN ===== -->
+    {# Data pelanggan terpilih (read-only); admin hanya boleh mengubah status akun #}
     <section class="kp-card">
         <h2>Detail &amp; Edit Pelanggan</h2>
         <div class="kp-code">#{{ selected.code if selected else '-' }}</div>
@@ -41,6 +51,7 @@
             {{ avatar(selected.avatar_path if selected else None) }}
             <div class="kp-docs">
                 <i class="fa-regular fa-id-card"></i>
+                {# Tombol membuka popup dokumen (#dokumen); nonaktif jika belum ada pelanggan terpilih #}
                 {% if selected %}
                     <a href="#dokumen" class="kp-btn small">Lihat Foto</a>
                 {% else %}
@@ -55,6 +66,7 @@
         {{ field('No. Telepon', selected.phone if selected else '') }}
         {{ field('Email', selected.email if selected else '') }}
 
+        {# Saklar status akun; dikirim ke PelangganStatusView (route ubah_status) #}
         {{ status_form(selected, url_for('kelola_pelanggan.ubah_status', user_id=selected.id) if selected else '#', pagination, keyword) }}
     </section>
 
@@ -64,9 +76,11 @@
         <table class="kp-table">
             <thead><tr><th>ID Booking</th><th>Tanggal Sewa</th></tr></thead>
             <tbody>
+            {# Placeholder sebelum pelanggan dipilih #}
             {% if not selected %}
                 <tr><td>#---</td><td>--/--/--</td></tr>
             {% else %}
+                {# Riwayat dari Customer.rental_history, terbaru di atas #}
                 {% for r in rentals %}
                     <tr><td>#{{ r.booking_code }}</td><td>{{ r.start_date.strftime('%d/%m/%Y') }}</td></tr>
                 {% else %}
@@ -79,6 +93,7 @@
 </div>
 
 <!-- ===== POPUP "LIHAT FOTO" (dokumen KTP & SIM) ===== -->
+{# Popup CSS-only: tampil saat URL berisi #dokumen. Dokumen dari ProfileMixin.documents #}
 {% if selected %}
 <div class="kp kp-modal" id="dokumen">
     <div class="kp-card">
@@ -87,6 +102,7 @@
         {% for d in selected.documents %}
             <div class="kp-doc">
                 <b>{{ d.label }}</b>
+                {# Tiga kondisi: belum diunggah / PDF (buka tab baru) / gambar (ditampilkan langsung) #}
                 {% if not d.path %}
                     <div class="kp-doc-empty">Belum diunggah</div>
                 {% elif d.is_pdf %}
@@ -97,10 +113,12 @@
             </div>
         {% endfor %}
         </div>
+        {# href="#" menghapus :target sehingga popup tertutup #}
         <div class="kp-actions"><a href="#" class="kp-btn">Tutup</a></div>
     </div>
 </div>
 {% endif %}
 {% endblock %}
 
+{# JS label Aktif/Tidak Aktif pada saklar #}
 {% block scripts %}{{ switch_script() }}{% endblock %}

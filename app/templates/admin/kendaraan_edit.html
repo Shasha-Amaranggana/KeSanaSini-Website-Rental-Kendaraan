@@ -1,5 +1,17 @@
 {% extends 'admin/base_admin.html' %}
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--     HALAMAN  : UBAH DATA KENDARAAN (PANEL ADMIN)                -->
+<!--     Fungsi   : Form pengubahan data unit, penggantian foto,     -->
+<!--                dan pengaturan status aktif.                     -->
+<!--     Layout   : Mewarisi admin/base_admin.html                   -->
+<!--     Endpoint : main.edit_kendaraan                              -->
+<!--                (GET = tampilkan form, POST = simpan perubahan)  -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
 
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--     1.     PENGATURAN HEAD HALAMAN                              -->
+<!--            Judul tab browser, stylesheet halaman, dan font.     -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
 {% block title %}Ubah Data Kendaraan{% endblock %}
 
 {% block css %}
@@ -7,160 +19,443 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 {% endblock %}
 
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--     KONTEN UTAMA                                                -->
+<!--     Berisi header, notifikasi error, form, dan skrip halaman.   -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
 {% block content %}
-<section class="form-panel">
-    <h2>Ubah Data Kendaraan</h2>
-    <form action="{{ url_for('main.edit_kendaraan', id=vehicle.id) }}" method="POST" enctype="multipart/form-data">
-        <div class="form-grid-3">
-            <!-- Ubah pembungkus utama menjadi 2 kolom dengan rasio 1:2 -->
-            <div class="form-grid-kiri">
+<!-- Data isian form. Diisi dari data kendaraan tersimpan (oleh route) dan, bila validasi gagal, berisi isian terakhir pengguna. Default: kosong. -->
+{% set f = form or {} %}
+<!-- Status sewa terkini unit (Tersedia/Disewa), dipakai pada bagian Informasi Unit. -->
+{% set status = vehicle.current_status %}
+<div class="vf-page">
 
-                <!-- ================= BLOK KIRI (Data Fisik) ================= -->
-                <div class="form-group-vertikal">
-                    <label> Merek</label>
-                    <input type="text" name="merek" class="form-control" value="{{ vehicle.brand }}" required>
-                </div>
-                <div class="form-group-vertikal">
-                    <label>Tipe</label>
-                    <input type="text" name="tipe" class="form-control" value="{{ vehicle.model }}" required>
-                </div>
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!--     2.     HEADER HALAMAN                                       -->
+    <!--            Breadcrumb, judul, serta nama dan plat unit yang     -->
+    <!--            sedang diubah agar admin tidak salah memilih data.   -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <header class="vf-head">
+        <nav class="vf-crumb"><a href="{{ url_for('main.admin_kendaraan') }}">Kendaraan</a> / Ubah</nav>
+        <h1 class="vf-title">Ubah Data Kendaraan</h1>
+        <div class="vf-subline">
+            <span class="vf-sub-name">{{ vehicle.brand }} {{ vehicle.model }}</span>
+            <span class="vh-plate">{{ vehicle.vehicle_number }}</span>
+        </div>
+    </header>
 
-                <div class="form-group-vertikal">
-                    <label> Tahun</label>
-                    <input type="number" name="tahun" class="form-control" value="{{ vehicle.year }}" required>
-                </div>
-                <div class="form-group-vertikal">
-                    <label> Warna</label>
-                    <input type="text" name="warna" class="form-control" value="{{ vehicle.color }}">
-                </div>
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!--     3.     PESAN KESALAHAN                                      -->
+    <!--            Tampil hanya jika server mengirim variabel error.    -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    {% if error %}
+    <div class="vf-alert" role="alert">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span>{{ error }}</span>
+    </div>
+    {% endif %}
 
-                <div class="form-group-vertikal">
-                    <label> Plat Nomor</label>
-                    <input type="text" name="plat_nomor" class="form-control" value="{{ vehicle.vehicle_number }}"
-                        required>
-                </div>
-
-                <div class="form-group-vertikal">
-                    <label>Transmisi</label>
-                    <input type="text" name="transmisi" class="form-control" value="{{ vehicle.transmission }}">
-                </div>
-
-                <div class="form-group-vertikal">
-                    <label> Kapasitas Penumpang</label>
-                    <input type="number" name="jumlah_penumpang" class="form-control" value="{{ vehicle.seats }}"
-                        required>
-                </div>
-                <div class="form-group-vertikal">
-                    <label> Jumlah Bagasi</label>
-                    <input type="number" name="jumlah_bagasi" class="form-control" value="{{ vehicle.luggage }}">
-                </div>
-
-                <div class="form-group-vertikal">
-                    <label> Harga Sewa/Hari</label>
-                    <input type="number" name="harga_sewa" class="form-control" value="{{ vehicle.price_per_day }}"
-                        required>
-                </div>
-                <div class="form-group-vertikal">
-                    <label> CC Mesin</label>
-                    <input type="number" name="cc_mesin" class="form-control" value="{{ vehicle.engine_cc }}" required>
-                </div>
-                <div class="form-group-vertikal span-2-kolom">
-                    <label> Fasilitas</label>
-                    <input type="text" name="fasilitas" class="form-control" value="{{ vehicle.facilities }}">
-                </div>
-            </div>
-
-            <!-- ================= BLOK KANAN (Foto, Teknis, & Catatan) ================= -->
-            <div>
-                <!-- Buat sub-grid 2 kolom di dalam Blok Kanan untuk area atas -->
-                <div class="form-grid-sub">
-
-                    <!-- Sub-kolom Tengah (Foto & Status) -->
-                    <div>
-                        <div class="image-card">
-                            <img src="{{ url_for('static', filename='images/' + vehicle.photo) }}" alt="Foto"
-                                class="img-preview">
-                            <label class="btn-upload-new">
-                                Unggah Foto Baru
-                                <input type="file" name="photo" style="display: none;">
-                            </label>
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!--     4.     FORM UBAH KENDARAAN                                  -->
+    <!--            Dikirim via POST ke edit_kendaraan dengan ID unit;   -->
+    <!--            multipart/form-data dipakai untuk unggah foto baru.  -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <form action="{{ url_for('main.edit_kendaraan', id=vehicle.id) }}" method="POST" enctype="multipart/form-data"
+        id="vehicleForm">
+        <!-- Layout dua kolom: vf-main (data kendaraan) dan vf-side (foto & status). -->
+        <div class="vf-layout">
+            <!-- 4.1. KOLOM KIRI : DATA KENDARAAN                                -->
+            <!-- ═══════════════════════════════════════════════════════════════ -->
+            <div class="vf-main">
+                <!-- 4.1.1. IDENTITAS KENDARAAN                                     -->
+                <!-- ─────────────────────────────────────────────────────────────  -->
+                <!-- Merek, tipe, tahun, warna, kategori, dan plat nomor.           -->
+                <!-- Kolom bertanda * bersifat wajib (atribut required).            -->
+                <section class="vf-card">
+                    <h2 class="vf-card-title"><i class="fa-solid fa-car"></i> Identitas Kendaraan</h2>
+                    <!-- Grid penataan field. Field dengan kelas vf-span-2 melebar penuh. Atribut value mengisi ulang data lama dari f. -->
+                    <div class="vf-grid">
+                        <div class="vf-field">
+                            <label class="vf-label" for="merek">Merek <span class="vf-req">*</span></label>
+                            <input class="vf-input" type="text" id="merek" name="merek" maxlength="50"
+                                placeholder="Contoh: Toyota" value="{{ f.get('merek', '') }}" required>
                         </div>
+                        <div class="vf-field">
+                            <label class="vf-label" for="tipe">Tipe <span class="vf-req">*</span></label>
+                            <input class="vf-input" type="text" id="tipe" name="tipe" maxlength="100"
+                                placeholder="Contoh: Rush" value="{{ f.get('tipe', '') }}" required>
+                        </div>
+                        <div class="vf-field">
+                            <label class="vf-label" for="tahun">Tahun <span class="vf-req">*</span></label>
+                            <input class="vf-input" type="number" id="tahun" name="tahun" min="1980" max="2100"
+                                placeholder="Contoh: 2024" value="{{ f.get('tahun', '') }}" required>
+                        </div>
+                        <div class="vf-field">
+                            <label class="vf-label" for="warna">Warna</label>
+                            <input class="vf-input" type="text" id="warna" name="warna" maxlength="30"
+                                placeholder="Contoh: Putih" value="{{ f.get('warna', '') }}">
+                        </div>
+                        <!-- Dropdown kategori. Opsi pertama berstatus disabled sebagai placeholder dan terpilih otomatis bila belum ada nilai. -->
+                        <div class="vf-field">
+                            <label class="vf-label" for="kategori">Kategori <span class="vf-req">*</span></label>
+                            <select class="vf-input" id="kategori" name="kategori" required>
+                                <option value="" disabled {{ 'selected' if not f.get('kategori') }}>Pilih kategori
+                                </option>
+                                {% for o in ['SUV', 'MPV', 'Sedan', 'Motor'] %}
+                                <option value="{{ o }}" {{ 'selected' if f.get('kategori')==o }}>{{ o }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- Plat nomor (maks. 20 karakter). Kelas vf-plate memberi gaya khusus tampilan plat. -->
+                        <div class="vf-field">
+                            <label class="vf-label" for="plat_nomor">Plat Nomor <span class="vf-req">*</span></label>
+                            <input class="vf-input vf-plate" type="text" id="plat_nomor" name="plat_nomor"
+                                maxlength="20" placeholder="Contoh: KT 1234 AB" value="{{ f.get('plat_nomor', '') }}"
+                                required>
+                        </div>
+                    </div>
+                </section>
 
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-weight: 500;">Status Kendaraan</span>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <label class="switch">
-                                    <input type="checkbox" name="is_active" {% if vehicle.is_active %}checked{% endif
-                                        %}>
-                                    <span class="slider"></span>
-                                </label>
-                                <span style="font-weight: 600;">Aktif</span>
+                <!-- 4.1.2. SPESIFIKASI TEKNIS                                      -->
+                <!-- ─────────────────────────────────────────────────────────────  -->
+                <!-- Transmisi, bahan bakar, CC mesin, no. mesin, no. rangka.       -->
+                <!-- Semua opsional; pilihan dropdown dibuat dari daftar tetap.     -->
+                <section class="vf-card">
+                    <h2 class="vf-card-title"><i class="fa-solid fa-gears"></i> Spesifikasi Teknis</h2>
+                    <div class="vf-grid">
+                        <div class="vf-field">
+                            <label class="vf-label" for="transmisi">Transmisi</label>
+                            <select class="vf-input" id="transmisi" name="transmisi">
+                                {% for o in ['Otomatis', 'Manual'] %}
+                                <option value="{{ o }}" {{ 'selected' if f.get('transmisi')==o }}>{{ o }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="vf-field">
+                            <label class="vf-label" for="bahan_bakar">Bahan Bakar</label>
+                            <select class="vf-input" id="bahan_bakar" name="bahan_bakar">
+                                {% for o in ['Bensin', 'Solar', 'Listrik'] %}
+                                <option value="{{ o }}" {{ 'selected' if f.get('bahan_bakar')==o }}>{{ o }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- CC mesin dalam satuan cc. Dikosongkan untuk kendaraan listrik. -->
+                        <div class="vf-field">
+                            <label class="vf-label" for="cc_mesin">CC Mesin</label>
+                            <div class="vf-group">
+                                <input class="vf-input" type="number" id="cc_mesin" name="cc_mesin" min="0"
+                                    placeholder="Contoh: 1500" value="{{ f.get('cc_mesin', '') }}">
+                                <span class="vf-addon">cc</span>
+                            </div>
+                            <p class="vf-hint">Kosongkan untuk kendaraan listrik.</p>
+                        </div>
+                        <div class="vf-field">
+                            <label class="vf-label" for="no_mesin">No. Mesin</label>
+                            <input class="vf-input" type="text" id="no_mesin" name="no_mesin" maxlength="50"
+                                placeholder="Opsional" value="{{ f.get('no_mesin', '') }}">
+                        </div>
+                        <!-- No. mesin & no. rangka bersifat opsional, tetapi harus unik jika diisi (keunikan diverifikasi di sisi server). -->
+                        <div class="vf-field vf-span-2">
+                            <label class="vf-label" for="no_rangka">No. Rangka</label>
+                            <input class="vf-input" type="text" id="no_rangka" name="no_rangka" maxlength="50"
+                                placeholder="Opsional" value="{{ f.get('no_rangka', '') }}">
+                            <p class="vf-hint">No. rangka dan no. mesin harus unik jika diisi.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4.1.3. TARIF & KAPASITAS                                       -->
+                <!-- ─────────────────────────────────────────────────────────────  -->
+                <!-- Harga sewa per hari, jenis penyewaan, jumlah penumpang,        -->
+                <!-- dan kapasitas bagasi.                                          -->
+                <section class="vf-card">
+                    <h2 class="vf-card-title"><i class="fa-solid fa-tag"></i> Tarif &amp; Kapasitas</h2>
+                    <div class="vf-grid">
+                        <!-- Harga diisi angka murni tanpa titik (minimal 1). Teks bantuan priceHint diperbarui JavaScript menjadi format Rupiah. -->
+                        <div class="vf-field">
+                            <label class="vf-label" for="harga_sewa">Harga Sewa <span class="vf-req">*</span></label>
+                            <div class="vf-group">
+                                <span class="vf-addon">Rp</span>
+                                <input class="vf-input" type="number" id="harga_sewa" name="harga_sewa" min="1"
+                                    placeholder="500000" value="{{ f.get('harga_sewa', '') }}" required>
+                                <span class="vf-addon">/ hari</span>
+                            </div>
+                            <p class="vf-hint" id="priceHint">Dalam Rupiah, tanpa titik.</p>
+                        </div>
+                        <!-- Menentukan apakah unit disewakan dengan sopir, tanpa sopir, atau keduanya. -->
+                        <div class="vf-field">
+                            <label class="vf-label" for="jenis_penyewaan">Jenis Penyewaan</label>
+                            <select class="vf-input" id="jenis_penyewaan" name="jenis_penyewaan">
+                                {% for o in ['Sopir & Tanpa Sopir', 'Tanpa Sopir', 'Dengan Sopir'] %}
+                                <option value="{{ o }}" {{ 'selected' if f.get('jenis_penyewaan')==o }}>{{ o }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="vf-field">
+                            <label class="vf-label" for="jumlah_penumpang">Jumlah Penumpang <span
+                                    class="vf-req">*</span></label>
+                            <div class="vf-group">
+                                <input class="vf-input" type="number" id="jumlah_penumpang" name="jumlah_penumpang"
+                                    min="1" max="60" placeholder="Contoh: 7" value="{{ f.get('jumlah_penumpang', '') }}"
+                                    required>
+                                <span class="vf-addon">orang</span>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Sub-kolom Kanan (Dropdown & No Mesin) -->
-                    <div>
-                        <div class="form-group-vertical">
-                            <label>Jenis Penyewaan</label>
-                            <select name="jenis_penyewaan" class="form-control">
-                                <option value="Sopir">Sopir</option>
-                                <option value="Tanpa Supir">Tanpa Supir</option>
-                            </select>
-                        </div>
-                        <div class="form-group-vertikal">
-                            <label>Bahan Bakar</label>
-                            <select name="bahan_bakar" class="form-control">
-                                <option value="Bensin" {% if vehicle.fuel=='Bensin' %}selected{% endif %}>Bensin
-                                </option>
-                                <option value="Solar" {% if vehicle.fuel=='Solar' %}selected{% endif %}>Solar</option>
-                                <option value="Listrik" {% if vehicle.fuel=='Listrik' %}selected{% endif %}>Listrik
-                                </option>
-                            </select>
-                        </div>
-
-                        <div class="form-group-vertikal">
-                            <label>Kategori</label>
-                            <select name="kategori" class="form-control">
-                                <option value="SUV" {% if vehicle.category=='SUV' %}selected{% endif %}>SUV</option>
-                                <option value="MPV" {% if vehicle.category=='MPV' %}selected{% endif %}>MPV</option>
-                                <option value="Sedan" {% if vehicle.category=='Sedan' %}selected{% endif %}>Sedan
-                                </option>
-                                <option value="Motor" {% if vehicle.category=='Motor' %}selected{% endif %}>Motor
-                                </option>
-                            </select>
-                        </div>
-
-                        <div class="form-group-vertikal">
-                            <label> No Rangka</label>
-                            <input type="text" name="no_rangka" class="form-control"
-                                value="{{ vehicle.chassis_number }}">
-                        </div>
-
-                        <div class="form-group-vertikal">
-                            <label> No Mesin</label>
-                            <input type="text" name="no_mesin" class="form-control" value="{{ vehicle.engine_number }}">
+                        <div class="vf-field">
+                            <label class="vf-label" for="jumlah_bagasi">Kapasitas Bagasi</label>
+                            <div class="vf-group">
+                                <input class="vf-input" type="number" id="jumlah_bagasi" name="jumlah_bagasi" min="0"
+                                    placeholder="Contoh: 2" value="{{ f.get('jumlah_bagasi', '') }}">
+                                <span class="vf-addon">koper</span>
+                            </div>
+                            <p class="vf-hint">Kosong dianggap 0.</p>
                         </div>
                     </div>
+                </section>
 
-                </div> <!-- Penutup sub-grid -->
-
-                <!-- Catatan Kondisi diletakkan di LUAR sub-grid, tetapi masih di DALAM Blok Kanan -->
-                <!-- Ini akan membuatnya membentang penuh menutupi area bawah foto dan dropdown -->
-                <div class="form-group-vertical" style="margin-top: 20px;">
-                    <label>Catatan Kondisi</label>
-                    <textarea name="catatan_kondisi" class="form-control" rows="3">{{ vehicle.notes }}</textarea>
-                </div>
+                <!-- 4.1.4. FASILITAS & CATATAN                                     -->
+                <!-- ─────────────────────────────────────────────────────────────  -->
+                <!-- Daftar fasilitas (dipisah koma) dan catatan kondisi unit.      -->
+                <section class="vf-card">
+                    <h2 class="vf-card-title"><i class="fa-solid fa-clipboard-list"></i> Fasilitas &amp; Catatan</h2>
+                    <div class="vf-grid">
+                        <div class="vf-field vf-span-2">
+                            <label class="vf-label" for="fasilitas">Fasilitas</label>
+                            <input class="vf-input" type="text" id="fasilitas" name="fasilitas"
+                                placeholder="Contoh: AC, Audio Bluetooth, Kamera Mundur"
+                                value="{{ f.get('fasilitas', '') }}">
+                            <p class="vf-hint">Pisahkan dengan koma.</p>
+                        </div>
+                        <div class="vf-field vf-span-2">
+                            <label class="vf-label" for="catatan_kondisi">Catatan Kondisi</label>
+                            <textarea class="vf-input" id="catatan_kondisi" name="catatan_kondisi" rows="3"
+                                placeholder="Contoh: Servis terakhir 25 September 2026, goresan kecil di body kanan">{{ f.get('catatan_kondisi', '') }}</textarea>
+                        </div>
+                    </div>
+                </section>
             </div>
+
+            <!-- 4.2. KOLOM KANAN : FOTO, STATUS & INFORMASI                     -->
+            <!-- ═══════════════════════════════════════════════════════════════ -->
+            <aside class="vf-side">
+                <!-- 4.2.1. FOTO UTAMA                                              -->
+                <!-- ─────────────────────────────────────────────────────────────  -->
+                <!-- Menampilkan foto saat ini. Mengunggah foto baru bersifat       -->
+                <!-- opsional: bila tidak diganti, foto lama tetap dipakai.         -->
+                <!-- Logika pratinjau dan validasi ada di skrip 5.1.                -->
+                <section class="vf-card">
+                    <h2 class="vf-card-title"><i class="fa-regular fa-image"></i> <span>Foto Utama <span
+                                class="vf-req">*</span></span></h2>
+                    <!-- Area unggah. Kelas has-image sudah aktif sejak awal karena foto lama langsung ditampilkan sebagai pratinjau. -->
+                    <label class="vf-drop has-image" id="dropZone">
+                        <input type="file" name="photo" id="photoInput" accept="image/png,image/jpeg,image/webp">
+                        <img class="vf-preview" id="photoPreview"
+                            src="{{ url_for('static', filename='images/' ~ vehicle.photo) }}"
+                            alt="Foto {{ vehicle.brand }} {{ vehicle.model }}">
+                        <!-- Penanda "Foto baru"; tampil lewat CSS saat zona unggah berkelas is-changed (pengguna memilih foto pengganti). -->
+                        <span class="vf-newtag">Foto baru</span>
+                        <span class="vf-replace"><i class="fa-solid fa-rotate"></i> Ganti foto</span>
+                        <span class="vf-drop-body">
+                            <span class="vf-drop-ico"><i class="fa-solid fa-cloud-arrow-up"></i></span>
+                            <span class="vf-drop-title">Klik atau seret foto ke sini</span>
+                            <span class="vf-drop-sub">JPG, PNG, atau WebP · maks. 2 MB</span>
+                        </span>
+                    </label>
+                    <!-- Petunjuk foto. Setelah error, pilihan foto baru hilang (browser tidak menyimpan file), sehingga pengguna diminta memilih ulang. -->
+                    <p class="vf-hint" id="photoHint">{% if error %}Foto baru yang dipilih sebelumnya tidak ikut
+                        terkirim. Pilih ulang bila ingin mengganti.{% else %}Foto saat ini. Klik gambar untuk
+                        menggantinya.{% endif %}</p>
+                </section>
+
+                <!-- 4.2.2. STATUS AKTIF                                            -->
+                <!-- ─────────────────────────────────────────────────────────────  -->
+                <!-- Saklar aktif/nonaktif. Dikunci selama unit sedang disewa.      -->
+                <!-- Label teks disinkronkan oleh skrip 5.2.                        -->
+                <section class="vf-card">
+                    <div class="vf-toggle">
+                        <div class="vf-toggle-text">
+                            <strong id="statusLabel">Aktif</strong>
+                            <!-- Teks bantuan menyesuaikan kondisi: unit yang sedang disewa tidak boleh dinonaktifkan; selain itu, reservasi yang sudah ada tidak dibatalkan otomatis. -->
+                            {% if vehicle_out %}
+                            <span>Tidak bisa dinonaktifkan selama unit sedang disewa.</span>
+                            {% else %}
+                            <span>Nonaktifkan jika sedang servis. Reservasi yang sudah ada tidak dibatalkan
+                                otomatis.</span>
+                            {% endif %}
+                        </div>
+                        <label class="vf-switch">
+                            <!-- Status awal mengikuti data unit. Atribut disabled aktif bila unit sedang disewa (vehicle_out). -->
+                            <input type="checkbox" name="is_active" id="isActive" value="1" {{ 'checked' if
+                                f.get('is_active') else '' }} {{ 'disabled' if vehicle_out else '' }}>
+                            <i></i>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- 4.2.3. INFORMASI UNIT                                          -->
+                <!-- ─────────────────────────────────────────────────────────────  -->
+                <!-- Data hanya-baca: status sewa, total riwayat penyewaan, ID unit.-->
+                <section class="vf-card">
+                    <h2 class="vf-card-title"><i class="fa-solid fa-circle-info"></i> Informasi Unit</h2>
+                    <dl class="vf-info">
+                        <div>
+                            <dt>Status sewa</dt>
+                            <!-- Kelas badge dibentuk dari status huruf kecil (mis. vh-badge--disewa). -->
+                            <dd><span class="vh-badge vh-badge--{{ status|lower }}">{{ status }}</span></dd>
+                        </div>
+                        <div>
+                            <dt>Total penyewaan</dt>
+                            <!-- Total penyewaan = jumlah relasi rentals milik unit ini. -->
+                            <dd>{{ vehicle.rentals|length }}×</dd>
+                        </div>
+                        <div>
+                            <dt>ID unit</dt>
+                            <dd>#{{ vehicle.id }}</dd>
+                        </div>
+                    </dl>
+                </section>
+            </aside>
         </div>
 
-        <div class="bottom-actions">
-            <div class="right-actions">
-                <a href="{{ url_for('main.admin_kendaraan') }}" class="btn-outline"
-                    style="border: 1px solid #ccc; padding: 10px 15px; border-radius: 6px; text-decoration: none; color: #333; background: #eee;">Batal</a>
-                <button type="submit" class="btn-submit">Simpan Perubahan</button>
+        <!-- 4.3. FOOTER AKSI FORM                                          -->
+        <!-- ═══════════════════════════════════════════════════════════════-->
+        <!-- Catatan kolom wajib, tombol Batal, dan tombol Simpan.          -->
+        <div class="vf-footer">
+            <span class="vf-footer-note">Kolom bertanda <span class="vf-req">*</span> wajib diisi</span>
+            <div class="vf-footer-btns">
+                <a href="{{ url_for('main.admin_kendaraan') }}" class="vf-btn vf-btn-ghost">Batal</a>
+                <!-- Tombol simpan. Dinonaktifkan oleh skrip 5.4 saat submit untuk mencegah pengiriman ganda. -->
+                <button type="submit" class="vf-btn vf-btn-primary" id="submitBtn">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan
+                </button>
             </div>
         </div>
     </form>
-</section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--     5.     SKRIPT INTERAKSI FORM                                -->
+<!--            Pratinjau foto, label status, format harga, dan      -->
+<!--            pencegah klik ganda. Dibungkus IIFE agar tidak       -->
+<!--            mencemari scope global.                              -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<script>
+    (function () {
+        // Batas ukuran foto: 2 MB (dalam byte). Harus sama dengan batas di server.
+        var MAX_BYTES = 2 * 1024 * 1024;
+
+        // 5.1. FOTO: PRATINJAU, BATAS UKURAN, & FOTO LAMA
+        // ═══════════════════════════════════════════════════════════════
+        // Menampilkan foto lama, mengganti pratinjau saat foto baru dipilih,
+        // menolak file > 2 MB atau bukan gambar, dan menangani foto lama hilang.
+        var input = document.getElementById('photoInput');
+        var zone = document.getElementById('dropZone');
+        var img = document.getElementById('photoPreview');
+        var hint = document.getElementById('photoHint');
+        // Menyimpan src foto lama agar bisa dipulihkan bila pilihan foto baru dibatalkan atau ditolak.
+        var originalSrc = img.getAttribute('src');
+        var defaultHint = hint.textContent;
+
+        // Mengembalikan zona unggah ke kondisi awal (foto lama + petunjuk bawaan).
+        function restore() {
+            zone.classList.remove('is-changed');
+            if (originalSrc) {
+                img.src = originalSrc;
+                zone.classList.add('has-image');
+            } else {
+                img.removeAttribute('src');
+                zone.classList.remove('has-image');
+            }
+            hint.classList.remove('is-error');
+            hint.textContent = defaultHint;
+        }
+
+        // Dipanggil bila file foto lama tidak ada di server: foto baru menjadi wajib.
+        function oldPhotoMissing() {
+            zone.classList.remove('has-image');
+            input.required = true;
+            hint.classList.add('is-error');
+            hint.textContent = 'File foto lama tidak ditemukan. Unggah foto baru.';
+        }
+
+        // Penanganan gagal-muat gambar. Dua kasus: (1) file pilihan bukan gambar valid -> batalkan;
+        // (2) foto lama tidak ditemukan -> minta unggah foto baru.
+        img.addEventListener('error', function () {
+            if (zone.classList.contains('is-changed')) {
+                input.value = '';
+                restore();
+                hint.classList.add('is-error');
+                hint.textContent = 'File itu bukan gambar yang valid.';
+            } else if (originalSrc) {
+                oldPhotoMissing();
+            }
+        });
+        // Cek ulang untuk kasus gambar sudah gagal dimuat sebelum listener error terpasang.
+        if (originalSrc && img.complete && img.naturalWidth === 0) { oldPhotoMissing(); }
+
+        // Saat foto dipilih: validasi ukuran, tampilkan pratinjau, dan beri tahu bahwa foto lama akan diganti saat disimpan.
+        input.addEventListener('change', function () {
+            var file = input.files && input.files[0];
+            if (!file) { restore(); return; }
+            if (file.size > MAX_BYTES) {
+                input.value = '';
+                restore();
+                hint.classList.add('is-error');
+                hint.textContent = 'Ukuran foto ' + (file.size / 1048576).toFixed(1) + ' MB, melebihi batas 2 MB.';
+                return;
+            }
+            var url = URL.createObjectURL(file);
+            img.onload = function () { URL.revokeObjectURL(url); };
+            zone.classList.add('has-image', 'is-changed');
+            img.src = url;
+            input.required = false;
+            hint.classList.remove('is-error');
+            hint.textContent = (originalSrc ? 'Foto baru: ' : '') + file.name + ' · ' + Math.round(file.size / 1024) + ' KB'
+                + (originalSrc ? ' (menggantikan foto lama saat disimpan)' : '');
+        });
+
+        // Efek visual saat file diseret ke area unggah (hanya kelas CSS, file tidak otomatis masuk ke input)
+        ['dragenter', 'dragover'].forEach(function (ev) {
+            zone.addEventListener(ev, function () { zone.classList.add('is-drag'); });
+        });
+        ['dragleave', 'drop'].forEach(function (ev) {
+            zone.addEventListener(ev, function () { zone.classList.remove('is-drag'); });
+        });
+
+        // 5.2. LABEL STATUS AKTIF / NONAKTIF
+        // ═══════════════════════════════════════════════════════════════
+        // Menyinkronkan teks label dengan posisi saklar.
+        var sw = document.getElementById('isActive');
+        var statusLabel = document.getElementById('statusLabel');
+        function syncStatus() { statusLabel.textContent = sw.checked ? 'Aktif' : 'Nonaktif'; }
+        sw.addEventListener('change', syncStatus);
+        syncStatus();
+
+        // 5.3. FORMAT HARGA REAL-TIME
+        // ═══════════════════════════════════════════════════════════════
+        // Menampilkan nilai input dalam format Rupiah (pemisah titik) di bawah kolom harga.
+        var price = document.getElementById('harga_sewa');
+        var priceHint = document.getElementById('priceHint');
+        function syncPrice() {
+            var v = parseInt(price.value, 10);
+            priceHint.textContent = isNaN(v) ? 'Dalam Rupiah, tanpa titik.' : 'Rp ' + v.toLocaleString('id-ID') + ' per hari';
+        }
+        price.addEventListener('input', syncPrice);
+        syncPrice();
+
+        // 5.4. PENCEGAH KLIK GANDA
+        // ═══════════════════════════════════════════════════════════════
+        // Menonaktifkan tombol simpan setelah submit agar data tidak terkirim dua kali.
+        var form = document.getElementById('vehicleForm');
+        var btn = document.getElementById('submitBtn');
+        // Menyimpan isi asli tombol (ikon + teks) untuk dipulihkan.
+        var btnHtml = btn.innerHTML;
+        form.addEventListener('submit', function () {
+            btn.disabled = true;
+            btn.textContent = 'Menyimpan…';
+        });
+        // Saat pengguna menekan Kembali, browser bisa memulihkan halaman dari cache dengan tombol masih terkunci; pageshow mengembalikannya ke kondisi normal.
+        window.addEventListener('pageshow', function () { btn.disabled = false; btn.innerHTML = btnHtml; });
+    })();
+</script>
 {% endblock %}
