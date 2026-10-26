@@ -503,6 +503,45 @@ def _catat_pembatalan_admin_berbayar(
     db.session.add(pembatalan)
     return pembatalan
 
+# [OOP - ENKAPSULASI]
+# Membatalkan pesanan langsung oleh admin, termasuk pembatalan pesanan yang sudah dibayar.
+# Jika pesanan sudah dibayar, catatan refund akan dibuat agar admin dapat memproses pengembalian dana.
+def _batalkan_oleh_admin(rental, reason):
+    """Satu-satunya pintu pembatalan langsung oleh admin."""
+    reason = (reason or '').strip()[:500]
+    rental.cancellation_reason = (
+        reason or rental.cancellation_reason or 'Dibatalkan oleh Admin.'
+    )
+    sudah_dibayar = _rental_sudah_dibayar(rental, rental.status)
+
+    old_status = rental.change_status(Rental.STATUS_BATAL)
+    if not old_status:
+        return False
+
+    waktu_batal = (
+        rental.status_history[-1].changed_at
+        if rental.status_history else datetime.now()
+    )
+    db.session.add(
+        Notification.status_changed(rental, old_status, cancelled_by='admin')
+    )
+
+    if sudah_dibayar:
+        _catat_pembatalan_admin_berbayar(
+            rental, rental.cancellation_reason, waktu_batal
+        )
+    elif not rental.latest_cancellation:
+        db.session.add(RentalCancellation(
+            rental_id=rental.id,
+            reason=rental.cancellation_reason,
+            initiated_by='admin',
+            status=RentalCancellation.STATUS_DIAJUKAN,
+            requested_at=waktu_batal,
+            cancelled_at=waktu_batal,
+            refund_amount=None
+        ))
+    return True
+
 # Memvalidasi dan menyimpan dokumen KTP atau SIM ke folder dokumen.
 # Nama file diamankan sebelum digunakan untuk penyimpanan.
 def _save_document(file_storage, booking_code, kind):
@@ -2539,53 +2578,20 @@ def admin_proses_pembatalan(rental_id, cancellation_id):
             or pembatalan.refund_amount is None
             or rental.status != Rental.STATUS_BATAL
         ):
-            flash(
-                'Pembatalan ini belum memenuhi syarat refund.',
-                'error'
-            )
-            return redirect(
-                url_for('main.admin_penyewaan_edit', id=rental.id)
-            )
+            flash('Pembatalan ini belum memenuhi syarat refund.', 'error')
+            return redirect(url_for('main.admin_penyewaan_edit', id=rental.id))
 
-        # Nilai bawaan adalah nominal yang telah dicatat.
-        nominal_form = request.form.get('refund_amount', '').strip()
-
-        try:
-            nominal = (
-                int(nominal_form)
-                if nominal_form
-                else pembatalan.refund_amount
-            )
-        except (TypeError, ValueError):
-            flash('Nominal refund tidak valid.', 'error')
-            return redirect(
-                url_for('main.admin_penyewaan_edit', id=rental.id)
-            )
-
-        if nominal < 0 or nominal > rental.total_price:
-            flash(
-                'Nominal refund harus berada di antara Rp0 '
-                'dan total pembayaran pesanan.',
-                'error'
-            )
-            return redirect(
-                url_for('main.admin_penyewaan_edit', id=rental.id)
-            )
-
-        # [OOP - ENKAPSULASI & FACTORY METHOD]
-        # Memanggil method behavior mark_refunded() untuk memperbarui timeline
-        # menjadi 'Dana dikembalikan' serta menerbitkan notifikasi ke pelanggan.
-        pembatalan.mark_refunded(nominal=nominal, timestamp=sekarang)
-        db.session.add(
-            Notification.refund_completed(rental, pembatalan)
+        # [OOP - ENKAPSULASI]
+        # Memanggil method behavior mark_refunded().
+        # Refund selalu penuh: nominal sudah tercatat saat pembatalan disetujui.
+        pembatalan.mark_refunded(
+            nominal=pembatalan.refund_amount,
+            timestamp=sekarang
         )
-
+        db.session.add(Notification.refund_completed(rental, pembatalan))
         db.session.commit()
 
-        flash(
-            'Pengembalian dana berhasil dicatat.',
-            'success'
-        )
+        flash('Pengembalian dana berhasil dicatat.', 'success')
 
     else:
         flash('Aksi pembatalan tidak valid.', 'error')
@@ -2600,121 +2606,49 @@ def admin_proses_pembatalan(rental_id, cancellation_id):
 def admin_update_rental_status(rental_id):
     rental = Rental.query.get_or_404(rental_id)
     new_status = request.form.get('status')
+    balik = request.referrer or url_for('main.admin_dashboard')
 
     if new_status not in Rental.ALL_STATUS:
-        flash('Status tidak valid.')
-        return redirect(
-            request.referrer or url_for('main.admin_dashboard')
-        )
+        flash('Status tidak valid.', 'error')
+        return redirect(balik)
+
+    if new_status == rental.status:
+        flash('Status pesanan tidak mengalami perubahan.')
+        return redirect(balik)
 
     # Jangan membatalkan langsung pesanan yang memiliki pengajuan
     # pelanggan. Gunakan tombol Setujui/Tolak Permohonan.
-    if (
-        new_status == Rental.STATUS_BATAL
-        and _permohonan_pembatalan_pending(rental.id)
-    ):
+    if new_status == Rental.STATUS_BATAL and _permohonan_pembatalan_pending(rental.id):
         flash(
             'Ada permohonan pembatalan dari pelanggan. '
-            'Silakan proses permohonan tersebut terlebih dahulu.',
-            'error'
+            'Silakan proses permohonan tersebut terlebih dahulu.', 'error'
         )
-        return redirect(
-            url_for('main.admin_penyewaan_edit', id=rental.id)
-        )
+        return redirect(url_for('main.admin_penyewaan_edit', id=rental.id))
 
+    if not rental.can_admin_change_to(new_status):
+        flash(
+            f'Status tidak bisa diubah dari "{rental.status}" '
+            f'ke "{new_status}".', 'error'
+        )
+        return redirect(balik)
 
     # Validasi pembatalan langsung oleh admin.
     if new_status == Rental.STATUS_BATAL:
-
-        status_pesanan_diizinkan = rental.status in [
-            Rental.STATUS_MENUNGGU_KONFIRMASI,
-            Rental.STATUS_PENGAMBILAN
-        ]
-
-        status_pembayaran_diizinkan = rental.payment_status in [
-            'Menunggu Konfirmasi',
-            'Lunas'
-        ]
-
-        if not (
-            status_pesanan_diizinkan
-            and status_pembayaran_diizinkan
-        ):
-            flash(
-                'Pesanan tidak dapat dibatalkan karena '
-                'status pesanan atau pembayarannya tidak sesuai.',
-                'error'
-            )
-            return redirect(
-                request.referrer or url_for('main.admin_dashboard')
-            )
-
-
-    # Simpan kondisi pembayaran sebelum status berubah.
-    sudah_dibayar = _rental_sudah_dibayar(
-        rental,
-        rental.status
-    )
-
-    if new_status == Rental.STATUS_BATAL:
-        reason = (
-            request.form.get('cancellation_reason', '').strip()
-        )[:500]
-
-        rental.cancellation_reason = (
-            reason
-            or rental.cancellation_reason
-            or 'Dibatalkan oleh Admin.'
-        )
-
-    old_status = rental.change_status(new_status)
-
-    if old_status:
-        db.session.add(
-            Notification.status_changed(
-                rental,
-                old_status,
-                cancelled_by=(
-                    'admin'
-                    if new_status == Rental.STATUS_BATAL
-                    else None
-                )
-            )
-        )
-        # Admin membatalkan langsung pesanan yang sudah dibayar.
-        if new_status == Rental.STATUS_BATAL and sudah_dibayar:
-            waktu_batal = (
-                rental.status_history[-1].changed_at
-                if rental.status_history
-                else datetime.now()
-            )
-
-            _catat_pembatalan_admin_berbayar(
-                rental,
-                rental.cancellation_reason,
-                waktu_batal
-            )
-
-        # Notifikasi denda tetap dipertahankan.
-        if (
-            rental.fine_amount > 0
-            and new_status in [
-                Rental.STATUS_PENGEMBALIAN,
-                Rental.STATUS_SELESAI
-            ]
-        ):
-            db.session.add(Notification.fine_issued(rental))
-
-        db.session.commit()
-        flash(
-            f'Status {rental.booking_code} diubah menjadi "{new_status}".'
-        )
+        _batalkan_oleh_admin(rental, request.form.get('cancellation_reason'))
     else:
-        flash('Status pesanan tidak mengalami perubahan.')
+        old_status = rental.change_status(new_status)
+        if old_status:
+            db.session.add(Notification.status_changed(rental, old_status))
+            # Notifikasi denda tetap dipertahankan.
+            if (
+                rental.fine_amount > 0
+                and new_status in [Rental.STATUS_PENGEMBALIAN, Rental.STATUS_SELESAI]
+            ):
+                db.session.add(Notification.fine_issued(rental))
 
-    return redirect(
-        request.referrer or url_for('main.admin_dashboard')
-    )
+    db.session.commit()
+    flash(f'Status {rental.booking_code} diubah menjadi "{new_status}".')
+    return redirect(balik)
 
 
 # =========================================================
@@ -3106,165 +3040,72 @@ def admin_penyewaan_edit(id):
     from app.models import Driver
     rental = Rental.query.get_or_404(id)
     drivers = Driver.query.filter_by(is_available=True).all()
-    
+
     # Jika rental sudah punya sopir, pastikan sopirnya masuk ke list walaupun tidak available
     if rental.driver and rental.driver not in drivers:
         drivers.append(rental.driver)
 
     if request.method == 'POST':
         reason = request.form.get('cancellation_reason', '').strip()[:500]
-
-        pending_request = _permohonan_pembatalan_pending(rental.id)
-
-        if pending_request and (
+        ingin_batal = (
             'btn_tolak' in request.form
             or request.form.get('status') == Rental.STATUS_BATAL
-        ):
+        )
+
+        if ingin_batal and _permohonan_pembatalan_pending(rental.id):
             flash(
                 'Pesanan memiliki pengajuan pembatalan pelanggan. '
-                'Gunakan tombol proses permohonan pembatalan.',
-                'error'
+                'Gunakan tombol proses permohonan pembatalan.', 'error'
             )
-            return redirect(
-                url_for('main.admin_penyewaan_edit', id=rental.id)
-            )
+            return redirect(url_for('main.admin_penyewaan_edit', id=rental.id))
 
-        # Proses Tolak
+        # Tombol Tolak
         if 'btn_tolak' in request.form:
-            rental.cancellation_reason = (
-                reason or rental.cancellation_reason or 'Pesanan ditolak/dibatalkan oleh Admin.'
-            )
-            sudah_dibayar = _rental_sudah_dibayar(
-                rental,
-                rental.status
-            )
-            old_status = rental.change_status(Rental.STATUS_BATAL)
-
-            if old_status:
-                db.session.add(
-                    Notification.status_changed(
-                        rental,
-                        old_status,
-                        cancelled_by='admin'
-                    )
-                )
-
-                if sudah_dibayar:
-                    waktu_batal = (
-                        rental.status_history[-1].changed_at
-                        if rental.status_history
-                        else datetime.now()
-                    )
-
-                    _catat_pembatalan_admin_berbayar(
-                        rental,
-                        rental.cancellation_reason,
-                        waktu_batal
-                    )
-                elif not rental.latest_cancellation:
-                    db.session.add(RentalCancellation(
-                        rental_id=rental.id,
-                        reason=rental.cancellation_reason,
-                        initiated_by='admin',
-                        status=RentalCancellation.STATUS_DIAJUKAN,
-                        requested_at=waktu_batal,
-                        cancelled_at=waktu_batal,
-                        refund_amount=None
-                    ))
-
+            if not rental.can_cancel():
+                flash('Pesanan di tahap ini tidak bisa dibatalkan.', 'error')
+                return redirect(url_for('main.admin_penyewaan_edit', id=rental.id))
+            _batalkan_oleh_admin(rental, reason)
             db.session.commit()
             flash('Penyewaan berhasil ditolak/dibatalkan.')
             return redirect(url_for('main.admin_penyewaan'))
-            
-        # Proses Simpan
-        new_status = request.form.get('status')
+
+        # Tombol Simpan
+        # Select yang disabled tidak ikut terkirim, makanya ada fallback.
+        new_status = request.form.get('status') or rental.status
         driver_id = request.form.get('driver_id')
 
-        if new_status == Rental.STATUS_BATAL:
-            rental.cancellation_reason = (
-                reason or rental.cancellation_reason or 'Dibatalkan oleh Admin.'
-            )
-
-        sudah_dibayar = (
-            _rental_sudah_dibayar(rental, rental.status)
-            if new_status == Rental.STATUS_BATAL
-            else False
-        )
-
-        old_status = rental.change_status(new_status)
-
-        # Sinkronisasi status pembayaran dengan alur penyewaan:
-        # pembayaran pelanggan -> Menunggu Konfirmasi,
-        # konfirmasi Admin/persiapan pengambilan -> Lunas.
-        if new_status == Rental.STATUS_PENGAMBILAN and rental.payment_status == 'Menunggu Konfirmasi':
-            rental.payment_status = 'Lunas'
-        elif new_status == Rental.STATUS_MENUNGGU_KONFIRMASI and old_status == Rental.STATUS_MENUNGGU_BAYAR:
-            rental.payment_status = 'Menunggu Konfirmasi'
-
-        if old_status:
-            db.session.add(
-                Notification.status_changed(
-                    rental,
-                    old_status,
-                    cancelled_by=(
-                        'admin'
-                        if new_status == Rental.STATUS_BATAL
-                        else None
-                    )
+        if new_status != rental.status:
+            if not rental.can_admin_change_to(new_status):
+                flash(
+                    f'Status tidak bisa diubah dari "{rental.status}" '
+                    f'ke "{new_status}".', 'error'
                 )
-            )
+                return redirect(url_for('main.admin_penyewaan_edit', id=rental.id))
 
-            if new_status == Rental.STATUS_BATAL and sudah_dibayar:
-                waktu_batal = (
-                    rental.status_history[-1].changed_at
-                    if rental.status_history
-                    else datetime.now()
-                )
-
-                _catat_pembatalan_admin_berbayar(
-                    rental,
-                    rental.cancellation_reason,
-                    waktu_batal
-                )
-            elif new_status == Rental.STATUS_BATAL and old_status and not rental.latest_cancellation:
-                waktu_batal = (
-                    rental.status_history[-1].changed_at
-                    if rental.status_history
-                    else datetime.now()
-                )
-                db.session.add(RentalCancellation(
-                    rental_id=rental.id,
-                    reason=rental.cancellation_reason,
-                    initiated_by='admin',
-                    status=RentalCancellation.STATUS_DIAJUKAN,
-                    requested_at=waktu_batal,
-                    cancelled_at=waktu_batal,
-                    refund_amount=None
-                ))
-
-            # Terbitkan notifikasi denda jika kendaraan dikembalikan terlambat
-            if rental.fine_amount > 0 and new_status in [Rental.STATUS_PENGEMBALIAN, Rental.STATUS_SELESAI]:
-                db.session.add(Notification.fine_issued(rental))
+            if new_status == Rental.STATUS_BATAL:
+                _batalkan_oleh_admin(rental, reason)
+            else:
+                old_status = rental.change_status(new_status)
+                if old_status:
+                    db.session.add(Notification.status_changed(rental, old_status))
+                    if (
+                        rental.fine_amount > 0
+                        and new_status in [Rental.STATUS_PENGEMBALIAN, Rental.STATUS_SELESAI]
+                    ):
+                        db.session.add(Notification.fine_issued(rental))
 
         if rental.with_driver and driver_id:
-            if driver_id == 'none':
-                rental.driver_id = None
-            else:
-                rental.driver_id = int(driver_id)
+            rental.driver_id = None if driver_id == 'none' else int(driver_id)
 
         # Opsi pelunasan denda oleh admin
         if 'fine_paid' in request.form:
             rental.fine_paid = (request.form.get('fine_paid') == '1')
-                
+
         db.session.commit()
         flash('Data penyewaan berhasil diperbarui.')
         return redirect(url_for('main.admin_penyewaan'))
 
-    # [OOP - SINKRONISASI OBJEK PEMBATALAN & REFUND]
-    # Mengambil objek RentalCancellation terbaru melalui properti enkapsulasi.
-    # Jika pesanan berstatus Batal dan sudah dibayar namun belum memiliki
-    # catatan RentalCancellation (mis. dari data sebelum migrasi), buat otomatis
-    # agar Admin dapat mengonfirmasi pengembalian dana (refund).
+    # ---- GET: tidak berubah dari kode lamamu ----
     cancellation = rental.latest_cancellation
     if (
         rental.status == Rental.STATUS_BATAL
