@@ -726,6 +726,21 @@ class Rental(db.Model):
         STATUS_PENGEMBALIAN, STATUS_SELESAI, STATUS_BATAL
     ]
 
+    # Menentukan status berikutnya dalam alur penyewaan.
+    ALUR_STATUS = {
+        STATUS_MENUNGGU_KONFIRMASI: STATUS_PENGAMBILAN,
+        STATUS_PENGAMBILAN: STATUS_DIPAKAI,
+        STATUS_DIPAKAI: STATUS_PENGEMBALIAN,
+        STATUS_PENGEMBALIAN: STATUS_SELESAI,
+    }
+
+    # Menentukan status yang bisa dibatalkan.
+    STATUS_BISA_BATAL = [
+        STATUS_MENUNGGU_BAYAR,
+        STATUS_MENUNGGU_KONFIRMASI,
+        STATUS_PENGAMBILAN,
+    ]
+
     # Nama status lama tetap dipakai agar kode yang sudah ada tidak rusak.
     STATUS_MENUNGGU = STATUS_MENUNGGU_KONFIRMASI
     STATUS_BERJALAN = STATUS_DIPAKAI
@@ -1248,6 +1263,26 @@ class Rental(db.Model):
         )
 
         return old_status
+    
+    # [OOP - ENKAPSULASI & ABSTRAKSI STATUS PEMBATALAN]
+    # menyembunyikan logika pengecekan status yang bisa dibatalkan.
+    def can_cancel(self):
+        return self.status in self.STATUS_BISA_BATAL
+
+    # [OOP - ENKAPSULASI & ABSTRAKSI STATUS PEMBATALAN]
+    # menyembunyikan logika pengecekan status yang bisa dibatalkan.
+    def allowed_admin_statuses(self):
+        """Status tujuan yang boleh dipilih admin (di luar status saat ini)."""
+        opsi = []
+        nxt = self.ALUR_STATUS.get(self.status)
+        if nxt:
+            opsi.append(nxt)
+        if self.can_cancel():
+            opsi.append(self.STATUS_BATAL)
+        return opsi
+
+    def can_admin_change_to(self, new_status):
+        return new_status in self.allowed_admin_statuses()
 
     # [OOP - ENKAPSULASI & ASOSIASI OBJEK (OBJECT ASSOCIATION)]
     # Properti terenkapsulasi untuk mengambil objek RentalCancellation terbaru
