@@ -51,6 +51,17 @@
     {% block css %}
     {% endblock %}
 
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     5.     LOGO KECIL DI BAR WEBSITE                        -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <link
+        rel="icon"
+        type="image/jpg"
+        href="{{ url_for('static', filename='images/logo1.png') }}?v=2">
+
+
+
 </head>
 
 
@@ -190,6 +201,79 @@
     <!--            Struktur footer umum untuk halaman pengguna. -->
     <!-- ════════════════════════════════════════════════════ -->
     <footer class="footer">
+
+        <div class="footer-container">
+
+            <!-- KOLOM 1: IDENTITAS WEBSITE -->
+            <div class="footer-brand">
+                <h2 class="footer-logo">
+                    <img
+                        src="{{ url_for('static', filename='images/logo-navbar2.png') }}"
+                        alt="Logo KeSanaSini"
+                        class="footer-logo-img">
+                </h2>
+
+                <p>
+                    Teman perjalananmu. Nikmati kemudahan menyewa
+                    kendaraan untuk setiap kebutuhan perjalanan.
+                </p>
+            </div>
+
+            <!-- KOLOM 2: INFORMASI KONTAK -->
+            <div class="footer-contact">
+                <h3>HUBUNGI KAMI</h3>
+
+                <p>
+                    <i class="fas fa-envelope"></i>
+                    <a href="mailto:kesanasini.support@gmail.com">
+                        kesanasini.support@gmail.com
+                    </a>
+                </p>
+
+                <p>
+                    <i class="fab fa-whatsapp"></i>
+                    <a href="https://wa.me/6281348861965"
+                        target="_blank"
+                        rel="noopener noreferrer">
+                        081348861965
+                    </a>
+                </p>
+
+                <p>
+                    <i class="fas fa-headset"></i>
+                    Layanan bantuan pelanggan
+                </p>
+            </div>
+
+            <!-- KOLOM 3: LOKASI RENTAL -->
+            <div class="footer-location">
+                <h3>LOKASI RENTAL</h3>
+
+                <p>
+                    <i class="fas fa-map-marker-alt"></i>
+                    Jl. Futsal V No.H1/12, Harapan Baru, Kec. Loa Janan Ilir, Kota Samarinda, Kalimantan Timur 75131
+                </p>
+
+                <a
+                    href="https://maps.app.goo.gl/J92JkJRP4oUWssY19"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="footer-map-link">
+
+                    Lihat lokasi di peta
+                    <i class="fas fa-arrow-up-right-from-square"></i>
+                </a>
+            </div>
+
+        </div>
+
+        <!-- BAGIAN COPYRIGHT -->
+        <div class="footer-bottom">
+            <p>
+                &copy; 2026 KeSanaSini. Hak cipta dilindungi.
+            </p>
+        </div>
+
     </footer>
 
 
