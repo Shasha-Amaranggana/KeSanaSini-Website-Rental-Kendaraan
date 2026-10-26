@@ -1,0 +1,22 @@
+# Variabel global
+nama = "Shashaak"
+
+# Procedure
+def sapa():
+    global nama
+    nama = "Julpak"
+    pesan = "Selamat datang"  # Variabel lokal
+    print(pesan, nama)
+
+# Function
+def hitung_luas(sisi):
+    luas = sisi * sisi  # Variabel lokal
+    return luas
+
+# Memanggil procedure
+sapa()
+print(nama)
+
+# Memanggil function
+luas = hitung_luas(5)
+print("Luas persegi:", luas)
