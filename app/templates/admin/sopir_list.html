@@ -20,7 +20,7 @@
       <td>{{ r.start_date|tanggal_id if r else '-' }}</td>
       <td>{{ r.end_date|tanggal_id if r else '-' }}</td>
       <td><span class="b {{ d.status_label.split()[0] }}">{{ d.status_label }}</span></td>
-      <td><a class="btn" href="{{ url_for('main.admin_sopir_detail', id=d.id) }}">Edit</a></td>
+      <td><a class="btn" href="{{ url_for('main.admin_sopir_detail', id=d.id) }}">Detail</a></td>
     </tr>
     {% else %}<tr><td colspan="7" style="text-align:center;color:#777">Sopir tidak ditemukan</td></tr>{% endfor %}
   </table></div>

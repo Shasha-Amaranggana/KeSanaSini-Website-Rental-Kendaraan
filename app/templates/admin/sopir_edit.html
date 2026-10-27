@@ -1,0 +1,67 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}Edit Sopir{% endblock %}
+{% block css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/sopir.css') }}">{% endblock %}
+{% block content %}
+
+{% macro upload(field, label, filename) %}
+  <label class="up">
+    <div class="ph" id="prev-{{ field }}" data-awal="{{ label }}">
+      {% if filename and filename != 'default_driver.png' %}
+        <img src="{{ url_for('static', filename='uploads/sopir/' ~ filename) }}" alt="{{ label }}"
+             style="width:100%;height:100%;object-fit:contain">
+      {% else %}{{ label }}{% endif %}
+    </div>
+    <input type="file" name="{{ field }}" accept="image/*" data-preview="prev-{{ field }}">
+  </label>
+{% endmacro %}
+
+<div class="sp">
+<div class="card"><h2 style="font-size:30px;border-bottom:1px solid #e2e5ec;padding-bottom:10px">Edit Data Sopir</h2>
+<form method="post" enctype="multipart/form-data">
+  <div class="form">
+    <div>
+      <label for="nama">Nama :</label><input class="f" id="nama" name="nama" value="{{ driver.name }}" required>
+      <label for="alamat">Alamat :</label><input class="f" id="alamat" name="alamat" value="{{ driver.address or '' }}">
+      <label for="telepon">No. Handphone :</label><input class="f" id="telepon" name="telepon" type="tel" value="{{ driver.phone }}" required>
+      <label for="deskripsi" style="font-size:20px">Deskripsi :</label><textarea class="f" id="deskripsi" name="deskripsi">{{ driver.description or '' }}</textarea>
+    </div>
+    <div>
+      {{ upload('foto_sopir', 'Foto Sopir', driver.photo) }}
+      {{ upload('foto_sim', 'Foto SIM', driver.sim_photo) }}
+      {{ upload('foto_ktp', 'Foto KTP', driver.ktp_photo) }}
+      <small style="color:#777">Kosongkan jika tidak ingin mengganti foto.</small>
+    </div>
+  </div>
+  <div class="acts">
+    <a class="btn r" href="{{ url_for('main.admin_sopir_detail', id=driver.id) }}">Batalkan</a>
+    <button class="btn g" type="submit">Simpan</button>
+  </div>
+</form></div>
+</div>
+
+<script>
+document.querySelectorAll('input[type="file"][data-preview]').forEach(function (input) {
+    var box = document.getElementById(input.dataset.preview);
+    var isiAwal = box.innerHTML;               // bisa berupa foto lama atau teks
+
+    input.addEventListener('change', function () {
+        var file = this.files[0];
+
+        if (!file) { box.innerHTML = isiAwal; return; }   // batal pilih: kembali ke foto lama
+        if (!file.type.startsWith('image/')) {
+            alert('File harus berupa gambar (JPG, PNG, atau WebP).');
+            this.value = '';
+            box.innerHTML = isiAwal;
+            return;
+        }
+
+        var img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.alt = 'Pratinjau';
+        img.style.cssText = 'width:100%;height:100%;object-fit:contain';
+        box.innerHTML = '';
+        box.appendChild(img);
+    });
+});
+</script>
+{% endblock %}

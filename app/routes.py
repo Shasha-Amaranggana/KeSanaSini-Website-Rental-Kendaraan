@@ -3610,6 +3610,64 @@ def admin_sopir_detail(id):
     )
 
 # =========================================================
+#   EDIT SOPIR
+# =========================================================
+@bp.route('/admin/sopir/<int:id>/edit', methods=['GET', 'POST'])
+@admin_required
+def edit_sopir(id):
+    sopir = Driver.query.get_or_404(id)
+
+    if request.method == 'POST':
+        nama = request.form.get('nama', '').strip()
+        telepon = request.form.get('telepon', '').strip()
+
+        if not nama or not telepon:
+            flash('Nama dan No. Handphone wajib diisi.')
+            return render_template('admin/sopir_edit.html', active_menu='sopir',
+                                   driver=sopir, **admin_context())
+
+        # Simpan file baru (jika ada). Kolom yang tidak diunggah ulang tidak diubah.
+        daftar = [
+            ('foto_sopir', 'photo',     'foto'),
+            ('foto_sim',   'sim_photo', 'sim'),
+            ('foto_ktp',   'ktp_photo', 'ktp'),
+        ]
+        file_baru = {}
+        for field, atribut, prefix in daftar:
+            upload = request.files.get(field)
+            if upload and upload.filename:
+                nama_file = _save_driver_file(upload, prefix)
+                if not nama_file:
+                    # Format salah: hapus file baru yang sudah sempat tersimpan.
+                    for f in file_baru.values():
+                        _delete_driver_file(f)
+                    flash('Format foto harus JPG, PNG, atau WebP.')
+                    return render_template('admin/sopir_edit.html', active_menu='sopir',
+                                           driver=sopir, **admin_context())
+                file_baru[atribut] = nama_file
+
+        # Catat file lama untuk dihapus setelah commit berhasil.
+        file_lama = [getattr(sopir, a) for a in file_baru]
+
+        sopir.name = nama
+        sopir.phone = telepon
+        sopir.address = request.form.get('alamat', '').strip()
+        sopir.description = request.form.get('deskripsi', '').strip()
+        for atribut, nama_file in file_baru.items():
+            setattr(sopir, atribut, nama_file)
+
+        db.session.commit()
+
+        for f in file_lama:
+            _delete_driver_file(f)
+
+        flash(f'Data sopir {nama} berhasil diperbarui.')
+        return redirect(url_for('main.admin_sopir_detail', id=sopir.id))
+
+    return render_template('admin/sopir_edit.html', active_menu='sopir',
+                           driver=sopir, **admin_context())
+
+# =========================================================
 #   PECAT (HAPUS) SOPIR
 # =========================================================
 @bp.route('/admin/sopir/<int:id>/pecat', methods=['POST'])
