@@ -86,442 +86,527 @@
 ═════════════════════════════════════════════════════════════ -->
 <body>
 
-    <!-- ════════════════════════════════════════════════════ -->
-    <!--     6.     AREA KIRI                                  -->
-    <!--            Menampilkan background desain sisi kiri. -->
-    <!-- ════════════════════════════════════════════════════ -->
-    <div class="left-area"></div>
+
+    <div class="auth-layout">
+
+        <!-- ════════════════════════════════════════════════════ -->
+        <!--     6.     AREA KIRI                                  -->
+        <!--            Menampilkan background desain sisi kiri. -->
+        <!-- ════════════════════════════════════════════════════ -->
+        <div class="left-area"></div>
 
 
-    <!-- ════════════════════════════════════════════════════ -->
-    <!--     7.     AREA KANAN                                 -->
-    <!--            Menampung form autentikasi pengguna.      -->
-    <!-- ════════════════════════════════════════════════════ -->
-    <div class="right-area">
+        <!-- ════════════════════════════════════════════════════ -->
+        <!--     7.     AREA KANAN                                 -->
+        <!--            Menampung form autentikasi pengguna.      -->
+        <!-- ════════════════════════════════════════════════════ -->
+        <div class="right-area">
 
-        <div class="auth-container">
-            
-            <!-- 7.1. FORM LOGIN                  -->
-            <!-- ════════════════════════════════ -->
-            {% if mode == 'login' %}
-                <h1>SELAMAT DATANG KEMBALI</h1>
-                            
-                <!-- 7.1.1. PESAN NOTIFIKASI          -->
+            <div class="auth-container">
+                
+                <!-- 7.1. FORM LOGIN                  -->
                 <!-- ════════════════════════════════ -->
-                {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                        <div class="flash-msg">
-                            {{ messages[0] }}
+                {% if mode == 'login' %}
+                    <h1>SELAMAT DATANG KEMBALI</h1>
+                                
+                    <!-- 7.1.1. PESAN NOTIFIKASI          -->
+                    <!-- ════════════════════════════════ -->
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            <div class="flash-msg">
+                                {{ messages[0] }}
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+
+
+                    <!-- 7.1.2. INPUT EMAIL DAN PASSWORD  -->
+                    <!-- ════════════════════════════════ -->
+                    <form
+                        action="{{ url_for('main.login') }}"
+                        method="POST">
+
+                        <!-- EMAIL -->
+                        <div class="input-group">
+                            <i class="fa-regular fa-envelope"></i>
+                            <input
+                                type="email"
+                                name="email"
+                                class="form-input"
+                                placeholder="E-Mail"
+                                required>
                         </div>
-                    {% endif %}
-                {% endwith %}
+
+                        <!-- PASSWORD -->
+                        <div class="input-group">
+                            <i class="fa-solid fa-lock"></i>
+                            <input
+                                type="password"
+                                name="password"
+                                id="password"
+                                class="form-input"
+                                placeholder="Password"
+                                required>
+                            <i
+                                class="fa-regular fa-eye password-toggle"
+                                id="password-toggle"
+                                title="Lihat password">
+                            </i>
+                        </div>
+
+                        <!-- LUPA PASSWORD -->
+                        <a href="{{ url_for('main.lupa_password') }}"
+                            class="forgot-pass">
+                            Lupa password anda?
+                        </a>
+
+                        <!-- TOMBOL LOGIN -->
+                        <button
+                            type="submit"
+                            class="btn-auth">
+                            LOGIN
+                        </button>
+
+                    </form>
 
 
-                <!-- 7.1.2. INPUT EMAIL DAN PASSWORD  -->
-                <!-- ════════════════════════════════ -->
-                <form
-                    action="{{ url_for('main.login') }}"
-                    method="POST">
-
-                    <!-- EMAIL -->
-                    <div class="input-group">
-                        <i class="fa-regular fa-envelope"></i>
-                        <input
-                            type="email"
-                            name="email"
-                            class="form-input"
-                            placeholder="E-Mail"
-                            required>
+                    <!-- 7.1.3. GARIS PEMISAH LOGIN EMAIL DAN GOOGLE  -->
+                    <!-- ════════════════════════════════ -->
+                    <div class="divider">
+                        atau
                     </div>
 
-                    <!-- PASSWORD -->
-                    <div class="input-group">
-                        <i class="fa-solid fa-lock"></i>
-                        <input
-                            type="password"
-                            name="password"
-                            id="password"
-                            class="form-input"
-                            placeholder="Password"
-                            required>
+
+                    <!-- 7.1.4. LOGIN MENGGUNAKAN GOOGLE  -->
+                    <!-- ════════════════════════════════ -->
+                    <a href="{{ url_for('main.google_login') }}"
+                        class="btn-google"
+                        style="text-decoration: none;">
                         <i
-                            class="fa-regular fa-eye password-toggle"
-                            id="password-toggle"
-                            title="Lihat password">
+                            class="fa-brands fa-google"
+                            style="color: #DB4437;
+                            font-size: 18px;">
                         </i>
-                    </div>
-
-                    <!-- LUPA PASSWORD -->
-                    <a href="{{ url_for('main.lupa_password') }}"
-                        class="forgot-pass">
-                        Lupa password anda?
+                        GOOGLE
                     </a>
 
-                    <!-- TOMBOL LOGIN -->
-                    <button
-                        type="submit"
-                        class="btn-auth">
-                        LOGIN
-                    </button>
 
-                </form>
+                    <!-- 7.1.5. TAUTAN MENUJU REGISTER  -->
+                    <!-- ════════════════════════════════ -->
+                    <div class="switch-text">
+                        Belum punya akun?
+                        <a href="{{ url_for('main.register') }}">
+                            Daftarkan diri anda!
+                        </a>
+                    </div>
 
 
-                <!-- 7.1.3. GARIS PEMISAH LOGIN EMAIL DAN GOOGLE  -->
+
+                <!-- 7.2. FORM REGISTER               -->
                 <!-- ════════════════════════════════ -->
-                <div class="divider">
-                    atau
-                </div>
+                {% elif mode == 'register' %}
+                    <h1>DAFTARKAN DIRI ANDA</h1>
+    
+                    <!-- 7.2.1. PESAN NOTIFIKASI          -->
+                    <!-- ════════════════════════════════ -->
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            <div class="flash-msg">
+                                {{ messages[0] }}
+                            </div>
+                        {% endif %}
+                    {% endwith %}
 
 
-                <!-- 7.1.4. LOGIN MENGGUNAKAN GOOGLE  -->
+                    <!-- 7.2.2. FORM PENDAFTARAN          -->
+                    <!-- ════════════════════════════════ -->
+                    <form
+                        action="{{ url_for('main.register') }}"
+                        method="POST" class="register-form">
+
+                        <!-- NAMA LENGKAP-->
+                        <div class="input-group">
+                            <i class="fa-regular fa-user"></i>
+                            <input
+                                type="text"
+                                name="name"
+                                class="form-input"
+                                placeholder="Nama Lengkap"
+                                required>
+                        </div>
+
+                        <!-- TANGGAL LAHIR & JENIS KELAMIN -->
+                        <div class="input-row">
+
+                            <!-- TANGGAL LAHIR -->
+                            <div class="input-group">
+                                <i class="fa-regular fa-calendar-days"></i>
+                                <input
+                                    type="date"
+                                    name="birth_date"
+                                    class="form-input"
+                                    required>
+                            </div>
+
+                            <!-- JENIS KELAMIN -->
+                            <div class="input-group">
+                                <i class="fa-solid fa-venus-mars"></i>
+                                <select
+                                    name="gender"
+                                    class="form-input"
+                                    required>
+                                    <option value="" disabled selected>
+                                        Jenis Kelamin
+                                    </option>
+                                    <option value="Laki-laki">
+                                        Laki-laki
+                                    </option>
+                                    <option value="Perempuan">
+                                        Perempuan
+                                    </option>
+                                </select>
+                            </div>
+
+                        </div>
+
+                        <!-- EMAIL -->
+                        <div class="input-group">
+                            <i class="fa-regular fa-envelope"></i>
+                            <input
+                                type="email"
+                                name="email"
+                                class="form-input"
+                                placeholder="E-Mail"
+                                required>
+                        </div>
+
+                        <!-- NO TELEPON & NO DARURAT -->
+                        <div class="input-row">
+
+                            <!-- NO TELEPON  -->
+                            <div class="input-group">
+                                <i class="fa-solid fa-phone"></i>
+                                <input
+                                    type="tel"
+                                    name="phone"
+                                    class="form-input"
+                                    placeholder="No Telepon"
+                                    pattern="08[0-9]{8,11}"
+                                    required>
+                            </div>
+
+                            <!-- NO DARURAT  -->
+                            <div class="input-group">
+                                <i class="fa-solid fa-phone"></i>
+                                <input
+                                    type="tel"
+                                    name="emergency_phone"
+                                    class="form-input"
+                                    placeholder="No Darurat"
+                                    pattern="08[0-9]{8,11}"
+                                    required>
+                            </div>
+
+                        </div>
+
+                        <!-- PASSWORD -->
+                        <div class="input-group">
+                            <i class="fa-solid fa-lock"></i>
+                            <input
+                                type="password"
+                                name="password"
+                                id="password"
+                                class="form-input"
+                                placeholder="Password"
+                                minlength="8"
+                                pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,}"
+                                title="Password minimal 8 karakter dan harus mengandung huruf dan angka."
+                                required>
+                            <i
+                                class="fa-regular fa-eye password-toggle"
+                                id="password-toggle"
+                                title="Lihat password">
+                            </i>
+                        </div>
+
+                        <!-- KONFIRMASI PASSWORD -->
+                        <div class="input-group">
+                            <i class="fa-solid fa-lock"></i>
+                            <input
+                                type="password"
+                                name="confirm_password"
+                                id="confirm_password"
+                                class="form-input"
+                                placeholder="Konfirmasi Password"
+                                title="Konfirmasi password harus sama dengan password."
+                                required>
+                            <i
+                                class="fa-regular fa-eye password-toggle"
+                                id="confirm-password-toggle"
+                                title="Lihat password">
+                            </i>
+                        </div>
+
+                        <!-- TOMBOL SIGN UP -->
+                        <button
+                            type="submit"
+                            class="btn-auth register-btn">
+                            SIGN UP
+                        </button>
+
+                    </form>
+
+
+                    <!-- 7.2.3. PEMISAH FORM REGISTER     -->
+                    <!-- ════════════════════════════════ -->
+                    <div class="divider register-divider">
+                        atau
+                    </div>
+
+
+                    <!-- 7.2.4. TAUTAN MENUJU LOGIN       -->
+                    <!-- ════════════════════════════════ -->
+                    <div class="switch-text register-switch">
+                        Sudah punya akun?
+                        <a href="{{ url_for('main.login') }}">
+                            Login saja langsung!
+                        </a>
+                    </div>
+
+
+
+                <!-- 7.3. FORM LUPA PASSWORD          -->
                 <!-- ════════════════════════════════ -->
-                <a href="{{ url_for('main.google_login') }}"
-                    class="btn-google"
-                    style="text-decoration: none;">
-                    <i
-                        class="fa-brands fa-google"
-                        style="color: #DB4437;
-                        font-size: 18px;">
-                    </i>
-                    GOOGLE
+                {% elif mode == 'forgot_password' %}
+                    <h1>LUPA PASSWORD</h1>
+    
+                    <!-- 7.3.1. PESAN NOTIFIKASI          -->
+                    <!-- ════════════════════════════════ -->
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            <div class="flash-msg">
+                                {{ messages[0] }}
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+    
+
+                    <!-- 7.3.2. PENJELASAN LUPA PASSWORD  -->
+                    <!-- ════════════════════════════════ -->
+                    <p class="forgot-description">
+                        Masukkan email yang terdaftar untuk mengatur ulang password akun Anda.
+                    </p>
+
+
+                    <!-- 7.3.3. FORM PERMINTAAN RESET PASSWORD  -->
+                    <!-- ════════════════════════════════ -->
+                    <form
+                        action="{{ url_for('main.lupa_password') }}"
+                        method="POST">
+                        
+                        <!-- EMAIL -->
+                        <div class="input-group">
+                            <i class="fa-regular fa-envelope"></i>
+                            <input
+                                type="email"
+                                name="email"
+                                class="form-input"
+                                placeholder="E-Mail"
+                                required>
+                        </div>
+
+                        <!-- TOMBOL SIGN UP -->
+                        <button
+                            type="submit"
+                            class="btn-auth">
+                            KIRIM
+                        </button>
+
+                    </form>
+
+
+                    <!-- 7.3.4. PEMISAH FORM LUPA PASSWORD -->
+                    <!-- ════════════════════════════════ -->
+                    <div class="divider register-divider">
+                        atau
+                    </div>
+
+
+                    <!-- 7.3.5. TAUTAN KEMBALI KE LOGIN   -->
+                    <!-- ════════════════════════════════ -->
+                    <div class="switch-text">
+                        Ingat password Anda?
+                        <a href="{{ url_for('main.login') }}">
+                            Login kembali
+                        </a>
+                    </div>
+
+
+
+                <!-- 7.4. FORM RESET PASSWORD          -->
+                <!-- ════════════════════════════════ -->
+                {% elif mode == 'reset_password' %}
+                    <h1>RESET PASSWORD</h1>
+    
+                    <!-- 7.4.1. PESAN NOTIFIKASI          -->
+                    <!-- ════════════════════════════════ -->
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            <div class="flash-msg">
+                                {{ messages[0] }}
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+
+    
+                    <!-- 7.4.2. PENJELASAN RESET PASSWORD -->
+                    <!-- ════════════════════════════════ -->
+                    <p class="forgot-description">
+                        Buat password baru untuk akun KeSanaSini Anda.
+                    </p>
+
+    
+                    <!-- 7.4.3. FORM PASSWORD BARU        -->
+                    <!-- ════════════════════════════════ -->
+                    <form
+                        action="{{ url_for('main.reset_password', token=token) }}"
+                        method="POST">
+
+                        <!-- PASSWORD BARU -->
+                        <div class="input-group">
+                            <i class="fa-solid fa-lock"></i>
+                            <input
+                                type="password"
+                                name="password"
+                                id="password"
+                                class="form-input"
+                                placeholder="Password Baru"
+                                minlength="8"
+                                pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,}"
+                                title="Password minimal 8 karakter dan harus mengandung huruf dan angka."
+                                required>
+                            <i
+                                class="fa-regular fa-eye password-toggle"
+                                id="password-toggle"
+                                title="Lihat password">
+                            </i>
+                        </div>
+
+                        <!-- KONFIRMASI PASSWORD -->
+                        <div class="input-group">
+                            <i class="fa-solid fa-lock"></i>
+                            <input
+                                type="password"
+                                name="confirm_password"
+                                id="confirm_password"
+                                class="form-input"
+                                placeholder="Konfirmasi Password Baru"
+                                minlength="8"
+                                title="Konfirmasi password harus sama dengan password."
+                                required>
+                            <i
+                                class="fa-regular fa-eye password-toggle"
+                                id="confirm-password-toggle"
+                                title="Lihat password">
+                            </i>
+                        </div>
+
+                        <!-- TOMBOL SIMPAN -->
+                        <button
+                            type="submit"
+                            class="btn-auth">
+                            SIMPAN
+                        </button>
+
+                    </form>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+        
+    </div>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--     8.     FOOTER WEBSITE                            -->
+    <!--            Struktur footer umum untuk halaman pengguna. -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <footer class="footer">
+
+        <div class="footer-container">
+
+            <!-- KOLOM 1: IDENTITAS WEBSITE -->
+            <div class="footer-brand">
+                <h2 class="footer-logo">
+                    <img
+                        src="{{ url_for('static', filename='images/logo-navbar2.png') }}"
+                        alt="Logo KeSanaSini"
+                        class="footer-logo-img">
+                </h2>
+
+                <p>
+                    Teman perjalananmu. Nikmati kemudahan menyewa
+                    kendaraan untuk setiap kebutuhan perjalanan.
+                </p>
+            </div>
+
+            <!-- KOLOM 2: INFORMASI KONTAK -->
+            <div class="footer-contact">
+                <h3>HUBUNGI KAMI</h3>
+
+                <p>
+                    <i class="fas fa-envelope"></i>
+                    <a href="mailto:kesanasini.support@gmail.com">
+                        kesanasini.support@gmail.com
+                    </a>
+                </p>
+
+                <p>
+                    <i class="fab fa-whatsapp"></i>
+                    <a href="https://wa.me/6281348861965"
+                        target="_blank"
+                        rel="noopener noreferrer">
+                        081348861965
+                    </a>
+                </p>
+
+                <p>
+                    <i class="fas fa-headset"></i>
+                    Layanan bantuan pelanggan
+                </p>
+            </div>
+
+            <!-- KOLOM 3: LOKASI RENTAL -->
+            <div class="footer-location">
+                <h3>LOKASI RENTAL</h3>
+
+                <p>
+                    <i class="fas fa-map-marker-alt"></i>
+                    Jl. Futsal V No.H1/12, Harapan Baru, Kec. Loa Janan Ilir, Kota Samarinda, Kalimantan Timur 75131
+                </p>
+
+                <a
+                    href="https://maps.app.goo.gl/J92JkJRP4oUWssY19"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="footer-map-link">
+
+                    Lihat lokasi di peta
+                    <i class="fas fa-arrow-up-right-from-square"></i>
                 </a>
-
-
-                <!-- 7.1.5. TAUTAN MENUJU REGISTER  -->
-                <!-- ════════════════════════════════ -->
-                <div class="switch-text">
-                    Belum punya akun?
-                    <a href="{{ url_for('main.register') }}">
-                        Daftarkan diri anda!
-                    </a>
-                </div>
-
-
-
-            <!-- 7.2. FORM REGISTER               -->
-            <!-- ════════════════════════════════ -->
-            {% elif mode == 'register' %}
-                <h1>DAFTARKAN DIRI ANDA</h1>
-  
-                <!-- 7.2.1. PESAN NOTIFIKASI          -->
-                <!-- ════════════════════════════════ -->
-                {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                        <div class="flash-msg">
-                            {{ messages[0] }}
-                        </div>
-                    {% endif %}
-                {% endwith %}
-
-
-                <!-- 7.2.2. FORM PENDAFTARAN          -->
-                <!-- ════════════════════════════════ -->
-                <form
-                    action="{{ url_for('main.register') }}"
-                    method="POST" class="register-form">
-
-                    <!-- NAMA LENGKAP-->
-                    <div class="input-group">
-                        <i class="fa-regular fa-user"></i>
-                        <input
-                            type="text"
-                            name="name"
-                            class="form-input"
-                            placeholder="Nama Lengkap"
-                            required>
-                    </div>
-
-                    <!-- TANGGAL LAHIR & JENIS KELAMIN -->
-                    <div class="input-row">
-
-                        <!-- TANGGAL LAHIR -->
-                        <div class="input-group">
-                            <i class="fa-regular fa-calendar-days"></i>
-                            <input
-                                type="date"
-                                name="birth_date"
-                                class="form-input"
-                                required>
-                        </div>
-
-                        <!-- JENIS KELAMIN -->
-                        <div class="input-group">
-                            <i class="fa-solid fa-venus-mars"></i>
-                            <select
-                                name="gender"
-                                class="form-input"
-                                required>
-                                <option value="" disabled selected>
-                                    Jenis Kelamin
-                                </option>
-                                <option value="Laki-laki">
-                                    Laki-laki
-                                </option>
-                                <option value="Perempuan">
-                                    Perempuan
-                                </option>
-                            </select>
-                        </div>
-
-                    </div>
-
-                    <!-- EMAIL -->
-                    <div class="input-group">
-                        <i class="fa-regular fa-envelope"></i>
-                        <input
-                            type="email"
-                            name="email"
-                            class="form-input"
-                            placeholder="E-Mail"
-                            required>
-                    </div>
-
-                    <!-- NO TELEPON & NO DARURAT -->
-                    <div class="input-row">
-
-                        <!-- NO TELEPON  -->
-                        <div class="input-group">
-                            <i class="fa-solid fa-phone"></i>
-                            <input
-                                type="tel"
-                                name="phone"
-                                class="form-input"
-                                placeholder="No Telepon"
-                                pattern="08[0-9]{8,11}"
-                                required>
-                        </div>
-
-                        <!-- NO DARURAT  -->
-                        <div class="input-group">
-                            <i class="fa-solid fa-phone"></i>
-                            <input
-                                type="tel"
-                                name="emergency_phone"
-                                class="form-input"
-                                placeholder="No Darurat"
-                                pattern="08[0-9]{8,11}"
-                                required>
-                        </div>
-
-                    </div>
-
-                    <!-- PASSWORD -->
-                    <div class="input-group">
-                        <i class="fa-solid fa-lock"></i>
-                        <input
-                            type="password"
-                            name="password"
-                            id="password"
-                            class="form-input"
-                            placeholder="Password"
-                            minlength="8"
-                            pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,}"
-                            title="Password minimal 8 karakter dan harus mengandung huruf dan angka."
-                            required>
-                        <i
-                            class="fa-regular fa-eye password-toggle"
-                            id="password-toggle"
-                            title="Lihat password">
-                        </i>
-                    </div>
-
-                    <!-- KONFIRMASI PASSWORD -->
-                    <div class="input-group">
-                        <i class="fa-solid fa-lock"></i>
-                        <input
-                            type="password"
-                            name="confirm_password"
-                            id="confirm_password"
-                            class="form-input"
-                            placeholder="Konfirmasi Password"
-                            title="Konfirmasi password harus sama dengan password."
-                            required>
-                        <i
-                            class="fa-regular fa-eye password-toggle"
-                            id="confirm-password-toggle"
-                            title="Lihat password">
-                        </i>
-                    </div>
-
-                    <!-- TOMBOL SIGN UP -->
-                    <button
-                        type="submit"
-                        class="btn-auth register-btn">
-                        SIGN UP
-                    </button>
-
-                </form>
-
-
-                <!-- 7.2.3. PEMISAH FORM REGISTER     -->
-                <!-- ════════════════════════════════ -->
-                <div class="divider register-divider">
-                    atau
-                </div>
-
-
-                <!-- 7.2.4. TAUTAN MENUJU LOGIN       -->
-                <!-- ════════════════════════════════ -->
-                <div class="switch-text register-switch">
-                    Sudah punya akun?
-                    <a href="{{ url_for('main.login') }}">
-                        Login saja langsung!
-                    </a>
-                </div>
-
-
-
-            <!-- 7.3. FORM LUPA PASSWORD          -->
-            <!-- ════════════════════════════════ -->
-            {% elif mode == 'forgot_password' %}
-                <h1>LUPA PASSWORD</h1>
-  
-                <!-- 7.3.1. PESAN NOTIFIKASI          -->
-                <!-- ════════════════════════════════ -->
-                {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                        <div class="flash-msg">
-                            {{ messages[0] }}
-                        </div>
-                    {% endif %}
-                {% endwith %}
-  
-
-                <!-- 7.3.2. PENJELASAN LUPA PASSWORD  -->
-                <!-- ════════════════════════════════ -->
-                <p class="forgot-description">
-                    Masukkan email yang terdaftar untuk mengatur ulang password akun Anda.
-                </p>
-
-
-                <!-- 7.3.3. FORM PERMINTAAN RESET PASSWORD  -->
-                <!-- ════════════════════════════════ -->
-                <form
-                    action="{{ url_for('main.lupa_password') }}"
-                    method="POST">
-                    
-                    <!-- EMAIL -->
-                    <div class="input-group">
-                        <i class="fa-regular fa-envelope"></i>
-                        <input
-                            type="email"
-                            name="email"
-                            class="form-input"
-                            placeholder="E-Mail"
-                            required>
-                    </div>
-
-                    <!-- TOMBOL SIGN UP -->
-                    <button
-                        type="submit"
-                        class="btn-auth">
-                        KIRIM
-                    </button>
-
-                </form>
-
-
-                <!-- 7.3.4. PEMISAH FORM LUPA PASSWORD -->
-                <!-- ════════════════════════════════ -->
-                <div class="divider register-divider">
-                    atau
-                </div>
-
-
-                <!-- 7.3.5. TAUTAN KEMBALI KE LOGIN   -->
-                <!-- ════════════════════════════════ -->
-                <div class="switch-text">
-                    Ingat password Anda?
-                    <a href="{{ url_for('main.login') }}">
-                        Login kembali
-                    </a>
-                </div>
-
-
-
-            <!-- 7.4. FORM RESET PASSWORD          -->
-            <!-- ════════════════════════════════ -->
-            {% elif mode == 'reset_password' %}
-                <h1>RESET PASSWORD</h1>
-  
-                <!-- 7.4.1. PESAN NOTIFIKASI          -->
-                <!-- ════════════════════════════════ -->
-                {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                        <div class="flash-msg">
-                            {{ messages[0] }}
-                        </div>
-                    {% endif %}
-                {% endwith %}
-
-  
-                <!-- 7.4.2. PENJELASAN RESET PASSWORD -->
-                <!-- ════════════════════════════════ -->
-                <p class="forgot-description">
-                    Buat password baru untuk akun KeSanaSini Anda.
-                </p>
-
-  
-                <!-- 7.4.3. FORM PASSWORD BARU        -->
-                <!-- ════════════════════════════════ -->
-                <form
-                    action="{{ url_for('main.reset_password', token=token) }}"
-                    method="POST">
-
-                    <!-- PASSWORD BARU -->
-                    <div class="input-group">
-                        <i class="fa-solid fa-lock"></i>
-                        <input
-                            type="password"
-                            name="password"
-                            id="password"
-                            class="form-input"
-                            placeholder="Password Baru"
-                            minlength="8"
-                            pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,}"
-                            title="Password minimal 8 karakter dan harus mengandung huruf dan angka."
-                            required>
-                        <i
-                            class="fa-regular fa-eye password-toggle"
-                            id="password-toggle"
-                            title="Lihat password">
-                        </i>
-                    </div>
-
-                    <!-- KONFIRMASI PASSWORD -->
-                    <div class="input-group">
-                        <i class="fa-solid fa-lock"></i>
-                        <input
-                            type="password"
-                            name="confirm_password"
-                            id="confirm_password"
-                            class="form-input"
-                            placeholder="Konfirmasi Password Baru"
-                            minlength="8"
-                            title="Konfirmasi password harus sama dengan password."
-                            required>
-                        <i
-                            class="fa-regular fa-eye password-toggle"
-                            id="confirm-password-toggle"
-                            title="Lihat password">
-                        </i>
-                    </div>
-
-                    <!-- TOMBOL SIMPAN -->
-                    <button
-                        type="submit"
-                        class="btn-auth">
-                        SIMPAN
-                    </button>
-
-                </form>
-
-            {% endif %}
+            </div>
 
         </div>
 
-    </div>
+        <!-- BAGIAN COPYRIGHT -->
+        <div class="footer-bottom">
+            <p>
+                &copy; 2026 KeSanaSini. Hak cipta dilindungi.
+            </p>
+        </div>
+
+    </footer>
 
 
 
