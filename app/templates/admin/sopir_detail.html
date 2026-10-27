@@ -67,9 +67,15 @@
     </tr>
     {% else %}<tr><td colspan="7" style="text-align:center;color:#777">Belum ada penyewaan</td></tr>{% endfor %}
   </table></div>
-  <div class="acts"><a class="btn" href="{{ url_for('main.admin_sopir') }}">← Kembali</a><a class="btn r" href="#pecat" style="font-size:16px;padding:8px 18px">berhentikan</a></div>
+  <div class="acts">
+    <a class="btn" href="{{ url_for('main.admin_sopir') }}">← Kembali</a>
+    <div style="display:flex;gap:10px">
+      <a class="btn g" href="{{ url_for('main.edit_sopir', id=driver.id) }}" style="font-size:16px;padding:8px 18px">Edit</a>
+      <a class="btn r" href="#pecat" style="font-size:16px;padding:8px 18px">Berhentikan</a>
+    </div>
+  </div>
 </div>
-<div class="modal" id="pecat"><div class="card"><h2>Berhentikan sopir?</h2><p>Data {{ driver.name }} akan dihapus dari daftar.</p>
+<div class="sp-modal" id="pecat"><div class="card"><h2>Berhentikan sopir?</h2><p>Data {{ driver.name }} akan dihapus dari daftar.</p>
   <div class="acts"><a class="btn" href="#">Batal</a>
     <form method="post" action="{{ url_for('main.pecat_sopir', id=driver.id) }}"><button class="btn r">Ya, Berhentikan</button></form></div></div></div>
 </div>
@@ -89,5 +95,16 @@ function bukaFoto(src) {
 document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') document.getElementById('foto-viewer').style.display = 'none';
 });
+</script>
+
+<script>
+(function () {
+    var modal = document.getElementById('pecat');
+    if (!modal) return;
+    var wrap = document.createElement('div');
+    wrap.className = 'sp';
+    wrap.appendChild(modal);
+    document.documentElement.appendChild(wrap);
+})();
 </script>
 {% endblock %}

@@ -11,6 +11,7 @@
 .sp .b{display:inline-block;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:500}
 .sp .Berjalan,.sp .Batal{background:#f33;color:#600}.sp .Menunggu,.sp .Sedang{background:#fdc02f;color:#a55a00}.sp .Tersedia,.sp .Sudah{background:#6fdc54;color:#17802a}
 .sp .btn{display:inline-block;border:1px solid var(--line);background:#fff;color:#3a3a3a;padding:6px 16px;border-radius:6px;cursor:pointer;font:600 13px inherit;text-decoration:none}
+.sp .btn{font-family:inherit;font-weight:600;font-size:13px}
 .sp .btn.g{background:#6fdc54;color:#0f6a20;border-color:#4cc233}.sp .btn.r{background:#f22;color:#fff;border-color:#c00}.sp .btn:disabled{opacity:.5;cursor:default}
 .sp .pg{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:22px;position:relative}
 .sp .pg a{width:36px;height:36px;border-radius:50%;background:#fbd3b3;color:#3a3a3a;display:flex;align-items:center;justify-content:center;text-decoration:none}
@@ -25,7 +26,8 @@
 .sp label{display:block;font-size:14px;font-weight:500;margin:10px 0 4px}
 .sp .f{width:100%;padding:9px 12px;border:0;border-radius:8px;background:var(--head);font:inherit}
 .sp textarea.f{min-height:170px;resize:vertical}.sp .up input{display:block;margin-top:6px;font-size:12px}.sp .up .ph{margin-bottom:10px}
-.sp .modal{display:none;position:fixed;inset:0;background:#0007;align-items:center;justify-content:center;padding:20px;z-index:999}
-.sp .modal:target{display:flex}.sp .modal .card{max-width:380px;margin:0}.sp .modal .acts{gap:10px}
+.sp .sp-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;background:#0007;align-items:center;justify-content:center;padding:20px;z-index:99999;box-sizing:border-box}
+.sp .sp-modal:target{display:flex}.sp .sp-modal .card{width:100%;max-width:380px;margin:0}.sp .sp-modal .acts{gap:10px}
+.sp .sp-modal, .sp .sp-modal *{font-family:'Poppins',sans-serif}
 .sp form{margin:0}
 @media(max-width:800px){.sp .prof,.sp .form{grid-template-columns:1fr}}
