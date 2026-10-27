@@ -4,10 +4,11 @@
 #     ⤷ Mengatur URL atau halaman yang dapat diakses pengguna.
 #     ⤷ Menghubungkan halaman HTML dengan data dari models.py.
 #     ⤷ Memproses formulir, memvalidasi input, dan mengelola session.
-#     ⤷ Menjalankan proses pemesanan, pembayaran, pembatalan,
-#       pengelolaan akun, serta notifikasi.
+#     ⤷ Menjalankan proses pemesanan, pembayaran, pembatalan, pengelolaan akun, serta notifikasi.
 #     ⤷ Menggunakan Flask Blueprint untuk mengelompokkan route.
 # ═════════════════════════════════════════════════════════════
+
+
 
 # ═════════════════════════════════════════════════════════════
 #   IMPORT LIBRARY DAN MODEL
@@ -43,11 +44,15 @@ from email.message import EmailMessage
 # Mengamankan teks HTML dari karakter yang berpotensi berbahaya.
 from html import escape
 
+
+
 # ═════════════════════════════════════════════════════════════
 #   MEMBUAT BLUEPRINT
 # ═════════════════════════════════════════════════════════════
 # Blueprint digunakan untuk mengelompokkan route utama website.
 bp = Blueprint('main', __name__)
+
+
 
 # ═════════════════════════════════════════════════════════════
 #   PEMERIKSAAN NOTIFIKASI OTOMATIS
@@ -72,6 +77,8 @@ def periksa_notifikasi_otomatis():
             'Gagal memproses notifikasi otomatis KeSanaSini.'
         )
 
+
+
 # ═════════════════════════════════════════════════════════════
 #   KONSTANTA DAN FUNGSI PENGATURAN WAKTU
 # ═════════════════════════════════════════════════════════════
@@ -81,7 +88,6 @@ BULAN_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli',
 
 # Minimal waktu antara pemesanan dan pengambilan kendaraan adalah 25 jam.
 MINIMUM_JAM_SEBELUM_PENGAMBILAN = 25
-
 
 # Menghasilkan waktu paling awal kendaraan boleh diambil.
 def waktu_minimum_pengambilan():
@@ -120,6 +126,8 @@ def parse_waktu_pengambilan(tanggal, jam):
     except (TypeError, ValueError):
         return None
 
+
+
 # ═════════════════════════════════════════════════════════════
 #   FILTER TEMPLATE
 # ═════════════════════════════════════════════════════════════
@@ -137,6 +145,16 @@ def tanggal_id(value):
         return '-'
     return f"{value.day:02d} {BULAN_ID[value.month - 1]} {value.year}"
 
+
+
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+#
+#                                                   PENGATURAN USER
+#
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+
 # ═════════════════════════════════════════════════════════════
 #   HALAMAN OPENING
 # ═════════════════════════════════════════════════════════════
@@ -144,6 +162,8 @@ def tanggal_id(value):
 @bp.route('/')
 def welcome():
     return render_template('welcome.html')
+
+
 
 # ═════════════════════════════════════════════════════════════
 #   HALAMAN UTAMA USER
@@ -173,6 +193,8 @@ def index():
         current_date=current_date,
         current_time=current_time
     )
+
+
 
 # ═════════════════════════════════════════════════════════════
 #   HALAMAN PENCARIAN KENDARAAN
@@ -299,6 +321,8 @@ def hasil_pencarian():
         vehicle_type=vehicle_type
     )
 
+
+
 # ═════════════════════════════════════════════════════════════
 #   DETAIL KENDARAAN DAN ULASAN
 # ═════════════════════════════════════════════════════════════
@@ -405,6 +429,8 @@ def semua_ulasan(vehicle_id):
 
     return redirect(url_for('main.detail_kendaraan', vehicle_id=vehicle.id, ulasan=1, star=star))
 
+
+
 # ═════════════════════════════════════════════════════════════
 #   KONSTANTA FORMULIR PENYEWAAN
 # ═════════════════════════════════════════════════════════════
@@ -420,6 +446,8 @@ ALASAN_PEMBATALAN_USER = [
     'Pesanan dibuat secara tidak sengaja.',
     'Alasan lainnya (Berubah pikiran, rencana perjalanan berubah atau dibatalkan, dan lainnya).'
 ]
+
+
 
 # ═════════════════════════════════════════════════════════════
 #   FUNGSI BANTUAN PEMBATALAN DAN DOKUMEN
@@ -454,7 +482,6 @@ def _rental_sudah_dibayar(rental, status_sebelum=None):
         or status in status_yang_menandakan_pembayaran
         or riwayat_pernah_bayar
     )
-
 
 
 # [OOP - ENKAPSULASI QUERY OBJEK]
@@ -503,6 +530,7 @@ def _catat_pembatalan_admin_berbayar(
     db.session.add(pembatalan)
     return pembatalan
 
+
 # [OOP - ENKAPSULASI]
 # Membatalkan pesanan langsung oleh admin, termasuk pembatalan pesanan yang sudah dibayar.
 # Jika pesanan sudah dibayar, catatan refund akan dibuat agar admin dapat memproses pengembalian dana.
@@ -542,6 +570,7 @@ def _batalkan_oleh_admin(rental, reason):
         ))
     return True
 
+
 # Memvalidasi dan menyimpan dokumen KTP atau SIM ke folder dokumen.
 # Nama file diamankan sebelum digunakan untuk penyimpanan.
 def _save_document(file_storage, booking_code, kind):
@@ -559,8 +588,10 @@ def _save_document(file_storage, booking_code, kind):
     file_storage.save(os.path.join(folder, filename))
     return filename
 
+
 # Menghubungkan KTP/SIM dari Kelola Akun ke Form Sewa
 ACCOUNT_DOC_FOLDER = os.path.join('static', 'uploads', 'dokumen_akun')
+
 
 def _account_doc_exists(filename):
     """True kalau user punya dokumen di Kelola Akun dan file-nya benar-benar ada."""
@@ -568,6 +599,7 @@ def _account_doc_exists(filename):
         return False
     path = os.path.join(current_app.root_path, ACCOUNT_DOC_FOLDER, filename)
     return os.path.exists(path)
+
 
 def _copy_account_document(account_file, booking_code, kind):
     """Salin KTP/SIM dari Kelola Akun ke dokumen pesanan. Return nama file baru."""
@@ -582,6 +614,8 @@ def _copy_account_document(account_file, booking_code, kind):
     filename = secure_filename(f"{booking_code}_{kind}.{ext}")
     shutil.copyfile(src, os.path.join(folder, filename))
     return filename
+
+
 
 # ═════════════════════════════════════════════════════════════
 #   FORM DAN PROSES PEMESANAN KENDARAAN
@@ -766,6 +800,8 @@ def pesanan():
 
     return redirect(url_for('main.pembayaran', rental_id=rental.id))
 
+
+
 # ═════════════════════════════════════════════════════════════
 #   PEMBATALAN OTOMATIS PESANAN
 # ═════════════════════════════════════════════════════════════
@@ -826,6 +862,8 @@ def batalkan_pesanan_kedaluwarsa(rental, commit=True):
         db.session.commit()
 
     return True
+
+
 
 # ═════════════════════════════════════════════════════════════
 #   HALAMAN PEMBAYARAN
@@ -934,6 +972,8 @@ def status_pembayaran(rental_id):
     rental = Rental.query.get_or_404(rental_id)
     return jsonify(paid=(rental.payment_status == 'Lunas'))
 
+
+
 # ═════════════════════════════════════════════════════════════
 #   KONFIRMASI PEMBAYARAN BERHASIL
 # ═════════════════════════════════════════════════════════════
@@ -977,6 +1017,8 @@ def pembayaran_sukses(rental_id):
         rental=rental,
         user=user
     )
+
+
 
 # ═════════════════════════════════════════════════════════════
 #   KELOLA AKUN PENGGUNA
@@ -1106,6 +1148,8 @@ def kelola_akun():
         user=user
     )
 
+
+
 # ═════════════════════════════════════════════════════════════
 #   KELOLA PESANAN PENGGUNA
 # ═════════════════════════════════════════════════════════════
@@ -1135,6 +1179,8 @@ def kelola_pesanan():
         user=user,
         pesanan=pesanan
     )
+
+
 
 # ═════════════════════════════════════════════════════════════
 #   PENGAJUAN PEMBATALAN PESANAN OLEH PENGGUNA
@@ -1229,9 +1275,10 @@ def batalkan_pesanan_user(rental_id):
     )
 
 
-# =========================================================
+
+# ═════════════════════════════════════════════════════════════
 #   REVIEW PESANAN YANG SUDAH SELESAI
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 @bp.route('/detail-pesanan/<int:rental_id>/review', methods=['POST'])
 def kirim_review_pesanan(rental_id):
     if 'user_id' not in session:
@@ -1326,9 +1373,10 @@ def kirim_review_pesanan(rental_id):
         url_for('main.detail_pesanan', rental_id=rental.id)
     )
 
-# =========================================================
+
+# ═════════════════════════════════════════════════════════════
 #   HALAMAN DETAIL PESANAN
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 @bp.route('/detail-pesanan/<int:rental_id>')
 def detail_pesanan(rental_id):
     # Membuat route untuk menampilkan detail pesanan berdasarkan ID rental.
@@ -1668,9 +1716,10 @@ def detail_pesanan(rental_id):
         }.get(rental.status, 0)
     )
 
-# =========================================================
+
+# ═════════════════════════════════════════════════════════════
 #   HALAMAN RIWAYAT PESANAN
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 @bp.route('/riwayat-pesanan')
 def riwayat_pesanan():
     if 'user_id' not in session:
@@ -1708,9 +1757,9 @@ def riwayat_pesanan():
 #    (Notification.overdue_warning & Notification.return_reminder) untuk
 #    membuat objek notifikasi tanpa menyusun string pesan secara manual.
 # ---------------------------------------------------------
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 #   MEMERIKSA NOTIFIKASI YANG SUDAH ADA
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 def _notifikasi_sudah_ada(rental, category):
     """Memeriksa apakah kategori notifikasi sudah dibuat untuk pesanan."""
     return Notification.query.filter_by(
@@ -1719,9 +1768,10 @@ def _notifikasi_sudah_ada(rental, category):
         category=category,
     ).first() is not None
 
-# =========================================================
+
+# ═════════════════════════════════════════════════════════════
 #   MEMERIKSA PENGINGAT DAN DENDA
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 def periksa_pengingat_dan_denda(user_id=None):
     """
     Memeriksa pengingat pembayaran, pengembalian, dan denda.
@@ -1877,9 +1927,10 @@ def periksa_pengingat_dan_denda(user_id=None):
     if jumlah_baru:
         db.session.commit()
 
-# =========================================================
+
+# ═════════════════════════════════════════════════════════════
 # MEMBUKA NOTIFIKASI DAN MENANDAINYA SUDAH DIBACA
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 @bp.route('/notifikasi')
 def notifikasi():
     if 'user_id' not in session:
@@ -1914,9 +1965,10 @@ def notifikasi():
         unread_count=unread_count
     )
 
-# =========================================================
+
+# ═════════════════════════════════════════════════════════════
 # MENANDAI NOTIFIKASI SUDAH DIBACA SAAT DIBUKA
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 @bp.route('/notifikasi/<int:notification_id>/lihat-pesanan')
 def buka_notifikasi(notification_id):
     # Pastikan pengguna sudah login.
@@ -1951,9 +2003,9 @@ def buka_notifikasi(notification_id):
     )
 
 
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 # MENGGANTI PASSWORD
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 @bp.route('/ganti-password', methods=['POST'])
 def ganti_password():
     # Pastikan user sudah login
@@ -2011,9 +2063,9 @@ def ganti_password():
 
 
 
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 #   HALAMAN LOGIN | REGISTER | LOGOUT
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     # Hapus pesan validasi jadwal dari antrean flash
@@ -2340,9 +2392,13 @@ def reset_password(token):
 )
 
 
-# =========================================================
-# HALAMAN ADMIN
-# =========================================================
+
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+#
+#                                                   PENGATURAN ADMIN
+#
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 def admin_required(view_func):
     """Decorator: hanya user dengan role 'admin' yang boleh masuk."""
     @wraps(view_func)
@@ -2441,7 +2497,6 @@ def admin_dashboard():
         statuses=Rental.ALL_STATUS,
         **admin_context()
     )
-
 
 
 @bp.route(
@@ -2657,9 +2712,10 @@ def admin_update_rental_status(rental_id):
     return redirect(balik)
 
 
-# =========================================================
+
+# ═════════════════════════════════════════════════════════════
 #   HALAMAN ADMIN: DAFTAR KENDARAAN
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 @bp.route('/admin/kendaraan')
 @admin_required
 def admin_kendaraan():
@@ -2712,9 +2768,11 @@ def admin_kendaraan():
         **admin_context()
     )
 
-# ========================================================
+
+
+# ═════════════════════════════════════════════════════════════
 #   HELPER FUNCTIONS UNTUK HALAMAN TAMBAH / EDIT KENDARAAN
-# ========================================================
+# ═════════════════════════════════════════════════════════════
 # Batas unggah foto. Aturan ini diperiksa ulang di server karena
 # validasi di browser (accept dan 2 MB) mudah dilewati.
 ALLOWED_IMAGE_EXT = {'jpg', 'jpeg', 'png', 'webp'}
@@ -2725,6 +2783,7 @@ VEHICLE_TYPES = ('SUV', 'MPV', 'Sedan', 'Motor')
 TRANSMISSIONS = ('Otomatis', 'Manual')
 FUELS = ('Bensin', 'Solar', 'Listrik')
 RENTAL_TYPES = ('Sopir & Tanpa Sopir', 'Tanpa Sopir', 'Dengan Sopir')
+
 
 # PEMBERSIH & PENGUBAH NILAI
 # ---------------------------------------------------------
@@ -2747,6 +2806,7 @@ def _allowed(options, current, attr):
     Tanpa ini, menyimpan unit dari data seed akan ditolak atau memaksa nilainya berubah."""
     old = getattr(current, attr, None) if current is not None else None
     return tuple(options) + ((old,) if old else ())
+
 
 # PEMBACAAN & VALIDASI FORM
 # ---------------------------------------------------------
@@ -2801,6 +2861,7 @@ def _read_vehicle_form(form, current=None):
         return data, 'Bagasi dan CC mesin tidak boleh negatif.'
     return data, None
 
+
 # DATA AWAL FORM UBAH
 # ---------------------------------------------------------
 def _vehicle_to_form(v):
@@ -2816,6 +2877,7 @@ def _vehicle_to_form(v):
         'fasilitas': s(v.facilities), 'catatan_kondisi': s(v.notes),
         'is_active': '1' if v.is_active else '',
     }
+
 
 # PENCEGAHAN DUPLIKAT
 # ---------------------------------------------------------
@@ -2835,6 +2897,7 @@ def _find_duplicate(data, exclude_id=None):
         if q.first():
             return f'{label} "{value}" sudah terdaftar.'
     return None
+
 
 # PENGELOLAAN FILE FOTO
 # ---------------------------------------------------------
@@ -2874,9 +2937,10 @@ def _delete_vehicle_photo(filename):
         pass
 
 
-# =========================================================
+
+# ═════════════════════════════════════════════════════════════
 #   HALAMAN ADMIN: TAMBAH KENDARAAN
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 @bp.route('/admin/kendaraan/tambah', methods=['GET', 'POST'])
 @admin_required
 def tambah_kendaraan():
@@ -2929,9 +2993,10 @@ def tambah_kendaraan():
     )
 
 
-# =========================================================
+
+# ═════════════════════════════════════════════════════════════
 #   HALAMAN ADMIN: UBAH KENDARAAN
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 @bp.route('/admin/kendaraan/edit/<int:id>', methods=['GET', 'POST'])
 @admin_required
 def edit_kendaraan(id):
@@ -3159,9 +3224,11 @@ def admin_pelanggan():
 
 ALLOWED_IMG_EXT = {'jpg', 'jpeg', 'png', 'webp'}
 
-# =========================================================
+
+
+# ═════════════════════════════════════════════════════════════
 #   KELOLA PELANGGAN (admin_bp)  &  KELOLA ADMIN (superadmin_bp)
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 import re
 from flask.views import MethodView
 from sqlalchemy.exc import IntegrityError
@@ -3170,9 +3237,11 @@ from app.models import Customer, Admin
 admin_bp = Blueprint('kelola_pelanggan', __name__, url_prefix='/admin/kelola-pelanggan')
 superadmin_bp = Blueprint('kelola_admin', __name__, url_prefix='/superadmin/kelola-admin')
 
-# =========================================================
+
+
+# ═════════════════════════════════════════════════════════════
 #   PENJAGA AKSES
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 def superadmin_required(view_func):
     """Decorator: hanya role 'superadmin'. (Untuk Admin biasa & Super Admin pakai admin_required.)"""
     @wraps(view_func)
@@ -3530,9 +3599,11 @@ def _delete_driver_file(filename):
         if os.path.exists(path):
             os.remove(path)
 
-# =========================================================
+
+
+# ═════════════════════════════════════════════════════════════
 #   DAFTAR SOPIR 
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 @bp.route('/admin/sopir')
 @admin_required
 def admin_sopir():
@@ -3559,9 +3630,11 @@ def admin_sopir():
         **admin_context()
     )
 
-# =========================================================
+
+
+# ═════════════════════════════════════════════════════════════
 #   TAMBAH SOPIR
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 @bp.route('/admin/sopir/tambah', methods=['GET', 'POST'])
 @admin_required
 def tambah_sopir():
@@ -3589,9 +3662,11 @@ def tambah_sopir():
 
     return render_template('admin/sopir_tambah.html', active_menu='sopir', f={}, **admin_context())
 
-# =========================================================
+
+
+# ═════════════════════════════════════════════════════════════
 #   PROFIL + STATUS SOPIR
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 @bp.route('/admin/sopir/<int:id>')
 @admin_required
 def admin_sopir_detail(id):
@@ -3609,9 +3684,11 @@ def admin_sopir_detail(id):
         **admin_context()
     )
 
-# =========================================================
+
+
+# ═════════════════════════════════════════════════════════════
 #   EDIT SOPIR
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 @bp.route('/admin/sopir/<int:id>/edit', methods=['GET', 'POST'])
 @admin_required
 def edit_sopir(id):
@@ -3667,9 +3744,11 @@ def edit_sopir(id):
     return render_template('admin/sopir_edit.html', active_menu='sopir',
                            driver=sopir, **admin_context())
 
-# =========================================================
+
+
+# ═════════════════════════════════════════════════════════════
 #   PECAT (HAPUS) SOPIR
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 @bp.route('/admin/sopir/<int:id>/pecat', methods=['POST'])
 @admin_required
 def pecat_sopir(id):
@@ -3686,6 +3765,8 @@ def pecat_sopir(id):
     db.session.commit()
     flash(f'Sopir {nama} telah diberhentikan.')
     return redirect(url_for('main.admin_sopir'))
+
+
 
 
 @bp.route('/register', methods=['GET', 'POST'])
@@ -3740,9 +3821,10 @@ def logout():
     return redirect(url_for('main.login'))
 
 
-# =========================================================
+
+# ═════════════════════════════════════════════════════════════
 #   HALAMAN ADMIN: LIVE TRACKING
-# =========================================================
+# ═════════════════════════════════════════════════════════════
 @bp.route('/admin/tracking')
 @admin_required
 def admin_tracking():
