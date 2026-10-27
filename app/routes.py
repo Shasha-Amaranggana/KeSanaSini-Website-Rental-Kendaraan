@@ -3232,7 +3232,7 @@ ALLOWED_IMG_EXT = {'jpg', 'jpeg', 'png', 'webp'}
 import re
 from flask.views import MethodView
 from sqlalchemy.exc import IntegrityError
-from app.models import Customer, Admin
+from app.models import Customer, Admin, RentalStatusHistory
 
 admin_bp = Blueprint('kelola_pelanggan', __name__, url_prefix='/admin/kelola-pelanggan')
 superadmin_bp = Blueprint('kelola_admin', __name__, url_prefix='/superadmin/kelola-admin')
@@ -3315,8 +3315,8 @@ class BaseUserService:
     def base_query(self):
         return self.model.query.filter(self.model.role == self.model.ROLE)
 
-    def search(self, keyword, page):
-        """Pencarian (nama / email / no. HP / kode ID seperti PLG001) + pagination."""
+    def _filtered(self, keyword):
+        """Query dengan filter pencarian (nama / email / no. HP / kode ID seperti PLG001)."""
         query = self.base_query()
         keyword = (keyword or '').strip()
         if keyword:
@@ -3330,8 +3330,23 @@ class BaseUserService:
             if digits and keyword.upper().startswith(self.model.CODE_PREFIX):
                 conditions.append(self.model.id == int(digits))
             query = query.filter(or_(*conditions))
-        return query.order_by(self.model.id).paginate(
+        return query
+
+    def search(self, keyword, page):
+        """Hasil pencarian dengan pagination."""
+        return self._filtered(keyword).order_by(self.model.id).paginate(
             page=page, per_page=self.PER_PAGE, error_out=False)
+
+    def search_all(self, keyword):
+        """Semua hasil pencarian tanpa pagination (daftar dibuat bisa di-scroll)."""
+        return self._filtered(keyword).order_by(self.model.id).all()
+
+    def count(self, active_only=False):
+        """Jumlah akun; active_only=True hanya yang berstatus aktif."""
+        query = self.base_query()
+        if active_only:
+            query = query.filter(self.model.is_active.is_(True))
+        return query.count()
 
     def find(self, user_id):
         """Ambil satu data, atau None kalau tidak ada / id kosong."""
@@ -3357,6 +3372,20 @@ class CustomerService(BaseUserService):
     def rental_history(self, customer):
         return customer.rental_history
 
+    def rental_summary(self, rentals):
+        """Total penyewaan & total transaksi (hanya pesanan Selesai) untuk kartu ringkasan."""
+        total_spent = sum(r.total_price for r in rentals if r.status == Rental.STATUS_SELESAI)
+        return len(rentals), total_spent
+
+    @staticmethod
+    def rental_group(rental):
+        """Kelompok filter riwayat: selesai / batal / jalan (Berlangsung)."""
+        if rental.status == Rental.STATUS_SELESAI:
+            return 'selesai'
+        if rental.status == Rental.STATUS_BATAL:
+            return 'batal'
+        return 'jalan'
+
 
 # [OOP - PEWARISAN & ENKAPSULASI LOGIKA BISNIS]:
 # Mewarisi BaseUserService dan mengarahkan 'model' ke class Admin,
@@ -3368,6 +3397,10 @@ class AdminService(BaseUserService):
     PHONE_RE = re.compile(r'^\+?\d{10,15}$')
     MIN_PASSWORD = 8
     ALLOWED_PHOTO_EXT = {'jpg', 'jpeg', 'png', 'webp'}
+
+    def base_query(self):
+        """Daftar administrator mencakup role 'admin' dan 'superadmin'."""
+        return self.model.query.filter(self.model.role.in_(['admin', 'superadmin']))
 
     # Kolom wajib (NOT NULL) milik User yang tidak ada di form "Tambah Admin"
     DEFAULT_BIRTH_DATE = date(2000, 1, 1)
@@ -3457,13 +3490,21 @@ class PelangganListView(MethodView):
         keyword = request.args.get('q', '').strip()
         page = request.args.get('page', 1, type=int)
         selected = self.service.find(request.args.get('id', type=int))
+        rentals = self.service.rental_history(selected) if selected else []
+        total_rentals, total_spent = self.service.rental_summary(rentals)
 
         return render_template(
             'admin/pelanggan.html',
             active_menu='pelanggan',
-            pagination=self.service.search(keyword, page),
+            pagination=self.service.search(keyword, page),   # dipakai form status (halaman asal)
+            customers=self.service.search_all(keyword),      # daftar scroll
+            total_customers=self.service.count(),
+            active_customers=self.service.count(active_only=True),
             selected=selected,
-            rentals=self.service.rental_history(selected) if selected else [],
+            rentals=rentals,
+            rental_group=self.service.rental_group,
+            total_rentals=total_rentals,
+            total_spent=total_spent,
             keyword=keyword,
             **admin_context()
         )
@@ -3512,11 +3553,25 @@ class AdminListView(MethodView):
         keyword = request.args.get('q', '').strip()
         page = request.args.get('page', 1, type=int)
 
+        # Aktivitas terbaru: diambil dari riwayat perubahan status pesanan
+        activities = []
+        for h in (RentalStatusHistory.query
+                  .order_by(RentalStatusHistory.changed_at.desc()).limit(20).all()):
+            rental = db.session.get(Rental, h.rental_id)
+            activities.append({
+                'booking_code': rental.booking_code if rental else '-',
+                'old': h.old_status, 'new': h.new_status, 'time': h.changed_at,
+            })
+
         return render_template(
             'admin/admin_list.html',
             active_menu='admin',
-            pagination=self.service.search(keyword, page),
+            pagination=self.service.search(keyword, page),   # dipakai form status (halaman asal)
+            admins=self.service.search_all(keyword),         # daftar scroll
+            total_admins=self.service.count(),
+            active_admins=self.service.count(active_only=True),
             selected=self.service.find(request.args.get('id', type=int)),
+            activities=activities,
             keyword=keyword,
             **admin_context()
         )
@@ -3533,6 +3588,9 @@ class AdminStatusView(MethodView):
     def post(self, user_id):
         target = self.service.get_or_404(user_id)
         active = request.form.get('is_active') == '1'
+        if target.id == session.get('user_id') and not active:
+            flash('Anda tidak dapat menonaktifkan akun Anda sendiri.')
+            return redirect(url_for('kelola_admin.daftar', id=target.id))
         self.service.set_active(target, active)
         flash(f"Status akun {target.name} diubah menjadi "
               f"{'Aktif' if active else 'Tidak Aktif'}.")

@@ -568,3 +568,83 @@ tbody td:first-child, thead th:first-child { padding-left: 16px; }
     }
 }
 
+
+/* =========================================================
+   UI baru: Pelanggan (admin) & Admin Control Center (super admin)
+   Tinggi halaman dikunci ke layar; hanya .kp-scroll yang bisa di-scroll.
+   ========================================================= */
+.kp-page { height: calc(100vh - var(--topbar-h) - 38px); min-height: 520px; display:flex; flex-direction:column; gap:14px; }
+.kp-fill { flex:1; min-height:0; display:flex; flex-direction:column; }
+.kp-scroll { flex:1; min-height:0; overflow-y:scroll; padding-right:6px; }
+.kp-scroll::-webkit-scrollbar { width:8px; }
+.kp-scroll::-webkit-scrollbar-thumb { background:#C9CED8; border-radius:8px; }
+.kp-scroll::-webkit-scrollbar-track { background:#F1F3F7; border-radius:8px; }
+.kp-scroll { scrollbar-width:thin; scrollbar-color:#C9CED8 #F1F3F7; }
+
+.kp-stats { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.kp-stats3 { display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:14px; }
+.kp-stat { display:flex; flex-direction:column; gap:2px; }
+.kp-stat i { color:var(--o); font-size:18px; margin-bottom:4px; }
+.kp-stat small { color:var(--mut); font-size:12px; }
+.kp-stat b { font-size:28px; font-weight:600; }
+
+.kp-pill { display:inline-block; padding:3px 12px; border-radius:20px; font-size:11px; font-weight:600; }
+.kp-pill.on { background:#DDF5E3; color:#17802A; }
+.kp-pill.off { background:#FDE2E2; color:#C62828; }
+.kp-pill.warn { background:#FFE9C7; color:#B76A00; }
+
+.kp-ini { width:38px; height:38px; border-radius:50%; background:#FBD3B3; color:#C2540A; font-weight:600; font-size:13px;
+          display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+.kp-row { display:flex; align-items:center; gap:12px; padding:12px 8px; border-bottom:1px solid var(--line); color:inherit; }
+.kp-row:hover { background:#FFF1E6; }
+.kp-row-main { flex:1; display:flex; flex-direction:column; font-size:14px; }
+.kp-row-main small, .kp-info small, .kp-who small { color:var(--mut); font-size:11px; }
+.kp-go { color:#999; font-size:12px; }
+
+/* Detail pelanggan */
+.kp-detail-head { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:12px; border-bottom:1px solid var(--line); margin-bottom:12px; }
+.kp-detail-head h2 { margin:0; } .kp-detail-head small { color:var(--mut); font-size:12px; }
+.kp-who { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+.kp-who.sm .kp-avatar { width:44px; height:44px; font-size:20px; }
+.kp-info { display:grid; grid-template-columns:1fr 1fr; gap:12px 20px; padding:12px 0; border-top:1px solid var(--line); }
+.kp-info div { display:flex; flex-direction:column; font-size:13px; }
+.kp-tiles { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:12px 0 18px; }
+.kp-tile { border-radius:10px; padding:14px 16px; display:flex; flex-direction:column; }
+.kp-tile.orange { background:#FDE3D0; } .kp-tile.blue { background:#DDEBFB; }
+.kp-tile small { font-size:12px; color:#555; } .kp-tile b { font-size:22px; }
+.kp-detail-body h3 { font-size:16px; margin-bottom:2px; }
+.kp-tabs { display:flex; gap:8px; margin:12px 0; flex-wrap:wrap; }
+.kp-tabs button { border:0; background:#E8EBF1; padding:5px 14px; border-radius:20px; font:500 12px 'Poppins',sans-serif; cursor:pointer; }
+.kp-tabs button.on { background:var(--o); color:#fff; }
+.kp-rent { display:flex; align-items:center; gap:12px; padding:12px 4px; border-bottom:1px solid var(--line); }
+.kp-rent-ic { width:44px; height:44px; border-radius:10px; background:#E8EBF1; display:flex; align-items:center; justify-content:center; color:#666; }
+.kp-rent-main { flex:1; display:flex; flex-direction:column; font-size:13px; }
+.kp-rent-main small { color:var(--mut); font-size:11px; }
+
+/* Admin Control Center */
+.kp-head { display:flex; justify-content:space-between; align-items:center; }
+.kp-head h1 { font-size:24px; font-weight:700; } .kp-head small { color:#555; }
+.kp-donut-card { display:flex; align-items:center; gap:18px; }
+.kp-donut { width:84px; height:84px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.kp-donut span { width:58px; height:58px; border-radius:50%; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; font-weight:700; font-size:18px; line-height:1; }
+.kp-donut small { font-size:9px; font-weight:400; color:var(--mut); }
+.kp-legend { display:flex; flex-direction:column; gap:4px; font-size:12px; }
+.dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; } .dot.g { background:#22A55B; } .dot.r { background:#F04848; }
+.kp-lower { flex:1; min-height:0; display:grid; grid-template-columns:1.7fr 1fr; gap:14px; }
+.kp-right { display:flex; flex-direction:column; gap:14px; min-height:0; }
+.kp-adm-row { display:grid; grid-template-columns:2fr 1.3fr 1.4fr 1fr .5fr; align-items:center; gap:8px; padding:8px 10px; font-size:13px; border-radius:8px; margin-bottom:4px; background:#fff; }
+.kp-adm-th { background:var(--head); font-weight:600; font-size:12px; margin-bottom:6px; padding-right:16px; }
+.kp-adm-row.sel { background:#FDE3D0; }
+.kp-adm-name { display:flex; align-items:center; gap:10px; color:inherit; }
+.kp-adm-name .kp-ini { width:30px; height:30px; font-size:11px; }
+.kp-role { font-size:11px; background:#EEF0F5; padding:3px 10px; border-radius:6px; } .kp-role.sa { background:#FFE9C7; color:#B76A00; }
+.kp-go-btn { color:#555; text-align:center; }
+.kp-perm { list-style:none; margin-top:6px; }
+.kp-perm li { display:flex; align-items:center; gap:10px; font-size:12px; padding:6px 0; border-bottom:1px solid var(--line); }
+.kp-perm li i { width:18px; color:var(--o2); } .kp-perm li em { margin-left:auto; font-style:normal; color:var(--ok); font-size:11px; }
+.kp-perm li.no { opacity:.5; } .kp-perm li.no em { color:var(--mut); }
+.kp-act { display:flex; gap:8px; padding:8px 0; border-bottom:1px solid var(--line); font-size:12px; }
+.kp-act small { display:block; color:var(--mut); font-size:11px; } .kp-act .dot { margin-top:5px; flex-shrink:0; }
+
+.kp-modal.sm .kp-card { width:min(420px,100%); }
+@media (max-width:1000px) { .kp-page { height:auto; } .kp-stats3, .kp-lower { grid-template-columns:1fr; } .kp-scroll { max-height:420px; } }
