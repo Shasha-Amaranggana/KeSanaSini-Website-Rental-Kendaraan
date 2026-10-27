@@ -1,71 +1,111 @@
 {# =========================================================
-   Halaman Kelola Admin (Super Admin).
-   Kiri: daftar admin + pencarian. Kanan: detail & ubah status akun.
-   Data dari AdminListView: pagination, keyword, selected.
+   Admin Control Center (Super Admin) - UI baru (Gambar 2.3 / 2.4).
+   Hanya "Daftar Administrator" dan "Aktivitas Administrator" yang bisa di-scroll.
+   Klik baris = pilih admin (oranye). Tombol ">" = popup Detail & Edit (#detail).
    ========================================================= #}
 {% extends 'admin/base_admin.html' %}
-{% from 'admin/_macros_pengguna.html' import avatar, field, pager, status_form, switch_script %}
+{% from 'admin/_macros_pengguna.html' import avatar, field, status_form, switch_script %}
 
 {% block title %}Admin{% endblock %}
 
-{% block content %}
-<div class="kp kp-grid-2">
-
-    <!-- ===== PANEL 1: DAFTAR ADMIN ===== -->
-    <section class="kp-card">
-        <h2>Daftar Admin</h2>
-        <a href="{{ url_for('kelola_admin.tambah') }}" class="kp-btn small">+ Tambah Admin</a>
-
-        {# Pencarian lewat GET (?q=) agar kata kunci tampil di URL #}
-        <form class="kp-search" method="get" action="{{ url_for('kelola_admin.daftar') }}">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" name="q" value="{{ keyword }}" placeholder="Cari admin berdasarkan ID, nama, ..." autocomplete="off">
-        </form>
-
-        <table class="kp-table">
-            <thead><tr><th>ID Admin</th><th>Nama</th><th>Status</th></tr></thead>
-            <tbody>
-            {% for a in pagination.items %}
-                {# Link baris: memilih admin (id) sambil mempertahankan halaman & kata kunci #}
-                {% set link = url_for('kelola_admin.daftar', id=a.id, page=pagination.page, q=keyword or None) %}
-                {# Baris admin terpilih diberi kelas "selected" #}
-                <tr class="{{ 'selected' if selected and selected.id == a.id }}">
-                    <td><a href="{{ link }}">#{{ a.code }}</a></td>
-                    <td><a href="{{ link }}">{{ a.name }}</a></td>
-                    <td><a href="{{ link }}">
-                        {% if a.is_active %}<span class="kp-badge on">Aktif</span>
-                        {% else %}<span class="kp-badge off">Tidak Aktif</span>{% endif %}
-                    </a></td>
-                </tr>
-            {% else %}
-                {# Tampil jika hasil pencarian kosong #}
-                <tr><td colspan="3" class="kp-empty">Admin tidak ditemukan</td></tr>
-            {% endfor %}
-            </tbody>
-        </table>
-
-        {{ pager(pagination, 'kelola_admin.daftar', keyword, selected) }}
-    </section>
-
-    <!-- ===== PANEL 2: DETAIL & EDIT ADMIN ===== -->
-    {# Menampilkan data admin terpilih (read-only); "-" jika belum ada yang dipilih #}
-    <section class="kp-card">
-        <h2>Detail &amp; Edit Admin</h2>
-        <div class="kp-code">#{{ selected.code if selected else '-' }}</div>
-
-        <div class="kp-profile">{{ avatar(selected.avatar_path if selected else None) }}</div>
-
-        {{ field('Nama', selected.name if selected else '') }}
-        {{ field('No.KTP', selected.ktp_number if selected else '') }}
-        {{ field('No.SIM', selected.sim_number if selected else '') }}
-        {{ field('No. Telepon', selected.phone if selected else '') }}
-        {{ field('Email', selected.email if selected else '') }}
-
-        {# Saklar status akun; dikirim ke AdminStatusView (route ubah_status) #}
-        {{ status_form(selected, url_for('kelola_admin.ubah_status', user_id=selected.id) if selected else '#', pagination, keyword) }}
-    </section>
-</div>
+{% block css %}
+<style>
+    /* Tampilan sederhana: tanpa tinggi terkunci & tanpa area scroll; halaman mengalir dan di-scroll biasa */
+    .kp-page { height:auto !important; min-height:0 !important; }
+    .kp-lower { display:grid; grid-template-columns:1.7fr 1fr; gap:14px; align-items:start; flex:none !important; }
+    .kp-lower > .kp-fill, .kp-right > .kp-fill { contain:none !important; flex:none !important; height:auto !important; min-height:0 !important; }
+    .kp-scroll { height:auto !important; max-height:none !important; overflow:visible !important; padding-right:0; }
+    @media (max-width:1000px) { .kp-lower { grid-template-columns:1fr; } }
+</style>
 {% endblock %}
 
-{# JS label Aktif/Tidak Aktif pada saklar #}
+{% block content %}
+{% set inactive_admins = total_admins - active_admins %}
+{% set pct = (active_admins * 100 / total_admins) if total_admins else 0 %}
+<div class="kp kp-page kp-auto">
+
+    <div class="kp-head">
+        <div><h1>Admin Control Center</h1><small>Kelola akun, peran, dan hak akses administrator</small></div>
+        <a href="{{ url_for('kelola_admin.tambah') }}" class="kp-btn"><i class="fa-solid fa-plus"></i> Tambah Admin</a>
+    </div>
+
+    <!-- ===== KARTU RINGKASAN ===== -->
+    <div class="kp-stats3">
+        <div class="kp-card kp-donut-card">
+            <div class="kp-donut" style="background:conic-gradient(#22A55B 0 {{ pct }}%, #F04848 0)"><span>{{ total_admins }}<small>Total</small></span></div>
+            <div class="kp-legend">
+                <b>Status Admin</b>
+                <span><i class="dot g"></i>Aktif <b>{{ active_admins }}</b> ({{ pct | round(1) }}%)</span>
+                <span><i class="dot r"></i>Tidak Aktif <b>{{ inactive_admins }}</b> ({{ (100 - pct) | round(1) if total_admins else 0 }}%)</span>
+            </div>
+        </div>
+        <div class="kp-card kp-stat"><i class="fa-solid fa-users"></i><small>Total Admin</small><b>{{ total_admins }}</b><small>Semua akun administrator</small></div>
+        <div class="kp-card kp-stat"><i class="fa-solid fa-shield-halved"></i><small>Admin Aktif</small><b>{{ active_admins }}</b><small>Akun dalam kondisi aktif</small></div>
+    </div>
+
+    <div class="kp-lower">
+        <!-- ===== DAFTAR ADMINISTRATOR (scroll) ===== -->
+        <section class="kp-card kp-fill">
+            <h2>Daftar Administrator</h2>
+            <form class="kp-search" method="get" action="{{ url_for('kelola_admin.daftar') }}">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" name="q" value="{{ keyword }}" placeholder="Cari admin atau ID..." autocomplete="off">
+            </form>
+            <div class="kp-adm-row kp-adm-th"><span>Nama</span><span>ID Admin</span><span>Peran</span><span>Status</span><span>Aksi</span></div>
+            <div class="kp-scroll">
+            {% for a in admins %}
+                {% set sel = selected and selected.id == a.id %}
+                <div class="kp-adm-row {{ 'sel' if sel }}">
+                    <a class="kp-adm-name" href="{{ url_for('kelola_admin.daftar', id=a.id, q=keyword or None) }}">
+                        <span class="kp-ini">{{ (a.name.split() | map('first') | join)[:2] | upper }}</span>{{ a.name }}
+                    </a>
+                    <span>{{ a.code }}</span>
+                    <span>{% if a.role == 'superadmin' %}<span class="kp-role sa"><i class="fa-solid fa-crown"></i> Super Admin</span>{% else %}<span class="kp-role"><i class="fa-regular fa-user"></i> Admin</span>{% endif %}</span>
+                    <span class="kp-pill {{ 'on' if a.is_active else 'off' }}">{{ 'Aktif' if a.is_active else 'Tidak Aktif' }}</span>
+                    <a class="kp-go-btn" title="Detail & Edit" href="{{ url_for('kelola_admin.daftar', id=a.id, q=keyword or None) }}#detail"><i class="fa-solid fa-chevron-right"></i></a>
+                </div>
+            {% else %}
+                <div class="kp-empty">Admin tidak ditemukan</div>
+            {% endfor %}
+            </div>
+        </section>
+
+        <div class="kp-right">
+            <!-- ===== AKTIVITAS ADMINISTRATOR (scroll) ===== -->
+            <section class="kp-card kp-fill">
+                <h2>Aktivitas Administrator</h2>
+                <div class="kp-scroll">
+                {% for act in activities %}
+                    <div class="kp-act"><i class="dot g"></i>
+                        <div><b>Pesanan #{{ act.booking_code }}</b>
+                        <small>{{ act.old or 'Baru' }} → {{ act.new }} · {{ act.time.strftime('%d/%m/%Y %H:%M') }}</small></div>
+                    </div>
+                {% else %}
+                    <div class="kp-empty">Belum ada aktivitas</div>
+                {% endfor %}
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+{% if selected %}
+<!-- ===== POPUP DETAIL & EDIT ADMIN (Gambar 2.4) ===== -->
+<div class="kp kp-modal sm" id="detail">
+    <div class="kp-card">
+        <h2>Detail &amp; Edit Admin</h2>
+        <div class="kp-code">#{{ selected.code }}</div>
+        <div class="kp-profile" style="justify-content:center">{{ avatar(selected.avatar_path) }}</div>
+        {{ field('Nama', selected.name) }}
+        {{ field('No.KTP', selected.ktp_number) }}
+        {{ field('No.SIM', selected.sim_number) }}
+        {{ field('No. Telepon', selected.phone) }}
+        {{ field('Email', selected.email) }}
+        {{ status_form(selected, url_for('kelola_admin.ubah_status', user_id=selected.id), pagination, keyword) }}
+        <div class="kp-actions"><a href="{{ url_for('kelola_admin.daftar', id=selected.id, q=keyword or None) }}" class="kp-btn outline">Tutup</a></div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
 {% block scripts %}{{ switch_script() }}{% endblock %}
