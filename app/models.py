@@ -624,7 +624,13 @@ class Driver(db.Model):
         self.__sim_photo = value
     sim_photo = synonym("_Driver__sim_photo", descriptor=property(get_sim_photo, set_sim_photo))
 
-
+    __ktp_photo       = db.Column("ktp_photo", db.String(255), nullable=True)
+    # Getter dan setter untuk atribut privat ktp_photo.
+    def get_ktp_photo(self):
+        return self.__ktp_photo
+    def set_ktp_photo(self, value):
+        self.__ktp_photo = value
+    ktp_photo = synonym("_Driver__ktp_photo", descriptor=property(get_ktp_photo, set_ktp_photo))
 
     # ═════════════════════════════════════════════════════════════════════════
     #                           [METHOD DRIVER]

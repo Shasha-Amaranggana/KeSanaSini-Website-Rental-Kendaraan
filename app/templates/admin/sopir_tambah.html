@@ -13,11 +13,43 @@
       <label for="deskripsi" style="font-size:20px">Deskripsi :</label><textarea class="f" id="deskripsi" name="deskripsi">{{ f.get('deskripsi','') }}</textarea>
     </div>
     <div>
-      <label class="up"><div class="ph">Foto Sopir</div><input type="file" name="foto_sopir" accept="image/*"></label>
-      <label class="up"><div class="ph">Foto SIM</div><input type="file" name="foto_sim" accept="image/*"></label>
+      <label class="up"><div class="ph" id="prev-foto_sopir">Foto Sopir</div><input type="file" name="foto_sopir" accept="image/*" data-preview="prev-foto_sopir"></label>
+      <label class="up"><div class="ph" id="prev-foto_sim">Foto SIM</div><input type="file" name="foto_sim" accept="image/*" data-preview="prev-foto_sim"></label>
+      <label class="up"><div class="ph" id="prev-foto_ktp">Foto KTP</div><input type="file" name="foto_ktp" accept="image/*" data-preview="prev-foto_ktp"></label>
     </div>
   </div>
   <div class="acts"><a class="btn r" href="{{ url_for('main.admin_sopir') }}">Batalkan</a><button class="btn g" type="submit">Konfirmasi</button></div>
 </form></div>
 </div>
+
+<script>
+document.querySelectorAll('input[type="file"][data-preview]').forEach(function (input) {
+    var box = document.getElementById(input.dataset.preview);
+    var teksAwal = box.textContent;
+
+    input.addEventListener('change', function () {
+        var file = this.files[0];
+
+        if (!file) {                       // batal pilih file
+            box.textContent = teksAwal;
+            return;
+        }
+        if (!file.type.startsWith('image/')) {
+            alert('File harus berupa gambar (JPG, PNG, atau WebP).');
+            this.value = '';
+            box.textContent = teksAwal;
+            return;
+        }
+
+        var img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.alt = 'Pratinjau';
+        img.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:inherit';
+
+        box.textContent = '';
+        box.style.overflow = 'hidden';
+        box.appendChild(img);
+    });
+});
+</script>
 {% endblock %}
