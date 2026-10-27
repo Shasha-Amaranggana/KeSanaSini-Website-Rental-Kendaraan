@@ -3574,6 +3574,7 @@ def tambah_sopir():
             description=request.form.get('deskripsi', '').strip(),
             photo=_save_driver_file(request.files.get('foto_sopir'), 'foto') or 'default_driver.png',
             sim_photo=_save_driver_file(request.files.get('foto_sim'), 'sim'),
+            ktp_photo=_save_driver_file(request.files.get('foto_ktp'), 'ktp'),
         )
         db.session.add(sopir)
         db.session.commit()
@@ -3616,9 +3617,10 @@ def pecat_sopir(id):
     nama = sopir.name
     _delete_driver_file(sopir.photo)
     _delete_driver_file(sopir.sim_photo)
+    _delete_driver_file(sopir.ktp_photo)
     db.session.delete(sopir)   # rental lama otomatis dilepas (driver_id jadi NULL)
     db.session.commit()
-    flash(f'Sopir {nama} telah dipecat.')
+    flash(f'Sopir {nama} telah diberhentikan.')
     return redirect(url_for('main.admin_sopir'))
 
 
