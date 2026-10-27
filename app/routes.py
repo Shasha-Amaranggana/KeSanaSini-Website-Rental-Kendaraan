@@ -2042,11 +2042,17 @@ def login():
         user = User.query.filter_by(email=email).first()
         
         if user and user.check_password(password):
+
+            # Tolak login jika akun dinonaktifkan admin
+            if not user.is_active:
+                flash('Akun Anda telah dinonaktifkan. Silakan hubungi admin.')
+                return redirect(url_for('main.login'))
+
             session['user_id'] = user.id
             session['user_name'] = user.name
             session['user_email'] = user.email
             session['user_role'] = user.role  # Simpan jabatan di session
-            
+
             # POLISI LALU LINTAS (If-Else Role)
             if user.role in ('admin', 'superadmin'):
                 return redirect(url_for('main.admin_dashboard'))
@@ -2055,7 +2061,7 @@ def login():
         else:
             flash('Email atau kata sandi salah. Silakan coba lagi.')
             return redirect(url_for('main.login'))
-            
+
     return render_template('loginRegister.html', mode='login')
 
 

@@ -45,11 +45,11 @@ body {
     background-color: #323948;
     background-image: url("../images/login_bg.png");
     background-size: 100% auto;
-
     background-position: top center;
     background-repeat: no-repeat;
 
     display: flex;
+    flex-direction: column;
 }
 
 
@@ -58,13 +58,20 @@ body {
    B.   LAYOUT UTAMA HALAMAN AUTHENTICATION
 ═════════════════════════════════════════════════════════════ */
 
+.auth-layout {
+    width: 100%;
+    min-height: max(100vh, 56.25vw);
+
+    display: flex;
+    flex-shrink: 0;
+}
+
+
 /* B.1.   Area kiri halaman
    ════════════════════════════════════════════════════════  */
 .left-area {
     width: 40%;
-    min-height: max(100vh, 56.25vw);
-
-    position: relative;
+    min-height: inherit;
     flex-shrink: 0;
 }
 
@@ -73,8 +80,7 @@ body {
    ════════════════════════════════════════════════════════  */
 .right-area {
     width: 60%;
-    min-height: max(100vh, 56.25vw);
-
+    min-height: inherit;
     position: relative;
 
     display: flex;
@@ -533,10 +539,142 @@ input[type="password"]::-ms-clear {
 
 
 /* ═════════════════════════════════════════════════════════════
-   K.   RESPONSIVE HALAMAN AUTHENTICATION
+   K.  FOOTER WEBSITE
 ═════════════════════════════════════════════════════════════ */
 
-/* K.1.   Penyesuaian form pada layar kecil
+.footer {
+    width: 100%;
+    background: #242424;
+    color: #d1d5db;
+    padding: 40px 0 0;
+    box-sizing: border-box;
+    margin-top: auto;
+}
+
+
+/* G.1. Tata letak utama footer
+   ════════════════════════════════════════════════════════  */
+.footer-container {
+    width: 100%;
+    max-width: 1250px;
+    margin: 0 auto;
+    padding: 0 25px 32px;
+    box-sizing: border-box;
+
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    column-gap: 100px;
+    align-items: start;
+}
+
+
+/* G.2. Identitas KeSanaSini
+   ════════════════════════════════════════════════════════  */
+.footer-logo {
+    display: flex;
+    margin: 0 0 16px;
+    color: #ffffff;
+}
+
+.footer-logo-img {
+    width: 200px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.footer-brand p {
+    font-size: 13px;
+}
+
+
+/* G.3. Judul setiap kolom
+   ════════════════════════════════════════════════════════  */
+.footer-contact h3,
+.footer-location h3 {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    margin: 5px 0 20px;
+}
+
+
+/* G.4. Informasi kontak dan lokasi
+   ════════════════════════════════════════════════════════  */
+.footer-contact p,
+.footer-location p {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0 0 8px;
+    font-size: 13px;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+.footer-contact p i,
+.footer-location p i {
+    color: #f97316;
+    width: 16px;
+    margin-top: 4px;
+    flex-shrink: 0;
+}
+
+
+/* G.5. Tautan email dan peta
+   ════════════════════════════════════════════════════════  */
+.footer-contact a,
+.footer-map-link {
+    color: #d1d5db;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer-contact a:hover,
+.footer-map-link:hover {
+    color: #f97316;
+}
+
+.footer-map-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 26px;
+    font-size: 13px;
+    font-weight: 400;
+}
+
+.footer-map-link i {
+    color: #f97316;
+    font-size: 12px;
+}
+
+
+/* G.6. Bagian copyright
+   ════════════════════════════════════════════════════════  */
+.footer-bottom {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 24px;
+    box-sizing: border-box;
+    border-top: 1px solid #414141;
+    text-align: center;
+}
+
+.footer-bottom p {
+    margin: 0;
+    color: #a3a3a3;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+
+
+/* ═════════════════════════════════════════════════════════════
+   L.   RESPONSIVE HALAMAN AUTHENTICATION
+═════════════════════════════════════════════════════════════ */
+
+/* L.1.   Penyesuaian form pada layar kecil
    ════════════════════════════════════════════════════════  */
 @media (max-width: 900px) {
     .auth-container {
