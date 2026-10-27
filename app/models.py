@@ -85,7 +85,7 @@ class User(db.Model):
 
     # Membuat kode akun dari awalan dan ID pengguna.
     def get_code(self):
-        return f"{self.CODE_PREFIX}{self.id:03d}"
+        return f"{self.CODE_PREFIX}-{self.id:04d}"
 
 
     # ──────────────────────────────────────────────────────────────────────────
@@ -93,7 +93,7 @@ class User(db.Model):
     # ──────────────────────────────────────────────────────────────────────────
 
     _id              = db.Column("id", db.Integer, primary_key=True)
-    # Getter dan setter untuk atribut privat id.
+    # Getter dan setter untuk atribut id.
     def get_id(self):
         return self._id
     def set_id(self, value):
@@ -101,7 +101,7 @@ class User(db.Model):
     id = synonym("_id", descriptor=property(get_id, set_id))
 
     _name            = db.Column("name", db.String(100), nullable=False)
-    # Getter dan setter untuk atribut privat name.
+    # Getter dan setter untuk atribut name.
     def get_name(self):
         return self._name
     def set_name(self, value):
@@ -109,7 +109,7 @@ class User(db.Model):
     name = synonym("_name", descriptor=property(get_name, set_name))
 
     _birth_date      = db.Column("birth_date", db.Date, nullable=False)
-    # Getter dan setter untuk atribut privat birth_date.
+    # Getter dan setter untuk atribut birth_date.
     def get_birth_date(self):
         return self._birth_date
     def set_birth_date(self, value):
@@ -117,7 +117,7 @@ class User(db.Model):
     birth_date = synonym("_birth_date", descriptor=property(get_birth_date, set_birth_date))
 
     _gender          = db.Column("gender", db.String(20), nullable=False)
-    # Getter dan setter untuk atribut privat gender.
+    # Getter dan setter untuk atribut gender.
     def get_gender(self):
         return self._gender
     def set_gender(self, value):
@@ -125,7 +125,7 @@ class User(db.Model):
     gender = synonym("_gender", descriptor=property(get_gender, set_gender))
 
     _email           = db.Column("email", db.String(120), unique=True, nullable=False)
-    # Getter dan setter untuk atribut privat email.
+    # Getter dan setter untuk atribut email.
     def get_email(self):
         return self._email
     def set_email(self, value):
@@ -133,7 +133,7 @@ class User(db.Model):
     email = synonym("_email", descriptor=property(get_email, set_email))
 
     _phone           = db.Column("phone", db.String(20), nullable=False)
-    # Getter dan setter untuk atribut privat phone.
+    # Getter dan setter untuk atribut phone.
     def get_phone(self):
         return self._phone
     def set_phone(self, value):
@@ -141,7 +141,7 @@ class User(db.Model):
     phone = synonym("_phone", descriptor=property(get_phone, set_phone))
 
     _emergency_phone = db.Column("emergency_phone", db.String(20), nullable=False)
-    # Getter dan setter untuk atribut privat emergency_phone.
+    # Getter dan setter untuk atribut emergency_phone.
     def get_emergency_phone(self):
         return self._emergency_phone
     def set_emergency_phone(self, value):
@@ -149,7 +149,7 @@ class User(db.Model):
     emergency_phone = synonym("_emergency_phone", descriptor=property(get_emergency_phone, set_emergency_phone))
 
     __password_hash   = db.Column("password_hash", db.String(128), nullable=False)
-    # Getter dan setter untuk atribut privat password_hash.
+    # Getter dan setter untuk atribut password_hash.
     def get_password_hash(self):
         return self.__password_hash
     def set_password_hash(self, value):
@@ -157,7 +157,7 @@ class User(db.Model):
     password_hash = synonym("_User__password_hash", descriptor=property(get_password_hash, set_password_hash))
 
     __ktp_file        = db.Column("ktp_file", db.String(255), nullable=True)
-    # Getter dan setter untuk atribut privat ktp_file.
+    # Getter dan setter untuk atribut ktp_file.
     def get_ktp_file(self):
         return self.__ktp_file
     def set_ktp_file(self, value):
@@ -165,7 +165,7 @@ class User(db.Model):
     ktp_file = synonym("_User__ktp_file", descriptor=property(get_ktp_file, set_ktp_file))
 
     __sim_file        = db.Column("sim_file", db.String(255), nullable=True)
-    # Getter dan setter untuk atribut privat sim_file.
+    # Getter dan setter untuk atribut sim_file.
     def get_sim_file(self):
         return self.__sim_file
     def set_sim_file(self, value):
@@ -178,7 +178,7 @@ class User(db.Model):
     # ──────────────────────────────────────────────────────────────────────────
 
     __role            = db.Column("role", db.String(20), nullable=False, default='user')
-    # Getter dan setter untuk atribut privat role.
+    # Getter dan setter untuk atribut role.
     def get_role(self):
         return self.__role
     def set_role(self, value):
@@ -191,7 +191,7 @@ class User(db.Model):
     # ──────────────────────────────────────────────────────────────────────────
 
     _is_active       = db.Column("is_active", db.Boolean, nullable=False, default=True)
-    # Getter dan setter untuk atribut privat is_active.
+    # Getter dan setter untuk atribut is_active.
     def get_is_active(self):
         return self._is_active
     def set_is_active(self, value):
@@ -199,7 +199,7 @@ class User(db.Model):
     is_active = synonym("_is_active", descriptor=property(get_is_active, set_is_active))
 
     _profile_photo   = db.Column("profile_photo", db.String(255), nullable=True)
-    # Getter dan setter untuk atribut privat profile_photo.
+    # Getter dan setter untuk atribut profile_photo.
     def get_profile_photo(self):
         return self._profile_photo
     def set_profile_photo(self, value):
@@ -207,7 +207,7 @@ class User(db.Model):
     profile_photo = synonym("_profile_photo", descriptor=property(get_profile_photo, set_profile_photo))
 
     __ktp_number      = db.Column("ktp_number", db.String(20), nullable=True)
-    # Getter dan setter untuk atribut privat ktp_number.
+    # Getter dan setter untuk atribut ktp_number.
     def get_ktp_number(self):
         return self.__ktp_number
     def set_ktp_number(self, value):
@@ -215,7 +215,7 @@ class User(db.Model):
     ktp_number = synonym("_User__ktp_number", descriptor=property(get_ktp_number, set_ktp_number))
 
     __sim_number      = db.Column("sim_number", db.String(20), nullable=True)
-    # Getter dan setter untuk atribut privat sim_number.
+    # Getter dan setter untuk atribut sim_number.
     def get_sim_number(self):
         return self.__sim_number
     def set_sim_number(self, value):
@@ -260,7 +260,7 @@ class Vehicle(db.Model):
     # ──────────────────────────────────────────────────────────────────────────
 
     __id              = db.Column("id", db.Integer, primary_key =True)
-    # Getter dan setter untuk atribut privat id.
+    # Getter dan setter untuk atribut id.
     def get_id(self):
         return self.__id
     def set_id(self, value):
@@ -268,7 +268,7 @@ class Vehicle(db.Model):
     id = synonym("_Vehicle__id", descriptor=property(get_id, set_id))
 
     __photo           = db.Column("photo", db.String(255), nullable=False)
-    # Getter dan setter untuk atribut privat photo.
+    # Getter dan setter untuk atribut photo.
     def get_photo(self):
         return self.__photo
     def set_photo(self, value):
@@ -276,7 +276,7 @@ class Vehicle(db.Model):
     photo = synonym("_Vehicle__photo", descriptor=property(get_photo, set_photo))
     
     __brand           = db.Column("brand", db.String(50), nullable =False)
-    # Getter dan setter untuk atribut privat brand.
+    # Getter dan setter untuk atribut brand.
     def get_brand(self):
         return self.__brand
     def set_brand(self, value):
@@ -284,7 +284,7 @@ class Vehicle(db.Model):
     brand = synonym("_Vehicle__brand", descriptor=property(get_brand, set_brand))
     
     __model           = db.Column("model", db.String(100), nullable=False)
-    # Getter dan setter untuk atribut privat model.
+    # Getter dan setter untuk atribut model.
     def get_model(self):
         return self.__model
     def set_model(self, value):
@@ -292,7 +292,7 @@ class Vehicle(db.Model):
     model = synonym("_Vehicle__model", descriptor=property(get_model, set_model))
     
     __gallery         = db.Column("gallery", db.Text, nullable=True)  
-    # Getter dan setter untuk atribut privat gallery.
+    # Getter dan setter untuk atribut gallery.
     def get_gallery(self):
         return self.__gallery
     def set_gallery(self, value):
@@ -300,7 +300,7 @@ class Vehicle(db.Model):
     gallery = synonym("_Vehicle__gallery", descriptor=property(get_gallery, set_gallery))
     
     __vehicle_number  = db.Column("vehicle_number", db.String(20), unique=True, nullable=False)
-    # Getter dan setter untuk atribut privat vehicle_number.
+    # Getter dan setter untuk atribut vehicle_number.
     def get_vehicle_number(self):
         return self.__vehicle_number
     def set_vehicle_number(self, value):
@@ -308,7 +308,7 @@ class Vehicle(db.Model):
     vehicle_number = synonym("_Vehicle__vehicle_number", descriptor=property(get_vehicle_number, set_vehicle_number))
     
     __year            = db.Column("year", db.Integer, nullable=False)
-    # Getter dan setter untuk atribut privat year.
+    # Getter dan setter untuk atribut year.
     def get_year(self):
         return self.__year
     def set_year(self, value):
@@ -316,7 +316,7 @@ class Vehicle(db.Model):
     year = synonym("_Vehicle__year", descriptor=property(get_year, set_year))
     
     __vehicle_type    = db.Column("vehicle_type", db.String(20), nullable=False)
-    # Getter dan setter untuk atribut privat vehicle_type.
+    # Getter dan setter untuk atribut vehicle_type.
     def get_vehicle_type(self):
         return self.__vehicle_type
     def set_vehicle_type(self, value):
@@ -324,7 +324,7 @@ class Vehicle(db.Model):
     vehicle_type = synonym("_Vehicle__vehicle_type", descriptor=property(get_vehicle_type, set_vehicle_type))
     
     __seats           = db.Column("seats", db.Integer, nullable    =False)
-    # Getter dan setter untuk atribut privat seats.
+    # Getter dan setter untuk atribut seats.
     def get_seats(self):
         return self.__seats
     def set_seats(self, value):
@@ -332,7 +332,7 @@ class Vehicle(db.Model):
     seats = synonym("_Vehicle__seats", descriptor=property(get_seats, set_seats))
     
     __luggage         = db.Column("luggage", db.Integer, nullable    =False, default     =0)
-    # Getter dan setter untuk atribut privat luggage.
+    # Getter dan setter untuk atribut luggage.
     def get_luggage(self):
         return self.__luggage
     def set_luggage(self, value):
@@ -340,7 +340,7 @@ class Vehicle(db.Model):
     luggage = synonym("_Vehicle__luggage", descriptor=property(get_luggage, set_luggage))
     
     __price_per_day   = db.Column("price_per_day", db.Integer, nullable=False)
-    # Getter dan setter untuk atribut privat price_per_day.
+    # Getter dan setter untuk atribut price_per_day.
     def get_price_per_day(self):
         return self.__price_per_day
     def set_price_per_day(self, value):
@@ -348,7 +348,7 @@ class Vehicle(db.Model):
     price_per_day = synonym("_Vehicle__price_per_day", descriptor=property(get_price_per_day, set_price_per_day))
     
     __rental_type     = db.Column("rental_type", db.String(30), nullable=False)
-    # Getter dan setter untuk atribut privat rental_type.
+    # Getter dan setter untuk atribut rental_type.
     def get_rental_type(self):
         return self.__rental_type
     def set_rental_type(self, value):
@@ -361,7 +361,7 @@ class Vehicle(db.Model):
     # ──────────────────────────────────────────────────────────────────────────
 
     __color           = db.Column("color", db.String(30), nullable=True)
-    # Getter dan setter untuk atribut privat color.
+    # Getter dan setter untuk atribut color.
     def get_color(self):
         return self.__color
     def set_color(self, value):
@@ -369,7 +369,7 @@ class Vehicle(db.Model):
     color = synonym("_Vehicle__color", descriptor=property(get_color, set_color))
     
     __chassis_number  = db.Column("chassis_number", db.String(50), unique=True, nullable=True)
-    # Getter dan setter untuk atribut privat chassis_number.
+    # Getter dan setter untuk atribut chassis_number.
     def get_chassis_number(self):
         return self.__chassis_number
     def set_chassis_number(self, value):
@@ -377,7 +377,7 @@ class Vehicle(db.Model):
     chassis_number = synonym("_Vehicle__chassis_number", descriptor=property(get_chassis_number, set_chassis_number))
     
     __engine_number   = db.Column("engine_number", db.String(50), unique=True, nullable=True)
-    # Getter dan setter untuk atribut privat engine_number.
+    # Getter dan setter untuk atribut engine_number.
     def get_engine_number(self):
         return self.__engine_number
     def set_engine_number(self, value):
@@ -385,7 +385,7 @@ class Vehicle(db.Model):
     engine_number = synonym("_Vehicle__engine_number", descriptor=property(get_engine_number, set_engine_number))
     
     __fuel            = db.Column("fuel", db.String(20), nullable=True, default='Bensin')
-    # Getter dan setter untuk atribut privat fuel.
+    # Getter dan setter untuk atribut fuel.
     def get_fuel(self):
         return self.__fuel
     def set_fuel(self, value):
@@ -393,7 +393,7 @@ class Vehicle(db.Model):
     fuel = synonym("_Vehicle__fuel", descriptor=property(get_fuel, set_fuel))
     
     __transmission    = db.Column("transmission", db.String(20), nullable=True, default='Manual')
-    # Getter dan setter untuk atribut privat transmission.
+    # Getter dan setter untuk atribut transmission.
     def get_transmission(self):
         return self.__transmission
     def set_transmission(self, value):
@@ -401,7 +401,7 @@ class Vehicle(db.Model):
     transmission = synonym("_Vehicle__transmission", descriptor=property(get_transmission, set_transmission))
     
     __engine_cc       = db.Column("engine_cc", db.Integer, nullable=True)
-    # Getter dan setter untuk atribut privat engine_cc.
+    # Getter dan setter untuk atribut engine_cc.
     def get_engine_cc(self):
         return self.__engine_cc
     def set_engine_cc(self, value):
@@ -409,7 +409,7 @@ class Vehicle(db.Model):
     engine_cc = synonym("_Vehicle__engine_cc", descriptor=property(get_engine_cc, set_engine_cc))
     
     __facilities      = db.Column("facilities", db.Text, nullable=True)   
-    # Getter dan setter untuk atribut privat facilities.
+    # Getter dan setter untuk atribut facilities.
     def get_facilities(self):
         return self.__facilities
     def set_facilities(self, value):
@@ -417,7 +417,7 @@ class Vehicle(db.Model):
     facilities = synonym("_Vehicle__facilities", descriptor=property(get_facilities, set_facilities))
     
     __notes           = db.Column("notes", db.Text, nullable=True)
-    # Getter dan setter untuk atribut privat notes.
+    # Getter dan setter untuk atribut notes.
     def get_notes(self):
         return self.__notes
     def set_notes(self, value):
@@ -425,7 +425,7 @@ class Vehicle(db.Model):
     notes = synonym("_Vehicle__notes", descriptor=property(get_notes, set_notes))
     
     __is_active       = db.Column("is_active", db.Boolean, nullable=False, default=True)
-    # Getter dan setter untuk atribut privat is_active.
+    # Getter dan setter untuk atribut is_active.
     def get_is_active(self):
         return self.__is_active
     def set_is_active(self, value):
@@ -434,7 +434,7 @@ class Vehicle(db.Model):
     
     # Koordinat kendaraan saat fitur tracking digunakan.
     _current_lat     = db.Column("current_lat", db.Float, nullable=True)
-    # Getter dan setter untuk atribut privat current_lat.
+    # Getter dan setter untuk atribut current_lat.
     def get_current_lat(self):
         return self._current_lat
     def set_current_lat(self, value):
@@ -442,7 +442,7 @@ class Vehicle(db.Model):
     current_lat = synonym("_current_lat", descriptor=property(get_current_lat, set_current_lat))
     
     _current_lng     = db.Column("current_lng", db.Float, nullable=True)
-    # Getter dan setter untuk atribut privat current_lng.
+    # Getter dan setter untuk atribut current_lng.
     def get_current_lng(self):
         return self._current_lng
     def set_current_lng(self, value):
@@ -525,16 +525,7 @@ class Vehicle(db.Model):
 #   E.   |   SOPIL MODEL (CLASS DRIVER)
 # ═════════════════════════════════════════════════════════════════════════════
 
-# [OOP - PEWARISAN / INHERITANCE]:
-#   Driver mewarisi db.Model sehingga dapat dipetakan ke tabel sopir.
-# [OOP - ENKAPSULASI / ENCAPSULATION]:
-#   Atribut disimpan sebagai atribut privat (diawali __) dan diakses lewat
-#   getter/setter serta @property, sehingga data sopir tidak diubah langsung dari luar class.
-# [OOP - ABSTRAKSI / ABSTRACTION]:
-#   Cara menentukan status sopir (Tersedia / Menunggu Konfirmasi / Berjalan)
-#   disembunyikan di property status_label. Route dan template cukup memanggil d.status_label.
-# [OOP - ASOSIASI OBJEK]:
-#   Driver terhubung dengan Rental lewat relasi (driver.rentals dan rental.driver).
+# Menyimpan data sopir yang tersedia.
 class Driver(db.Model):
     
 
@@ -548,7 +539,7 @@ class Driver(db.Model):
     # ──────────────────────────────────────────────────────────────────────────
 
     __id              = db.Column("id", db.Integer, primary_key=True)
-    # Getter dan setter untuk atribut privat id.
+    # Getter dan setter untuk atribut id.
     def get_id(self):
         return self.__id
     def set_id(self, value):
@@ -556,7 +547,7 @@ class Driver(db.Model):
     id = synonym("_Driver__id", descriptor=property(get_id, set_id))
 
     __name            = db.Column("name", db.String(100), nullable=False)
-    # Getter dan setter untuk atribut privat name.
+    # Getter dan setter untuk atribut name.
     def get_name(self):
         return self.__name
     def set_name(self, value):
@@ -564,7 +555,7 @@ class Driver(db.Model):
     name = synonym("_Driver__name", descriptor=property(get_name, set_name))
     
     __phone           = db.Column("phone", db.String(20), nullable=False)
-    # Getter dan setter untuk atribut privat phone.
+    # Getter dan setter untuk atribut phone.
     def get_phone(self):
         return self.__phone
     def set_phone(self, value):
@@ -572,7 +563,7 @@ class Driver(db.Model):
     phone = synonym("_Driver__phone", descriptor=property(get_phone, set_phone))
     
     __is_available    = db.Column("is_available", db.Boolean, nullable=False, default=True)
-    # Getter dan setter untuk atribut privat is_available.
+    # Getter dan setter untuk atribut is_available.
     def get_is_available(self):
         return self.__is_available
     def set_is_available(self, value):
@@ -580,7 +571,7 @@ class Driver(db.Model):
     is_available = synonym("_Driver__is_available", descriptor=property(get_is_available, set_is_available))
     
     __photo           = db.Column("photo", db.String(255), nullable=True, default='default_driver.png')
-    # Getter dan setter untuk atribut privat photo.
+    # Getter dan setter untuk atribut photo.
     def get_photo(self):
         return self.__photo
     def set_photo(self, value):
@@ -588,7 +579,7 @@ class Driver(db.Model):
     photo = synonym("_Driver__photo", descriptor=property(get_photo, set_photo))
     
     __created_at      = db.Column("created_at", db.DateTime, nullable=False, default=datetime.now)
-    # Getter dan setter untuk atribut privat created_at.
+    # Getter dan setter untuk atribut created_at.
     def get_created_at(self):
         return self.__created_at
     def set_created_at(self, value):
@@ -601,7 +592,7 @@ class Driver(db.Model):
     # ──────────────────────────────────────────────────────────────────────────
 
     __address         = db.Column("address", db.String(255), nullable=True)
-    # Getter dan setter untuk atribut privat address.
+    # Getter dan setter untuk atribut address.
     def get_address(self):
         return self.__address
     def set_address(self, value):
@@ -609,7 +600,7 @@ class Driver(db.Model):
     address = synonym("_Driver__address", descriptor=property(get_address, set_address))
 
     __description     = db.Column("description", db.Text, nullable=True)
-    # Getter dan setter untuk atribut privat description.
+    # Getter dan setter untuk atribut description.
     def get_description(self):
         return self.__description
     def set_description(self, value):
@@ -617,7 +608,7 @@ class Driver(db.Model):
     description = synonym("_Driver__description", descriptor=property(get_description, set_description))
     
     __sim_photo       = db.Column("sim_photo", db.String(255), nullable=True)
-    # Getter dan setter untuk atribut privat sim_photo.
+    # Getter dan setter untuk atribut sim_photo.
     def get_sim_photo(self):
         return self.__sim_photo
     def set_sim_photo(self, value):
@@ -625,7 +616,7 @@ class Driver(db.Model):
     sim_photo = synonym("_Driver__sim_photo", descriptor=property(get_sim_photo, set_sim_photo))
 
     __ktp_photo       = db.Column("ktp_photo", db.String(255), nullable=True)
-    # Getter dan setter untuk atribut privat ktp_photo.
+    # Getter dan setter untuk atribut ktp_photo.
     def get_ktp_photo(self):
         return self.__ktp_photo
     def set_ktp_photo(self, value):
@@ -788,7 +779,7 @@ class Rental(db.Model):
     # ──────────────────────────────────────────────────────────────────────────
 
     __id                  = db.Column("id", db.Integer, primary_key=True)
-    # Getter dan setter untuk atribut privat id.
+    # Getter dan setter untuk atribut id.
     def get_id(self):
         return self.__id
     def set_id(self, value):
@@ -796,7 +787,7 @@ class Rental(db.Model):
     id = synonym("_Rental__id", descriptor=property(get_id, set_id))
     
     __booking_code        = db.Column("booking_code", db.String(20), unique=True, nullable=False)
-    # Getter dan setter untuk atribut privat booking_code.
+    # Getter dan setter untuk atribut booking_code.
     def get_booking_code(self):
         return self.__booking_code
     def set_booking_code(self, value):
@@ -804,7 +795,7 @@ class Rental(db.Model):
     booking_code = synonym("_Rental__booking_code", descriptor=property(get_booking_code, set_booking_code))
 
     __user_id             = db.Column("user_id", db.Integer, db.ForeignKey('user.id'), nullable=False)
-    # Getter dan setter untuk atribut privat user_id.
+    # Getter dan setter untuk atribut user_id.
     def get_user_id(self):
         return self.__user_id
     def set_user_id(self, value):
@@ -812,7 +803,7 @@ class Rental(db.Model):
     user_id = synonym("_Rental__user_id", descriptor=property(get_user_id, set_user_id))
     
     __vehicle_id          = db.Column("vehicle_id", db.Integer, db.ForeignKey('vehicle.id'), nullable=False)
-    # Getter dan setter untuk atribut privat vehicle_id.
+    # Getter dan setter untuk atribut vehicle_id.
     def get_vehicle_id(self):
         return self.__vehicle_id
     def set_vehicle_id(self, value):
@@ -820,7 +811,7 @@ class Rental(db.Model):
     vehicle_id = synonym("_Rental__vehicle_id", descriptor=property(get_vehicle_id, set_vehicle_id))
     
     __driver_id           = db.Column("driver_id", db.Integer, db.ForeignKey('driver.id'), nullable=True) # Tambahan Relasi Sopir
-    # Getter dan setter untuk atribut privat driver_id.
+    # Getter dan setter untuk atribut driver_id.
     def get_driver_id(self):
         return self.__driver_id
     def set_driver_id(self, value):
@@ -828,7 +819,7 @@ class Rental(db.Model):
     driver_id = synonym("_Rental__driver_id", descriptor=property(get_driver_id, set_driver_id))
 
     __start_date          = db.Column("start_date", db.Date, nullable=False)
-    # Getter dan setter untuk atribut privat start_date.
+    # Getter dan setter untuk atribut start_date.
     def get_start_date(self):
         return self.__start_date
     def set_start_date(self, value):
@@ -836,7 +827,7 @@ class Rental(db.Model):
     start_date = synonym("_Rental__start_date", descriptor=property(get_start_date, set_start_date))
     
     __end_date            = db.Column("end_date", db.Date, nullable=False)
-    # Getter dan setter untuk atribut privat end_date.
+    # Getter dan setter untuk atribut end_date.
     def get_end_date(self):
         return self.__end_date
     def set_end_date(self, value):
@@ -847,7 +838,7 @@ class Rental(db.Model):
     # Tanggal dan jam disimpan terpisah.
 
     __pickup_time         = db.Column("pickup_time", db.String(5), nullable=False, default='10:00')
-    # Getter dan setter untuk atribut privat pickup_time.
+    # Getter dan setter untuk atribut pickup_time.
     def get_pickup_time(self):
         return self.__pickup_time
     def set_pickup_time(self, value):
@@ -855,7 +846,7 @@ class Rental(db.Model):
     pickup_time = synonym("_Rental__pickup_time", descriptor=property(get_pickup_time, set_pickup_time))
     
     __return_time         = db.Column("return_time", db.String(5), nullable=False, default='10:00')
-    # Getter dan setter untuk atribut privat return_time.
+    # Getter dan setter untuk atribut return_time.
     def get_return_time(self):
         return self.__return_time
     def set_return_time(self, value):
@@ -864,7 +855,7 @@ class Rental(db.Model):
 
     
     __status              = db.Column("status", db.String(50), nullable=False, default=STATUS_MENUNGGU_BAYAR)
-    # Getter dan setter untuk atribut privat status.
+    # Getter dan setter untuk atribut status.
     def get_status(self):
         return self.__status
     def set_status(self, value):
@@ -872,7 +863,7 @@ class Rental(db.Model):
     status = synonym("_Rental__status", descriptor=property(get_status, set_status))
     
     __created_at          = db.Column("created_at", db.DateTime, nullable=False, default=datetime.now)
-    # Getter dan setter untuk atribut privat created_at.
+    # Getter dan setter untuk atribut created_at.
     def get_created_at(self):
         return self.__created_at
     def set_created_at(self, value):
@@ -883,18 +874,18 @@ class Rental(db.Model):
     # Informasi pembayaran dan pembatalan.
 
 
-# [OOP - ENKAPSULASI]: data pembayaran bersifat privat dan hanya diakses lewat getter/setter.
+# [OOP - ENKAPSULASI]: data pembayaran bersifat dan hanya diakses lewat getter/setter.
     __payment_method      = db.Column("payment_method", db.String(50), nullable=True)
-    # Getter dan setter untuk atribut privat payment_method.
+    # Getter dan setter untuk atribut payment_method.
     def get_payment_method(self):
         return self.__payment_method
     def set_payment_method(self, value):
         self.__payment_method = value
     payment_method = synonym("_Rental__payment_method", descriptor=property(get_payment_method, set_payment_method))
 
-# [OOP - ENKAPSULASI]: data pembayaran bersifat privat dan hanya diakses lewat getter/setter.
+# [OOP - ENKAPSULASI]: data pembayaran bersifat dan hanya diakses lewat getter/setter.
     __payment_status      = db.Column("payment_status", db.String(20), nullable=False, default='Belum Lunas') # 'Lunas' / 'Belum Lunas'
-    # Getter dan setter untuk atribut privat payment_status.
+    # Getter dan setter untuk atribut payment_status.
     def get_payment_status(self):
         return self.__payment_status
     def set_payment_status(self, value):
@@ -902,7 +893,7 @@ class Rental(db.Model):
     payment_status = synonym("_Rental__payment_status", descriptor=property(get_payment_status, set_payment_status))
     
     __cancellation_reason = db.Column("cancellation_reason", db.String(500), nullable=True)
-    # Getter dan setter untuk atribut privat cancellation_reason.
+    # Getter dan setter untuk atribut cancellation_reason.
     def get_cancellation_reason(self):
         return self.__cancellation_reason
     def set_cancellation_reason(self, value):
@@ -913,7 +904,7 @@ class Rental(db.Model):
     # Pilihan layanan tambahan saat menyewa.
 
     __with_driver         = db.Column("with_driver", db.Boolean, nullable=False, default=False)
-    # Getter dan setter untuk atribut privat with_driver.
+    # Getter dan setter untuk atribut with_driver.
     def get_with_driver(self):
         return self.__with_driver
     def set_with_driver(self, value):
@@ -921,7 +912,7 @@ class Rental(db.Model):
     with_driver = synonym("_Rental__with_driver", descriptor=property(get_with_driver, set_with_driver))
     
     __accessories         = db.Column("accessories", db.String(200), nullable=True, default='')  
-    # Getter dan setter untuk atribut privat accessories.
+    # Getter dan setter untuk atribut accessories.
     def get_accessories(self):
         return self.__accessories
     def set_accessories(self, value):
@@ -929,7 +920,7 @@ class Rental(db.Model):
     accessories = synonym("_Rental__accessories", descriptor=property(get_accessories, set_accessories))
     
     __insurance           = db.Column("insurance", db.String(20), nullable=False, default='dasar')
-    # Getter dan setter untuk atribut privat insurance.
+    # Getter dan setter untuk atribut insurance.
     def get_insurance(self):
         return self.__insurance
     def set_insurance(self, value):
@@ -937,7 +928,7 @@ class Rental(db.Model):
     insurance = synonym("_Rental__insurance", descriptor=property(get_insurance, set_insurance))
     
     __purpose             = db.Column("purpose", db.String(50), nullable=True)
-    # Getter dan setter untuk atribut privat purpose.
+    # Getter dan setter untuk atribut purpose.
     def get_purpose(self):
         return self.__purpose
     def set_purpose(self, value):
@@ -945,7 +936,7 @@ class Rental(db.Model):
     purpose = synonym("_Rental__purpose", descriptor=property(get_purpose, set_purpose))
     
     __region              = db.Column("region", db.String(30), nullable=True)
-    # Getter dan setter untuk atribut privat region.
+    # Getter dan setter untuk atribut region.
     def get_region(self):
         return self.__region
     def set_region(self, value):
@@ -953,7 +944,7 @@ class Rental(db.Model):
     region = synonym("_Rental__region", descriptor=property(get_region, set_region))
     
     __destination_city    = db.Column("destination_city", db.String(100), nullable=True)
-    # Getter dan setter untuk atribut privat destination_city.
+    # Getter dan setter untuk atribut destination_city.
     def get_destination_city(self):
         return self.__destination_city
     def set_destination_city(self, value):
@@ -961,7 +952,7 @@ class Rental(db.Model):
     destination_city = synonym("_Rental__destination_city", descriptor=property(get_destination_city, set_destination_city))
     
     __pickup_location     = db.Column("pickup_location", db.String(100), nullable=True)
-    # Getter dan setter untuk atribut privat pickup_location.
+    # Getter dan setter untuk atribut pickup_location.
     def get_pickup_location(self):
         return self.__pickup_location
     def set_pickup_location(self, value):
@@ -969,7 +960,7 @@ class Rental(db.Model):
     pickup_location = synonym("_Rental__pickup_location", descriptor=property(get_pickup_location, set_pickup_location))
     
     __return_location     = db.Column("return_location", db.String(100), nullable=True)
-    # Getter dan setter untuk atribut privat return_location.
+    # Getter dan setter untuk atribut return_location.
     def get_return_location(self):
         return self.__return_location
     def set_return_location(self, value):
@@ -977,7 +968,7 @@ class Rental(db.Model):
     return_location = synonym("_Rental__return_location", descriptor=property(get_return_location, set_return_location))
     
     __special_request     = db.Column("special_request", db.Text, nullable=True)
-    # Getter dan setter untuk atribut privat special_request.
+    # Getter dan setter untuk atribut special_request.
     def get_special_request(self):
         return self.__special_request
     def set_special_request(self, value):
@@ -988,7 +979,7 @@ class Rental(db.Model):
     # Dokumen yang diperlukan untuk penyewaan.
 
     __ktp_file            = db.Column("ktp_file", db.String(255), nullable=True)
-    # Getter dan setter untuk atribut privat ktp_file.
+    # Getter dan setter untuk atribut ktp_file.
     def get_ktp_file(self):
         return self.__ktp_file
     def set_ktp_file(self, value):
@@ -996,7 +987,7 @@ class Rental(db.Model):
     ktp_file = synonym("_Rental__ktp_file", descriptor=property(get_ktp_file, set_ktp_file))
     
     __sim_file            = db.Column("sim_file", db.String(255), nullable=True)
-    # Getter dan setter untuk atribut privat sim_file.
+    # Getter dan setter untuk atribut sim_file.
     def get_sim_file(self):
         return self.__sim_file
     def set_sim_file(self, value):
@@ -1010,7 +1001,7 @@ class Rental(db.Model):
     # supaya tidak terus bertambah setelah mobil masuk garasi.
 
     __fine_days           = db.Column("fine_days", db.Integer, nullable=False, default=0)
-    # Getter dan setter untuk atribut privat fine_days.
+    # Getter dan setter untuk atribut fine_days.
     def get_fine_days(self):
         return self.__fine_days
     def set_fine_days(self, value):
@@ -1018,7 +1009,7 @@ class Rental(db.Model):
     fine_days = synonym("_Rental__fine_days", descriptor=property(get_fine_days, set_fine_days))
     
     __fine_amount         = db.Column("fine_amount", db.Integer, nullable=False, default=0)
-    # Getter dan setter untuk atribut privat fine_amount.
+    # Getter dan setter untuk atribut fine_amount.
     def get_fine_amount(self):
         return self.__fine_amount
     def set_fine_amount(self, value):
@@ -1026,7 +1017,7 @@ class Rental(db.Model):
     fine_amount = synonym("_Rental__fine_amount", descriptor=property(get_fine_amount, set_fine_amount))
     
     __fine_paid           = db.Column("fine_paid", db.Boolean, nullable=False, default=False)
-    # Getter dan setter untuk atribut privat fine_paid.
+    # Getter dan setter untuk atribut fine_paid.
     def get_fine_paid(self):
         return self.__fine_paid
     def set_fine_paid(self, value):
@@ -1226,7 +1217,10 @@ class Rental(db.Model):
     #                    [METHOD RENTAL - PERUBAHAN STATUS]
     # ═════════════════════════════════════════════════════════════════════════
 
-# [OOP - ENKAPSULASI & STATE TRANSITION]: perubahan status dan efek sampingnya (termasuk status pembayaran) lewat satu pintu.
+    # [OOP - ENKAPSULASI & STATE TRANSITION]:
+    # Menyediakan method terpusat untuk mengubah status pesanan beserta
+    # proses terkait, seperti pembaruan lokasi kendaraan, perhitungan
+    # denda, dan pencatatan riwayat perubahan status.
     def change_status(self, new_status):
         # Mengubah status sekaligus menjalankan proses yang terkait.
         if new_status not in self.ALL_STATUS or new_status == self.status:
@@ -1353,7 +1347,7 @@ class RentalStatusHistory(db.Model):
 
 
     # ═════════════════════════════════════════════════════════════════════════
-    #                           [ATRIBUT RENTAL]
+    #                           [ATRIBUT RENTAL HISTORI]
     # ═════════════════════════════════════════════════════════════════════════
 
 
@@ -1364,7 +1358,7 @@ class RentalStatusHistory(db.Model):
     __tablename__   = 'rental_status_history'
 
     __id              = db.Column("id", db.Integer, primary_key=True)
-    # Getter dan setter untuk atribut privat id.
+    # Getter dan setter untuk atribut id.
     def get_id(self):
         return self.__id
     def set_id(self, value):
@@ -1372,7 +1366,7 @@ class RentalStatusHistory(db.Model):
     id = synonym("_RentalStatusHistory__id", descriptor=property(get_id, set_id))
 
     __rental_id       = db.Column("rental_id", db.Integer, db.ForeignKey('rental.id'), nullable=False, index=True)
-    # Getter dan setter untuk atribut privat rental_id.
+    # Getter dan setter untuk atribut rental_id.
     def get_rental_id(self):
         return self.__rental_id
     def set_rental_id(self, value):
@@ -1380,7 +1374,7 @@ class RentalStatusHistory(db.Model):
     rental_id = synonym("_RentalStatusHistory__rental_id", descriptor=property(get_rental_id, set_rental_id))
 
     __old_status      = db.Column("old_status", db.String(50), nullable=True)
-    # Getter dan setter untuk atribut privat old_status.
+    # Getter dan setter untuk atribut old_status.
     def get_old_status(self):
         return self.__old_status
     def set_old_status(self, value):
@@ -1388,7 +1382,7 @@ class RentalStatusHistory(db.Model):
     old_status = synonym("_RentalStatusHistory__old_status", descriptor=property(get_old_status, set_old_status))
     
     __new_status      = db.Column("new_status", db.String(50), nullable=False)
-    # Getter dan setter untuk atribut privat new_status.
+    # Getter dan setter untuk atribut new_status.
     def get_new_status(self):
         return self.__new_status
     def set_new_status(self, value):
@@ -1396,7 +1390,7 @@ class RentalStatusHistory(db.Model):
     new_status = synonym("_RentalStatusHistory__new_status", descriptor=property(get_new_status, set_new_status))
 
     __changed_at      = db.Column("changed_at", db.DateTime, nullable=False, default=datetime.now, index=True)
-    # Getter dan setter untuk atribut privat changed_at.
+    # Getter dan setter untuk atribut changed_at.
     def get_changed_at(self):
         return self.__changed_at
     def set_changed_at(self, value):
@@ -1436,7 +1430,7 @@ class RentalCancellation(db.Model):
     STATUS_DANA_DIKEMBALIKAN    = 'Dana Dikembalikan'
 
     __id = db.Column("id", db.Integer, primary_key=True)
-    # Getter dan setter untuk atribut privat id.
+    # Getter dan setter untuk atribut id.
     def get_id(self):
         return self.__id
     def set_id(self, value):
@@ -1444,7 +1438,7 @@ class RentalCancellation(db.Model):
     id = synonym("_RentalCancellation__id", descriptor=property(get_id, set_id))
 
     __rental_id = db.Column("rental_id", db.Integer, db.ForeignKey('rental.id'), nullable=False, index=True)
-    # Getter dan setter untuk atribut privat rental_id.
+    # Getter dan setter untuk atribut rental_id.
     def get_rental_id(self):
         return self.__rental_id
     def set_rental_id(self, value):
@@ -1453,7 +1447,7 @@ class RentalCancellation(db.Model):
 
     # Alasan pembatalan yang disampaikan oleh pihak pengaju.
     __reason = db.Column("reason", db.String(500), nullable=False )
-    # Getter dan setter untuk atribut privat reason.
+    # Getter dan setter untuk atribut reason.
     def get_reason(self):
         return self.__reason
     def set_reason(self, value):
@@ -1462,7 +1456,7 @@ class RentalCancellation(db.Model):
 
     # Menandai pihak yang mengajukan pembatalan.
     __initiated_by = db.Column("initiated_by", db.String(20), nullable=False)
-    # Getter dan setter untuk atribut privat initiated_by.
+    # Getter dan setter untuk atribut initiated_by.
     def get_initiated_by(self):
         return self.__initiated_by
     def set_initiated_by(self, value):
@@ -1470,7 +1464,7 @@ class RentalCancellation(db.Model):
     initiated_by = synonym("_RentalCancellation__initiated_by", descriptor=property(get_initiated_by, set_initiated_by))
 
     __status = db.Column("status", db.String(50), nullable=False, default=STATUS_DIAJUKAN)
-    # Getter dan setter untuk atribut privat status.
+    # Getter dan setter untuk atribut status.
     def get_status(self):
         return self.__status
     def set_status(self, value):
@@ -1481,7 +1475,7 @@ class RentalCancellation(db.Model):
     # Waktu pengajuan dan keputusan pembatalan:
 
     __requested_at = db.Column("requested_at", db.DateTime, nullable=True)
-    # Getter dan setter untuk atribut privat requested_at.
+    # Getter dan setter untuk atribut requested_at.
     def get_requested_at(self):
         return self.__requested_at
     def set_requested_at(self, value):
@@ -1489,7 +1483,7 @@ class RentalCancellation(db.Model):
     requested_at = synonym("_RentalCancellation__requested_at", descriptor=property(get_requested_at, set_requested_at))
     
     __approved_at = db.Column("approved_at", db.DateTime, nullable=True)
-    # Getter dan setter untuk atribut privat approved_at.
+    # Getter dan setter untuk atribut approved_at.
     def get_approved_at(self):
         return self.__approved_at
     def set_approved_at(self, value):
@@ -1497,7 +1491,7 @@ class RentalCancellation(db.Model):
     approved_at = synonym("_RentalCancellation__approved_at", descriptor=property(get_approved_at, set_approved_at))
     
     __rejected_at = db.Column("rejected_at", db.DateTime, nullable=True)
-    # Getter dan setter untuk atribut privat rejected_at.
+    # Getter dan setter untuk atribut rejected_at.
     def get_rejected_at(self):
         return self.__rejected_at
     def set_rejected_at(self, value):
@@ -1505,7 +1499,7 @@ class RentalCancellation(db.Model):
     rejected_at = synonym("_RentalCancellation__rejected_at", descriptor=property(get_rejected_at, set_rejected_at))
     
     __cancelled_at = db.Column("cancelled_at", db.DateTime,nullable=True)
-    # Getter dan setter untuk atribut privat cancelled_at.
+    # Getter dan setter untuk atribut cancelled_at.
     def get_cancelled_at(self):
         return self.__cancelled_at
     def set_cancelled_at(self, value):
@@ -1516,7 +1510,7 @@ class RentalCancellation(db.Model):
     # Waktu dana dikembalikan kepada pelanggan:
 
     __refunded_at = db.Column("refunded_at", db.DateTime, nullable=True)
-    # Getter dan setter untuk atribut privat refunded_at.
+    # Getter dan setter untuk atribut refunded_at.
     def get_refunded_at(self):
         return self.__refunded_at
     def set_refunded_at(self, value):
@@ -1527,7 +1521,7 @@ class RentalCancellation(db.Model):
     # Jumlah dana yang perlu atau sudah dikembalikan:
 
     __refund_amount = db.Column("refund_amount", db.Integer, nullable=True)
-    # Getter dan setter untuk atribut privat refund_amount.
+    # Getter dan setter untuk atribut refund_amount.
     def get_refund_amount(self):
         return self.__refund_amount
     def set_refund_amount(self, value):
@@ -1536,7 +1530,7 @@ class RentalCancellation(db.Model):
 
     # Catatan tambahan dari admin.
     __admin_note = db.Column("admin_note", db.Text, nullable=True)
-    # Getter dan setter untuk atribut privat admin_note.
+    # Getter dan setter untuk atribut admin_note.
     def get_admin_note(self):
         return self.__admin_note
     def set_admin_note(self, value):
@@ -1623,9 +1617,9 @@ class RentalCancellation(db.Model):
         self.refunded_at = waktu
         self.status = self.STATUS_DANA_DIKEMBALIKAN
 
-    # [OOP - ABSTRAKSI & POLIMORFISME DATA TIMELINE]
-    # Menghasilkan tahapan timeline pembatalan secara dinamis berdasarkan
-    # aktor pengaju (customer vs admin) dan kondisi pembayaran (refund vs non-refund).
+    # [OOP - ENKAPSULASI LOGIKA PEMBENTUKAN TIMELINE]
+    # Menyusun tahapan timeline pembatalan berdasarkan pihak pengaju,
+    # status pembatalan, dan kondisi pengembalian dana.
     @property
     def timeline_steps(self):
         """Menyusun timeline berdasarkan aktor, keputusan, dan status refund."""
@@ -1671,8 +1665,7 @@ class RentalCancellation(db.Model):
 
         return steps
 
-    # [OOP - ABSTRAKSI PERHITUNGAN STATE TIMELINE]
-    # Menghitung jumlah tahapan timeline pembatalan yang sudah selesai (memiliki timestamp).
+    # Menghitung jumlah tahapan timeline yang sudah memiliki timestamp.
     @property
     def completed_steps_count(self):
         return sum(1 for _, _, waktu in self.timeline_steps if waktu is not None)
@@ -1698,7 +1691,7 @@ class Review(db.Model):
     # ──────────────────────────────────────────────────────────────────────────
 
     __id          = db.Column("id", db.Integer, primary_key=True)
-    # Getter dan setter untuk atribut privat id.
+    # Getter dan setter untuk atribut id.
     def get_id(self):
         return self.__id
     def set_id(self, value):
@@ -1706,7 +1699,7 @@ class Review(db.Model):
     id = synonym("_Review__id", descriptor=property(get_id, set_id))
     
     __user_id     = db.Column("user_id", db.Integer, db.ForeignKey('user.id'), nullable=False)
-    # Getter dan setter untuk atribut privat user_id.
+    # Getter dan setter untuk atribut user_id.
     def get_user_id(self):
         return self.__user_id
     def set_user_id(self, value):
@@ -1714,7 +1707,7 @@ class Review(db.Model):
     user_id = synonym("_Review__user_id", descriptor=property(get_user_id, set_user_id))
     
     __vehicle_id  = db.Column("vehicle_id", db.Integer, db.ForeignKey('vehicle.id'), nullable=False)
-    # Getter dan setter untuk atribut privat vehicle_id.
+    # Getter dan setter untuk atribut vehicle_id.
     def get_vehicle_id(self):
         return self.__vehicle_id
     def set_vehicle_id(self, value):
@@ -1732,7 +1725,7 @@ class Review(db.Model):
     # Nilai ulasan menggunakan skala 1 sampai 5:
 
     __rating      = db.Column("rating", db.Integer, nullable=False)   # 1 sampai 5
-    # Getter dan setter untuk atribut privat rating.
+    # Getter dan setter untuk atribut rating.
     def get_rating(self):
         return self.__rating
     def set_rating(self, value):
@@ -1742,7 +1735,7 @@ class Review(db.Model):
     # Rating sopir menggunakan skala 1 sampai 5.
     # Kosong jika penyewaan tidak menggunakan sopir.
     __rating_driver = db.Column("rating_driver", db.Integer, nullable=True)
-    # Getter dan setter untuk atribut privat rating_driver.
+    # Getter dan setter untuk atribut rating_driver.
     def get_rating_driver(self):
         return self.__rating_driver
     def set_rating_driver(self, value):
@@ -1750,7 +1743,7 @@ class Review(db.Model):
     rating_driver = synonym("_Review__rating_driver", descriptor=property(get_rating_driver, set_rating_driver))
 
     __comment     = db.Column("comment", db.Text, nullable=True)
-    # Getter dan setter untuk atribut privat comment.
+    # Getter dan setter untuk atribut comment.
     def get_comment(self):
         return self.__comment
     def set_comment(self, value):
@@ -1758,7 +1751,7 @@ class Review(db.Model):
     comment = synonym("_Review__comment", descriptor=property(get_comment, set_comment))
     
     __created_at  = db.Column("created_at", db.DateTime, nullable=False, default=datetime.now)
-    # Getter dan setter untuk atribut privat created_at.
+    # Getter dan setter untuk atribut created_at.
     def get_created_at(self):
         return self.__created_at
     def set_created_at(self, value):
@@ -1790,7 +1783,7 @@ class Notification(db.Model):
     # ──────────────────────────────────────────────────────────────────────────
 
     __id          = db.Column("id", db.Integer, primary_key=True)
-    # Getter dan setter untuk atribut privat id.
+    # Getter dan setter untuk atribut id.
     def get_id(self):
         return self.__id
     def set_id(self, value):
@@ -1798,7 +1791,7 @@ class Notification(db.Model):
     id = synonym("_Notification__id", descriptor=property(get_id, set_id))
     
     __user_id     = db.Column("user_id", db.Integer, db.ForeignKey('user.id'), nullable=False)
-    # Getter dan setter untuk atribut privat user_id.
+    # Getter dan setter untuk atribut user_id.
     def get_user_id(self):
         return self.__user_id
     def set_user_id(self, value):
@@ -1806,7 +1799,7 @@ class Notification(db.Model):
     user_id = synonym("_Notification__user_id", descriptor=property(get_user_id, set_user_id))
     
     __rental_id   = db.Column("rental_id", db.Integer, db.ForeignKey('rental.id'), nullable=False)
-    # Getter dan setter untuk atribut privat rental_id.
+    # Getter dan setter untuk atribut rental_id.
     def get_rental_id(self):
         return self.__rental_id
     def set_rental_id(self, value):
@@ -1814,7 +1807,7 @@ class Notification(db.Model):
     rental_id = synonym("_Notification__rental_id", descriptor=property(get_rental_id, set_rental_id))
     
     __title       = db.Column("title", db.String(100), nullable=False)
-    # Getter dan setter untuk atribut privat title.
+    # Getter dan setter untuk atribut title.
     def get_title(self):
         return self.__title
     def set_title(self, value):
@@ -1822,7 +1815,7 @@ class Notification(db.Model):
     title = synonym("_Notification__title", descriptor=property(get_title, set_title))
     
     __message     = db.Column("message", db.Text, nullable=False)
-    # Getter dan setter untuk atribut privat message.
+    # Getter dan setter untuk atribut message.
     def get_message(self):
         return self.__message
     def set_message(self, value):
@@ -1833,7 +1826,7 @@ class Notification(db.Model):
     # Status sebelum dan sesudah perubahan:
 
     __old_status  = db.Column("old_status", db.String(50), nullable=True)
-    # Getter dan setter untuk atribut privat old_status.
+    # Getter dan setter untuk atribut old_status.
     def get_old_status(self):
         return self.__old_status
     def set_old_status(self, value):
@@ -1841,7 +1834,7 @@ class Notification(db.Model):
     old_status = synonym("_Notification__old_status", descriptor=property(get_old_status, set_old_status))
     
     __new_status  = db.Column("new_status", db.String(50), nullable=False)
-    # Getter dan setter untuk atribut privat new_status.
+    # Getter dan setter untuk atribut new_status.
     def get_new_status(self):
         return self.__new_status
     def set_new_status(self, value):
@@ -1849,7 +1842,7 @@ class Notification(db.Model):
     new_status = synonym("_Notification__new_status", descriptor=property(get_new_status, set_new_status))
     
     __is_read     = db.Column("is_read", db.Boolean, nullable=False, default=False)
-    # Getter dan setter untuk atribut privat is_read.
+    # Getter dan setter untuk atribut is_read.
     def get_is_read(self):
         return self.__is_read
     def set_is_read(self, value):
@@ -1857,7 +1850,7 @@ class Notification(db.Model):
     is_read = synonym("_Notification__is_read", descriptor=property(get_is_read, set_is_read))
 
     __created_at  = db.Column("created_at", db.DateTime, nullable=False, default=datetime.now )
-    # Getter dan setter untuk atribut privat created_at.
+    # Getter dan setter untuk atribut created_at.
     def get_created_at(self):
         return self.__created_at
     def set_created_at(self, value):
@@ -1881,7 +1874,7 @@ class Notification(db.Model):
     CATEGORY_RETURN_3H  = 'return_3h'
 
     __category    = db.Column("category", db.String(20), nullable=False, default=CATEGORY_STATUS )
-    # Getter dan setter untuk atribut privat category.
+    # Getter dan setter untuk atribut category.
     def get_category(self):
         return self.__category
     def set_category(self, value):
@@ -2257,7 +2250,7 @@ class Notification(db.Model):
 #              db.Model
 #                 |
 #                User <-----+
-#               /    \      |  ProfileMixin (Abstraksi / Mixin)
+#               /    \      |  ProfileMixin
 #              /      \     +--------+
 #             v        v             |
 #         Customer    Admin <--------+
@@ -2334,7 +2327,7 @@ class Customer(ProfileMixin, User):
     # POLIMORFISME:
     # Customer menggunakan awalan PLG untuk kode akunnya.
     def get_code(self):
-        return f"{self.CODE_PREFIX}{self.id:03d}"
+        return f"{self.CODE_PREFIX}-{self.id:04d}"
 
     @property
     def rental_history(self):
@@ -2376,7 +2369,7 @@ class Admin(ProfileMixin, User):
     # POLIMORFISME:
     # Admin menggunakan awalan ADM untuk kode akunnya.
     def get_code(self):
-        return f"{self.CODE_PREFIX}{self.id:03d}"
+        return f"{self.CODE_PREFIX}-{self.id:04d}-STAFF"
 
 
 
@@ -2405,4 +2398,4 @@ class SuperAdmin(Admin):
     # POLIMORFISME:
     # SuperAdmin mengubah hasil get_code() agar memakai awalan SA.
     def get_code(self):
-        return f"{self.CODE_PREFIX}{self.id:03d}"
+        return f"{self.CODE_PREFIX}-{self.id:04d}-SUPER"
