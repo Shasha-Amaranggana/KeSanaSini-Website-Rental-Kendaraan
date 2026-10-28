@@ -285,7 +285,7 @@
                 <span>KAMI</span>
             </h2>
             <p>
-                Mulailah dengan kendaraan favorit dari kami
+                Mulailah dengan kendaraan terfavorit milik kami
             </p>
 
         </div>
@@ -355,9 +355,29 @@
 
                             </div>
 
-                            <!-- HARGA -->
-                            <div class="vehicle-price">
-                                Rp{{ "{:,.0f}".format(vehicle.price_per_day).replace(',', '.') }}/hari
+                            <!-- HARGA DAN RATING -->
+                            <div class="vehicle-bottom">
+
+                                <!-- RATING DI KIRI -->
+                                <div class="vehicle-rating">
+                                    {% if vehicle.review_count > 0 %}
+                                        <i class="fa-solid fa-star"></i>
+                                        {{ "%.1f"|format(vehicle.avg_rating) }}
+                                        <span>
+                                            ({{ vehicle.review_count }})
+                                        </span>
+                                    {% else %}
+                                        <span class="no-rating">
+                                            Belum dinilai
+                                        </span>
+                                    {% endif %}
+                                </div>
+
+                                <!-- HARGA DI KANAN -->
+                                <div class="vehicle-price">
+                                    Rp{{ "{:,.0f}".format(vehicle.price_per_day).replace(',', '.') }}/hari
+                                </div>
+
                             </div>
 
                         </div>

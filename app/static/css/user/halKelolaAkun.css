@@ -246,6 +246,118 @@
 
 
 /* ═════════════════════════════════════════════════════════════
+   F.   FOTO PROFIL PENGGUNA
+        ⤷ Mengatur foto profil, tombol unggah, dan pratinjau.
+═════════════════════════════════════════════════════════════ */
+
+/* F.1. Mengatur jarak area foto profil */
+.profile-photo-section {
+    margin-bottom: 22px;
+}
+
+.profile-photo-label {
+    display: block;
+    margin-bottom: 10px;
+    color: #777;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+/* F.2. Mengatur susunan foto dan tombol unggah */
+.profile-photo-content {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+/* F.3. Mengatur bingkai foto profil */
+.profile-photo-preview {
+    position: relative;
+    flex-shrink: 0;
+    width: 100px;
+    height: 100px;
+    overflow: hidden;
+    border: 2px solid #ffbd27;
+    border-radius: 50%;
+    background: #fff4e8;
+}
+
+/* F.4. Mengatur gambar foto profil */
+.profile-photo-preview img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* F.5. Mengatur ikon pengganti foto */
+.profile-photo-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ff9145;
+    font-size: 38px;
+}
+
+/* F.6. Mengatur tombol pilih foto */
+.profile-photo-controls {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 9px;
+}
+
+.profile-photo-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 5px 15px;
+    border: none;
+    border-radius: 7px;
+    background: #ff7627;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.profile-photo-button:hover {
+    background: #ffab36;
+}
+
+/* F.7. Mengatur petunjuk format foto */
+.profile-photo-hint {
+    color: #888;
+    font-size: 11px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+/* F.8. Menyesuaikan foto pada layar kecil */
+@media (max-width: 420px) {
+    .profile-photo-content {
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .profile-photo-preview {
+        width: 80px;
+        height: 80px;
+    }
+
+    .profile-photo-fallback {
+        font-size: 30px;
+    }
+}
+
+
+
+/* ═════════════════════════════════════════════════════════════
    F.   UNGGAH DAN PRATINJAU DOKUMEN
        ⤷ Mengatur kolom unggah KTP dan SIM, status dokumen,
          pratinjau berkas, serta pesan peringatan.

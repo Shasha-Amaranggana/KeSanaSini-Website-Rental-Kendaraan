@@ -390,17 +390,9 @@ body.user-page > .footer {
 .profile-avatar {
     width: 45px;
     height: 45px;
-    flex-shrink: 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
+    flex: 0 0 45px;
+    overflow: hidden;
     border-radius: 50%;
-    background: #fff0e4;
-
-    color: #ed741d;
-    font-size: 21px;
 }
 
 /* Informasi profil sidebar */
@@ -435,6 +427,22 @@ body.user-page > .footer {
     font-weight: 600;
     white-space: nowrap;
     text-overflow: ellipsis;
+}
+
+.sidebar-profile-photo {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    border-radius: 50%;
+}
+
+.sidebar-profile-fallback {
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
 }
 
 

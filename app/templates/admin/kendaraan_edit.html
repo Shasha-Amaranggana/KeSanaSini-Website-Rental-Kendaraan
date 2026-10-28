@@ -101,7 +101,7 @@
                             <select class="vf-input" id="kategori" name="kategori" required>
                                 <option value="" disabled {{ 'selected' if not f.get('kategori') }}>Pilih kategori
                                 </option>
-                                {% for o in ['SUV', 'MPV', 'Sedan', 'Motor'] %}
+                                {% for o in ['Mobil', 'Motor'] %}
                                 <option value="{{ o }}" {{ 'selected' if f.get('kategori')==o }}>{{ o }}</option>
                                 {% endfor %}
                             </select>

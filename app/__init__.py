@@ -205,3 +205,16 @@ def create_app():
 
     # Mengembalikan objek aplikasi Flask yang sudah selesai dikonfigurasi agar dapat dijalankan oleh server.
     return app
+
+
+
+# ═════════════════════════════════════════════════════════════
+#   C.   |   PENGATURAN ZONA WAKTU WEBSITE (WITA)
+# ═════════════════════════════════════════════════════════════
+from datetime import datetime, timezone, timedelta
+
+WITA = timezone(timedelta(hours=8))
+
+def waktu_wita():
+    """Mengambil waktu lokal WITA (UTC+8)."""
+    return datetime.now(WITA).replace(tzinfo=None)
