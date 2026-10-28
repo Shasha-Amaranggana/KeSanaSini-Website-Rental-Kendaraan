@@ -30,7 +30,7 @@ from werkzeug.datastructures import MultiDict
 # Mengimpor wraps untuk mempertahankan informasi fungsi decorator.
 from functools import wraps
 # Mengimpor database dan OAuth dari aplikasi.
-from app import db, oauth
+from app import db, oauth, waktu_wita
 # Mengelola token bertanda tangan dan memeriksa masa berlakunya.
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 # Mengelola operasi file dan folder.
@@ -92,7 +92,7 @@ MINIMUM_JAM_SEBELUM_PENGAMBILAN = 25
 # Menghasilkan waktu paling awal kendaraan boleh diambil.
 def waktu_minimum_pengambilan():
     """Waktu paling awal kendaraan boleh diambil."""
-    return datetime.now() + timedelta(
+    return waktu_wita() + timedelta(
         hours=MINIMUM_JAM_SEBELUM_PENGAMBILAN
     )
 
@@ -111,7 +111,7 @@ def bulatkan_ke_menit_berikutnya(waktu):
 def waktu_default_pengambilan():
     """Jadwal bawaan agar pengguna punya waktu mengisi formulir."""
     return bulatkan_ke_menit_berikutnya(
-        datetime.now() + timedelta(hours=26)
+        waktu_wita() + timedelta(hours=26)
     )
 
 # Menggabungkan tanggal dan jam dari input menjadi objek datetime.
@@ -178,7 +178,36 @@ def index():
     # Mengambil data pengguna yang sedang login dari database.
     user = User.query.get(session['user_id'])
 
-    vehicles = Vehicle.query.all()
+    # Mengambil seluruh kendaraan yang aktif.
+    semua_kendaraan = Vehicle.query.filter_by(
+        is_active=True
+    ).all()
+
+    # Menghitung jumlah penyewaan yang benar-benar selesai
+    # untuk setiap kendaraan.
+    jumlah_penyewaan = dict(
+        db.session.query(
+            Rental.vehicle_id,
+            db.func.count(Rental.id)
+        )
+        .filter(Rental.status == Rental.STATUS_SELESAI)
+        .group_by(Rental.vehicle_id)
+        .all()
+    )
+
+    # Mengurutkan kendaraan berdasarkan jumlah penyewaan terbanyak.
+    # Jika jumlahnya sama, rating dan jumlah ulasan menjadi penentu.
+    semua_kendaraan.sort(
+        key=lambda vehicle: (
+            jumlah_penyewaan.get(vehicle.id, 0),
+            vehicle.avg_rating,
+            vehicle.review_count
+        ),
+        reverse=True
+    )
+
+    # Menampilkan maksimal 4 kendaraan di halaman utama.
+    vehicles = semua_kendaraan[:10]
 
     now = waktu_default_pengambilan()
 
@@ -548,7 +577,7 @@ def _batalkan_oleh_admin(rental, reason):
 
     waktu_batal = (
         rental.status_history[-1].changed_at
-        if rental.status_history else datetime.now()
+        if rental.status_history else waktu_wita()
     )
     db.session.add(
         Notification.status_changed(rental, old_status, cancelled_by='admin')
@@ -818,7 +847,7 @@ def batalkan_pesanan_kedaluwarsa(rental, commit=True):
 
     deadline = rental.created_at + timedelta(hours=24)
 
-    if datetime.now() < deadline or rental.payment_status == 'Lunas':
+    if waktu_wita() < deadline or rental.payment_status == 'Lunas':
         return False
 
     status_lama = rental.status
@@ -839,8 +868,8 @@ def batalkan_pesanan_kedaluwarsa(rental, commit=True):
             reason=rental.cancellation_reason,
             initiated_by='system',
             status=RentalCancellation.STATUS_DIAJUKAN,
-            requested_at=datetime.now(),
-            cancelled_at=datetime.now(),
+            requested_at=waktu_wita(),
+            cancelled_at=waktu_wita(),
             refund_amount=None
         ))
 
@@ -895,8 +924,8 @@ def batalkan_pesanan_tidak_diambil(rental, commit=True):
             reason=rental.cancellation_reason,
             initiated_by='system',
             status=RentalCancellation.STATUS_MENUNGGU_REFUND,
-            requested_at=datetime.now(),
-            cancelled_at=datetime.now(),
+            requested_at=waktu_wita(),
+            cancelled_at=waktu_wita(),
             refund_amount=rental.total_price
         ))
 
@@ -1107,7 +1136,7 @@ def kelola_akun():
 
                     filename = (
                         f"{field}_{user.id}_"
-                        f"{datetime.now().strftime('%Y%m%d%H%M%S%f')}."
+                        f"{waktu_wita().strftime('%Y%m%d%H%M%S%f')}."
                         f"{extension}"
                     )
 
@@ -1116,6 +1145,44 @@ def kelola_akun():
                     )
 
                     setattr(user, column, filename)
+
+            #   PROSES UPLOAD FOTO PROFIL
+            foto_profil = request.files.get('foto_profil')
+
+            # Foto bersifat opsional.
+            # Jika pengguna tidak memilih foto, foto lama tetap digunakan.
+            if foto_profil and foto_profil.filename:
+                nama_asli = secure_filename(foto_profil.filename)
+
+                if '.' not in nama_asli:
+                    raise ValueError('Format foto tidak valid.')
+
+                ekstensi = nama_asli.rsplit('.', 1)[1].lower()
+
+                if ekstensi not in {'jpg', 'jpeg', 'png'}:
+                    raise ValueError(
+                        'Foto profil harus berformat JPG, JPEG, atau PNG.'
+                    )
+
+                # Menyiapkan folder penyimpanan foto profil.
+                folder_foto = os.path.join(
+                    current_app.root_path,
+                    'static',
+                    'uploads',
+                    'foto_profil'
+                )
+                os.makedirs(folder_foto, exist_ok=True)
+
+                # Membuat nama file unik agar tidak menimpa foto pengguna lain.
+                nama_file = f'user_{user.id}_{uuid.uuid4().hex}.{ekstensi}'
+
+                foto_profil.save(
+                    os.path.join(folder_foto, nama_file)
+                )
+
+                # Menyimpan nama file ke kolom profile_photo.
+                user.profile_photo = nama_file
+
 
             db.session.commit()
 
@@ -1253,7 +1320,7 @@ def batalkan_pesanan_user(rental_id):
         reason=reason,
         initiated_by='customer',
         status=RentalCancellation.STATUS_DIAJUKAN,
-        requested_at=datetime.now(),
+        requested_at=waktu_wita(),
         refund_amount=(
             rental.total_price if perlu_refund else None
         )
@@ -1414,7 +1481,7 @@ def detail_pesanan(rental_id):
         waktu_batal = (
             rental.status_history[-1].changed_at
             if rental.status_history
-            else datetime.now()
+            else waktu_wita()
         )
         cancellation = _catat_pembatalan_admin_berbayar(
             rental,
@@ -1777,7 +1844,7 @@ def periksa_pengingat_dan_denda(user_id=None):
     Memeriksa pengingat pembayaran, pengembalian, dan denda.
     Pengingat H-3 hari yang sudah ada tetap dipertahankan.
     """
-    now = datetime.now()
+    now = waktu_wita()
     today_start = datetime(
         now.year,
         now.month,
@@ -2514,7 +2581,7 @@ def admin_proses_pembatalan(rental_id, cancellation_id):
     ).first_or_404()
 
     action = request.form.get('action')
-    sekarang = datetime.now()
+    sekarang = waktu_wita()
 
     # =====================================================
     # 1. ADMIN MENYETUJUI PERMOHONAN PELANGGAN
@@ -2779,7 +2846,7 @@ ALLOWED_IMAGE_EXT = {'jpg', 'jpeg', 'png', 'webp'}
 MAX_IMAGE_BYTES = 2 * 1024 * 1024
 
 # Pilihan dropdown yang sah. Harus sama dengan <option> di kendaraan_tambah.html dan kendaraan_edit.html.
-VEHICLE_TYPES = ('SUV', 'MPV', 'Sedan', 'Motor')
+VEHICLE_TYPES = ('Mobil', 'Motor')
 TRANSMISSIONS = ('Otomatis', 'Manual')
 FUELS = ('Bensin', 'Solar', 'Listrik')
 RENTAL_TYPES = ('Sopir & Tanpa Sopir', 'Tanpa Sopir', 'Dengan Sopir')
@@ -2844,7 +2911,7 @@ def _read_vehicle_form(form, current=None):
         return data, 'Merek dan tipe wajib diisi.'
     if not data['vehicle_number']:
         return data, 'Plat nomor wajib diisi.'
-    if data['year'] is None or not (1980 <= data['year'] <= datetime.now().year + 1):
+    if data['year'] is None or not (1980 <= data['year'] <= waktu_wita().year + 1):
         return data, 'Tahun tidak valid.'
     if data['vehicle_type'] not in _allowed(VEHICLE_TYPES, current, 'vehicle_type'):
         return data, 'Pilih kategori kendaraan.'
@@ -3186,7 +3253,7 @@ def admin_penyewaan_edit(id):
         waktu_batal = (
             rental.status_history[-1].changed_at
             if rental.status_history
-            else datetime.now()
+            else waktu_wita()
         )
         cancellation = _catat_pembatalan_admin_berbayar(
             rental,
@@ -3462,7 +3529,7 @@ class AdminService(BaseUserService):
     def _save_photo(self, file_storage, ext):
         folder = self._photo_folder()
         os.makedirs(folder, exist_ok=True)
-        filename = secure_filename(f"admin_{datetime.now().strftime('%Y%m%d%H%M%S%f')}.{ext}")
+        filename = secure_filename(f"admin_{waktu_wita().strftime('%Y%m%d%H%M%S%f')}.{ext}")
         file_storage.save(os.path.join(folder, filename))
         return filename
 
@@ -3646,7 +3713,7 @@ def _save_driver_file(file_storage, prefix):
         return None
     folder = os.path.join(current_app.root_path, 'static', 'uploads', 'sopir')
     os.makedirs(folder, exist_ok=True)
-    filename = secure_filename(f"{prefix}_{datetime.now().strftime('%Y%m%d%H%M%S%f')}.{ext}")
+    filename = secure_filename(f"{prefix}_{waktu_wita().strftime('%Y%m%d%H%M%S%f')}.{ext}")
     file_storage.save(os.path.join(folder, filename))
     return filename
 

@@ -461,7 +461,7 @@
     position: relative;
     width: 100%;
     min-height: 450px;
-    padding: 35px 5% 50px;
+    padding: 45px 5% 80px;
 
     background-color: #ffedcf;
     background-image:
@@ -501,7 +501,7 @@
     color: #ed741d;
 }
 
-/* Detail : "Mulailah dengan kendaraan favorit dari kami" */
+/* Detail : "Mulailah dengan kendaraan terfavorit milik kami" */
 .section-title p {
     font-family: 'Poppins', sans-serif;
     margin-top: 6px;
@@ -521,11 +521,15 @@
    ⤷ Menampilkan kartu secara horizontal tanpa membungkus baris.
    ════════════════════════════════════════════════════════  */
 .vehicle-list {
-    width: 100%;
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 220px));
     justify-content: center;
-    gap: 15px;
-    flex-wrap: nowrap;
+    gap: 20px;
+
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 30px auto;
 }
 
 
@@ -534,14 +538,15 @@
    ════════════════════════════════════════════════════════  */
 .vehicle-card {
     width: 220px;
-    min-width: 220px;
-    height: 207px;
+    max-width: 100%;
+    min-width: 0;
+    height: 241px;
+    box-sizing: border-box;
     background: white;
     border-radius: 7px;
     overflow: hidden;
 
-    box-shadow:
-        0 2px 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 
     transition:
         transform 0.25s ease,
@@ -621,10 +626,9 @@
 /* K.5. Mengatur area informasi kendaraan
    ════════════════════════════════════════════════════════  */
 .vehicle-info {
-    height: 51px;
+    height: 68px;
     box-sizing: border-box;
-    padding: 4px 10px 3px;
-    background-color: #edeae8f2;
+    padding: 8px 10px 3px;
 }
 
 
@@ -635,8 +639,17 @@
     justify-content: space-between;
     color: #707070;
     font-size: 11px;
-    font-family: 'Poppins', sans-serif;
-    margin-bottom: 8px;
+    font-family: 'Poppins', sans-serif;    
+    height: 34px;
+
+    margin-left: -10px;
+    margin-right: -10px;
+    margin-bottom: 10px;
+
+    padding: 0px 10px;
+    background-color: #edeae8f2;
+    border-top: 1px solid #d9d9d9;
+    border-bottom: 2px solid #d9d9d9;
 }
 
 
@@ -656,11 +669,55 @@
 }
 
 
-/* K.9. Mengatur tampilan harga kendaraan
+/* K.9. Mengatur tampilan harga kendaraan dan rating kendaraan
    ⤷ Menempatkan harga di tengah dengan warna oranye.
    ════════════════════════════════════════════════════════  */
-.vehicle-price {
-    text-align: center;
+.vehicle-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    width: calc(100% + 20px);
+    margin-left: -10px;
+    margin-right: -10px;
+
+    min-height: 24px;
+    padding: 13px 9px;
+    gap: 6px;
+    margin-top: -10px;
+
+    box-sizing: border-box;
+    background-color: #f2efedf2;
+}
+
+.vehicle-bottom .vehicle-rating {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+
+    white-space: nowrap;
+    font-family: 'Poppins', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #555;
+}
+
+.vehicle-bottom .vehicle-rating i {
+    color: #f5a623;
+    font-size: 12px;
+}
+
+.vehicle-bottom .vehicle-rating span {
+    font-size: 10px;
+    font-weight: 400;
+    color: #777;
+}
+
+.vehicle-bottom .vehicle-price {
+    margin-left: auto;
+    text-align: right;
+    white-space: nowrap;
+
     font-family: 'Poppins', sans-serif;
     color: #ef751e;
     font-size: 15px;
@@ -707,12 +764,6 @@
 @media (max-width: 1200px) {
     .benefit-bar {
         gap: 20px;
-    }
-
-    .vehicle-list {
-        overflow-x: auto;
-        justify-content: flex-start;
-        padding-bottom: 10px;
     }
 }
 

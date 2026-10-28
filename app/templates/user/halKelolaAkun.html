@@ -134,6 +134,47 @@ Kelola Akun - KeSanaSini
 
                             <div class="card-body">
 
+                                <!-- FOTO PROFIL PENGGUNA -->
+                                <div class="profile-photo-section">
+                                    <label class="profile-photo-label">Foto Profil</label>
+
+                                    <div class="profile-photo-content">
+                                        <div class="profile-photo-preview">
+                                            <img
+                                                id="profile-photo-preview"
+                                                src="{% if user.profile_photo %}{{ url_for('static', filename='uploads/foto_profil/' ~ user.profile_photo) }}{% else %}{{ url_for('static', filename='images/default-profile.png') }}{% endif %}"
+                                                alt="Foto profil pengguna"
+                                                onerror="this.style.display='none'; document.getElementById('profile-photo-fallback').style.display='flex';">
+
+                                            <div
+                                                id="profile-photo-fallback"
+                                                class="profile-photo-fallback"
+                                                {% if user.profile_photo %}style="display:none"{% endif %}>
+                                                <i class="fa-regular fa-user"></i>
+                                            </div>
+                                        </div>
+
+                                        <div class="profile-photo-controls">
+                                            <label for="foto_profil" class="profile-photo-button">
+                                                <i class="fa-solid fa-camera"></i>
+                                                Pilih Foto
+                                            </label>
+
+                                            <input
+                                                type="file"
+                                                id="foto_profil"
+                                                name="foto_profil"
+                                                accept=".jpg,.jpeg,.png"
+                                                hidden>
+
+                                            <span id="profile-photo-status" class="profile-photo-hint">
+                                                *File berupa JPG, JPEG, atau PNG.
+                                                Foto lama tetap digunakan jika tidak mengganti.
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- NAMA LENGKAP -->
                                 <div class="form-group">
                                     <label for="full-name">Nama Lengkap</label>
@@ -743,6 +784,48 @@ Kelola Akun - KeSanaSini
                 passwordForm.reportValidity();
             }
         });
+
+
+        // ====================================================
+        // PRATINJAU FOTO PROFIL
+        // Memeriksa format dan menampilkan foto sebelum disimpan.
+        // ====================================================
+
+        const profilePhotoInput = document.getElementById('foto_profil');
+        const profilePhotoPreview = document.getElementById('profile-photo-preview');
+        const profilePhotoFallback = document.getElementById('profile-photo-fallback');
+        const profilePhotoStatus = document.getElementById('profile-photo-status');
+
+        let profilePhotoObjectUrl = null;
+
+        profilePhotoInput.addEventListener('change', function () {
+            const file = this.files[0];
+
+            if (!file) return;
+
+            const allowedTypes = ['image/jpeg', 'image/png'];
+
+            if (!allowedTypes.includes(file.type)) {
+                profilePhotoStatus.textContent =
+                    'Format tidak valid. Pilih foto JPG, JPEG, atau PNG.';
+                this.value = '';
+                return;
+            }
+
+            // Membuat pratinjau foto yang baru dipilih.
+            if (profilePhotoObjectUrl) {
+                URL.revokeObjectURL(profilePhotoObjectUrl);
+            }
+
+            profilePhotoObjectUrl = URL.createObjectURL(file);
+
+            profilePhotoPreview.src = profilePhotoObjectUrl;
+            profilePhotoPreview.style.display = 'block';
+            profilePhotoFallback.style.display = 'none';
+
+            profilePhotoStatus.textContent = file.name;
+        });
+
 
     </script>
 
