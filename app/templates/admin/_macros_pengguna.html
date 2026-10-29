@@ -7,7 +7,11 @@
 {% macro avatar(path) %}
 <div class="kp-avatar">
     {% if path %}
-        <img src="{{ url_for('static', filename=path) }}" alt="Foto profil">
+        <img
+            src="{{ url_for('static', filename=path) }}"
+            alt="Foto profil"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <i class="fa-solid fa-user" style="display: none;"></i>
     {% else %}
         <i class="fa-solid fa-user"></i>
     {% endif %}

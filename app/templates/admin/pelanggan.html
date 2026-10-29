@@ -68,7 +68,7 @@
 
         <div class="kp-scroll kp-detail-body">
             <div class="kp-who">
-                {{ avatar(selected.avatar_path) }}
+                {{ avatar('uploads/foto_profil/' ~ selected.profile_photo if selected.profile_photo else None) }}
                 <div>
                     <b>{{ selected.name }}</b><br>
                     <small>ID {{ selected.code }}</small><br>
@@ -123,7 +123,7 @@
         <h2>Detail &amp; Edit Pelanggan</h2>
         <div class="kp-code">#{{ selected.code }}</div>
         <div class="kp-profile">
-            {{ avatar(selected.avatar_path) }}
+            {{ avatar('uploads/foto_profil/' ~ selected.profile_photo if selected.profile_photo else None) }}
             <div class="kp-docs"><i class="fa-regular fa-id-card"></i><a href="#dokumen" class="kp-btn small">Lihat Foto</a></div>
         </div>
         {{ field('Nama', selected.name) }}
