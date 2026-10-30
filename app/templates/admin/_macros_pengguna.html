@@ -8,7 +8,7 @@
 <div class="kp-avatar">
     {% if path %}
         <img
-            src="{{ url_for('static', filename=path) }}"
+            src="{{ url_for('static', filename='uploads/profil/' ~ path) }}"
             alt="Foto profil"
             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
         <i class="fa-solid fa-user" style="display: none;"></i>
