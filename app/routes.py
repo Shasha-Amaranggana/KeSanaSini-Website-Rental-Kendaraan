@@ -3688,10 +3688,20 @@ class AdminCreateView(MethodView):
         return self._render()
 
     def post(self):
+        photo = request.files.get('foto_profil')
+
+        print("=== DEBUG TAMBAH ADMIN ===")
+        print("FILES:", request.files)
+        print("PHOTO:", photo)
+        print("FILENAME:", photo.filename if photo else None)
+        print("==========================")
+
         try:
-            new_admin = self.service.create(request.form, request.files.get('foto_profil'))
+            new_admin = self.service.create(request.form, photo)
+            print(new_admin.profile_photo)
         except ValidationError as error:
             return self._render(error.messages)
+
         flash(f'Akun admin {new_admin.name} berhasil ditambahkan.')
         return redirect(url_for('kelola_admin.daftar', id=new_admin.id))
 
