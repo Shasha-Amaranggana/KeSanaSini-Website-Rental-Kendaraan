@@ -648,3 +648,12 @@ tbody td:first-child, thead th:first-child { padding-left: 16px; }
 
 .kp-modal.sm .kp-card { width:min(420px,100%); }
 @media (max-width:1000px) { .kp-page { height:auto; } .kp-stats3, .kp-lower { grid-template-columns:1fr; } .kp-scroll { max-height:420px; } }
+
+/* ===== Tambahan form admin lengkap ===== */
+.kp-input select { width:100%; border:1.5px solid #333; border-radius:6px; padding:9px 12px; font:inherit; font-size:13px; background:#fff; }
+.kp-input select:focus { outline:0; border-color:var(--o); box-shadow:0 0 0 3px #ff9a4d40; }
+.kp-input input[type=file] { border:1.5px dashed #b5a99d; padding:8px; background:#faf7f4; }
+.kp-modal.lg .kp-card { width:min(680px,100%); }
+.kp-sec { font-weight:700; font-size:12px; color:var(--o); margin:4px 0 10px; text-transform:uppercase; letter-spacing:.05em; }
+.kp-thumb { display:block; max-width:100%; max-height:120px; margin-top:8px; border-radius:6px; border:1px solid #ddd; object-fit:cover; }
+.kp-lock { font-size:12px; color:#777; }

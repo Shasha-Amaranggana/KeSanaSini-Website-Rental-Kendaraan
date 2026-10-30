@@ -167,6 +167,7 @@ def create_app():
                 ('profile_photo', 'VARCHAR(255)'),
                 ('ktp_number', 'VARCHAR(20)'),
                 ('sim_number', 'VARCHAR(20)'),
+                ('total_spent', 'INTEGER NOT NULL DEFAULT 0'),
             ],
             'vehicle': [
                 ('current_lat', 'FLOAT'),
@@ -201,6 +202,12 @@ def create_app():
                         print(f"[AUTO-MIGRATE] Kolom '{col_name}' berhasil ditambahkan ke tabel '{table_name}'.")
         
         # Menyimpan perubahan migrasi ke database.
+        db.session.commit()
+
+        # Mengisi ulang total transaksi semua pelanggan dari data penyewaan yang ada.
+        from .models import Customer
+        for customer in Customer.query.all():
+            customer.recalc_total_spent()
         db.session.commit()
 
     # Mengembalikan objek aplikasi Flask yang sudah selesai dikonfigurasi agar dapat dijalankan oleh server.

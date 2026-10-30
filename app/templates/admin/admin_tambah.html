@@ -1,43 +1,88 @@
-{# =========================================================
-   Halaman Tambah Admin (Super Admin).
-   Form POST ke AdminCreateView; jika validasi gagal, `errors` dan `form`
-   (input sebelumnya) dikirim balik agar isian tidak hilang.
-   ========================================================= #}
+{# Halaman Tambah Admin (Super Admin): data lengkap, dokumen, peran, dan foto profil. #}
 {% extends 'admin/base_admin.html' %}
 {% from 'admin/_macros_pengguna.html' import avatar %}
 
 {% block title %}Tambah Admin{% endblock %}
 
 {% block content %}
-{# enctype multipart wajib karena ada unggah foto profil #}
 <form class="kp kp-grid-form" method="post" enctype="multipart/form-data" action="{{ url_for('kelola_admin.tambah') }}">
 
-    <!-- ===== KARTU KIRI: DATA ADMIN ===== -->
     <section class="kp-card">
         <h2>Tambah Admin Baru</h2>
 
-        {# Daftar pesan error dari validasi server (ValidationError) #}
         {% if errors %}
-        <ul class="kp-errors">
-            {% for e in errors %}<li>{{ e }}</li>{% endfor %}
-        </ul>
+        <ul class="kp-errors">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
         {% endif %}
 
         <div class="kp-box">
-            {# Nama, email, dan HP diisi ulang dari `form` bila ada error #}
+            <div class="kp-sec">Data Pribadi</div>
             <div class="kp-input">
                 <label for="name">Nama Lengkap</label>
                 <input type="text" id="name" name="name" value="{{ form.get('name', '') }}" placeholder="Nama Lengkap Admin" required>
             </div>
+            <div class="kp-two">
+                <div class="kp-input">
+                    <label for="birth_date">Tanggal Lahir</label>
+                    <input type="date" id="birth_date" name="birth_date" value="{{ form.get('birth_date', '') }}" max="{{ today }}" required>
+                </div>
+                <div class="kp-input">
+                    <label for="gender">Jenis Kelamin</label>
+                    <select id="gender" name="gender" required>
+                        <option value="" disabled {{ 'selected' if not form.get('gender') }}>Pilih jenis kelamin</option>
+                        <option value="Laki-laki" {{ 'selected' if form.get('gender') == 'Laki-laki' }}>Laki-laki</option>
+                        <option value="Perempuan" {{ 'selected' if form.get('gender') == 'Perempuan' }}>Perempuan</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="kp-sec">Kontak</div>
             <div class="kp-input">
                 <label for="email">Email/Username</label>
                 <input type="email" id="email" name="email" value="{{ form.get('email', '') }}" placeholder="nama@domain.com" required>
             </div>
-            <div class="kp-input">
-                <label for="phone">Nomor HP</label>
-                <input type="tel" id="phone" name="phone" value="{{ form.get('phone', '') }}" placeholder="081348861965" required>
+            <div class="kp-two">
+                <div class="kp-input">
+                    <label for="phone">Nomor HP</label>
+                    <input type="tel" id="phone" name="phone" value="{{ form.get('phone', '') }}" placeholder="081348861965" maxlength="20" required>
+                </div>
+                <div class="kp-input">
+                    <label for="emergency_phone">Nomor Darurat</label>
+                    <input type="tel" id="emergency_phone" name="emergency_phone" value="{{ form.get('emergency_phone', '') }}" placeholder="081234567890" maxlength="20" required>
+                </div>
             </div>
-            {# Password tidak diisi ulang demi keamanan; tombol mata diatur oleh script di bawah #}
+
+            <div class="kp-sec">Identitas</div>
+            <div class="kp-two">
+                <div class="kp-input">
+                    <label for="ktp_number">Nomor KTP</label>
+                    <input type="text" id="ktp_number" name="ktp_number" value="{{ form.get('ktp_number', '') }}" maxlength="20" placeholder="Opsional">
+                </div>
+                <div class="kp-input">
+                    <label for="sim_number">Nomor SIM</label>
+                    <input type="text" id="sim_number" name="sim_number" value="{{ form.get('sim_number', '') }}" maxlength="20" placeholder="Opsional">
+                </div>
+            </div>
+            <div class="kp-two">
+                <div class="kp-input">
+                    <label for="ktp_file">Foto KTP</label>
+                    <input type="file" id="ktp_file" name="ktp_file" accept="image/png,image/jpeg,image/webp" data-preview="ktpPrev">
+                    <img id="ktpPrev" class="kp-thumb" alt="" style="display:none">
+                </div>
+                <div class="kp-input">
+                    <label for="sim_file">Foto SIM</label>
+                    <input type="file" id="sim_file" name="sim_file" accept="image/png,image/jpeg,image/webp" data-preview="simPrev">
+                    <img id="simPrev" class="kp-thumb" alt="" style="display:none">
+                </div>
+            </div>
+
+            <div class="kp-sec">Akun</div>
+            <div class="kp-input">
+                <label for="role">Peran</label>
+                <select id="role" name="role" required>
+                    <option value="admin" {{ 'selected' if form.get('role', 'admin') == 'admin' }}>Admin</option>
+                    <option value="superadmin" {{ 'selected' if form.get('role') == 'superadmin' }}>Super Admin</option>
+                </select>
+            </div>
             <div class="kp-two">
                 <div class="kp-input">
                     <label for="password">Password</label>
@@ -61,12 +106,9 @@
         </div>
     </section>
 
-    <!-- ===== KARTU KANAN: FOTO PROFIL ===== -->
     <section class="kp-card center">
         <h2>Foto Profil</h2>
-        {# Pratinjau foto; ikon default sebelum ada file dipilih #}
         <div id="previewBox">{{ avatar(None) }}</div>
-        {# Input file disembunyikan; label bertindak sebagai tombol #}
         <label class="kp-btn outline small">
             Pilih Foto Profil
             <input type="file" id="foto_profil" name="foto_profil" accept="image/png,image/jpeg,image/webp" hidden>
@@ -78,7 +120,6 @@
 
 {% block scripts %}
 <script>
-    // Tombol mata: ganti tipe input password <-> text, sekaligus ikonnya
     document.querySelectorAll('.kp-eye').forEach(function (btn) {
         btn.addEventListener('click', function () {
             var input = document.getElementById(btn.dataset.target);
@@ -86,7 +127,6 @@
             btn.querySelector('i').className = input.type === 'password' ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
         });
     });
-    // Pratinjau foto profil di browser sebelum disimpan
     document.getElementById('foto_profil').addEventListener('change', function (e) {
         var file = e.target.files[0];
         if (!file) return;
@@ -95,6 +135,14 @@
         var img = document.createElement('img');
         img.src = URL.createObjectURL(file);
         box.appendChild(img);
+    });
+    document.querySelectorAll('input[data-preview]').forEach(function (inp) {
+        inp.addEventListener('change', function () {
+            var img = document.getElementById(inp.dataset.preview), f = inp.files[0];
+            if (!f) { img.style.display = 'none'; return; }
+            img.src = URL.createObjectURL(f);
+            img.style.display = 'block';
+        });
     });
 </script>
 {% endblock %}

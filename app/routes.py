@@ -1117,6 +1117,16 @@ def kelola_akun():
 
                     setattr(user, column, filename)
 
+            photo = request.files.get('foto_profil')
+            if photo and photo.filename:
+                p_ext = photo.filename.rsplit('.', 1)[-1].lower() if '.' in photo.filename else ''
+                if p_ext not in {'jpg', 'jpeg', 'png', 'webp'}:
+                    raise ValueError('Foto profil harus JPG, JPEG, PNG, atau WEBP.')
+                p_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'profil')
+                os.makedirs(p_folder, exist_ok=True)
+                p_name = secure_filename(f"user_{user.id}_{datetime.now().strftime('%Y%m%d%H%M%S%f')}.{p_ext}")
+                photo.save(os.path.join(p_folder, p_name))
+                user.profile_photo = p_name
             db.session.commit()
 
             # Perbarui nama yang disimpan dalam session
@@ -3232,7 +3242,7 @@ ALLOWED_IMG_EXT = {'jpg', 'jpeg', 'png', 'webp'}
 import re
 from flask.views import MethodView
 from sqlalchemy.exc import IntegrityError
-from app.models import Customer, Admin, RentalStatusHistory
+from app.models import Customer, Admin, SuperAdmin, RentalStatusHistory
 
 admin_bp = Blueprint('kelola_pelanggan', __name__, url_prefix='/admin/kelola-pelanggan')
 superadmin_bp = Blueprint('kelola_admin', __name__, url_prefix='/superadmin/kelola-admin')
@@ -3392,93 +3402,157 @@ class CustomerService(BaseUserService):
 # sekaligus mengenkapsulasi validasi pendaftaran dan upload foto admin.
 class AdminService(BaseUserService):
     model = Admin
-
     EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
     PHONE_RE = re.compile(r'^\+?\d{10,15}$')
+    ID_RE = re.compile(r'^[A-Za-z0-9]{1,20}$')
     MIN_PASSWORD = 8
-    ALLOWED_PHOTO_EXT = {'jpg', 'jpeg', 'png', 'webp'}
+    IMG_EXT = {'jpg', 'jpeg', 'png', 'webp'}
+    ROLES = ('admin', 'superadmin')
+    GENDERS = ('Laki-laki', 'Perempuan')
+    FILE_FIELDS = (('foto_profil', 'profile_photo', 'profil', 'admin'),
+                   ('ktp_file', 'ktp_file', 'dokumen_akun', 'ktp'),
+                   ('sim_file', 'sim_file', 'dokumen_akun', 'sim'))
 
     def base_query(self):
-        """Daftar administrator mencakup role 'admin' dan 'superadmin'."""
         return self.model.query.filter(self.model.role.in_(['admin', 'superadmin']))
 
-    # Kolom wajib (NOT NULL) milik User yang tidak ada di form "Tambah Admin"
-    DEFAULT_BIRTH_DATE = date(2000, 1, 1)
-    DEFAULT_GENDER = '-'
+    # ---------- validasi bersama (tambah & edit) ----------
+    def _validate(self, form, files, target=None):
+        g = lambda k: (form.get(k) or '').strip()
+        errors = []
+        data = {k: g(k) for k in ('name', 'email', 'phone', 'emergency_phone',
+                                  'gender', 'ktp_number', 'sim_number')}
+        data['role'] = g('role') or (target.role if target else 'admin')
 
-    def create(self, form, photo=None):
-        """Validasi form lalu buat akun admin baru. Return objek Admin."""
-        name = (form.get('name') or '').strip()
-        email = (form.get('email') or '').strip()
-        phone = (form.get('phone') or '').strip()
+        if not data['name']:
+            errors.append('Nama lengkap wajib diisi.')
+        if not self.EMAIL_RE.match(data['email']):
+            errors.append('Email tidak valid (contoh: nama@domain.com).')
+        else:
+            q = User.query.filter(db.func.lower(User.email) == data['email'].lower())
+            if target is not None:
+                q = q.filter(User.id != target.id)
+            if q.first():
+                errors.append('Email sudah terdaftar.')
+        if not self.PHONE_RE.match(data['phone']):
+            errors.append('Nomor HP harus berupa angka 10-15 digit.')
+        if not self.PHONE_RE.match(data['emergency_phone']):
+            errors.append('Nomor darurat harus berupa angka 10-15 digit.')
+        try:
+            data['birth_date'] = datetime.strptime(g('birth_date'), '%Y-%m-%d').date()
+            if data['birth_date'] > date.today():
+                errors.append('Tanggal lahir tidak boleh di masa depan.')
+        except ValueError:
+            errors.append('Tanggal lahir tidak valid.')
+        if data['gender'] not in self.GENDERS:
+            errors.append('Jenis kelamin wajib dipilih.')
+        if data['role'] not in self.ROLES:
+            errors.append('Peran harus Admin atau Super Admin.')
+        for key, label in (('ktp_number', 'Nomor KTP'), ('sim_number', 'Nomor SIM')):
+            if data[key] and not self.ID_RE.match(data[key]):
+                errors.append(f'{label} maksimal 20 karakter (huruf/angka).')
+
         password = form.get('password') or ''
         confirm = form.get('confirm_password') or ''
+        data['password'] = password
+        if target is None or password:
+            if len(password) < self.MIN_PASSWORD:
+                errors.append(f'Password minimal {self.MIN_PASSWORD} karakter.')
+            elif password != confirm:
+                errors.append('Konfirmasi password tidak cocok.')
 
-        errors = []
-        if not name:
-            errors.append('Nama lengkap wajib diisi.')
-        if not self.EMAIL_RE.match(email):
-            errors.append('Email tidak valid (contoh: nama@domain.com).')
-        elif User.query.filter(db.func.lower(User.email) == email.lower()).first():
-            errors.append('Email sudah terdaftar.')
-        if not self.PHONE_RE.match(phone):
-            errors.append('Nomor HP harus berupa angka 10-15 digit.')
-        if len(password) < self.MIN_PASSWORD:
-            errors.append(f'Password minimal {self.MIN_PASSWORD} karakter.')
-        elif password != confirm:
-            errors.append('Konfirmasi password tidak cocok.')
-
-        photo_ext = None
-        if photo and photo.filename:
-            photo_ext = photo.filename.rsplit('.', 1)[-1].lower() if '.' in photo.filename else ''
-            if photo_ext not in self.ALLOWED_PHOTO_EXT:
-                errors.append('Foto profil harus berformat JPG, JPEG, PNG, atau WEBP.')
-
+        for field, _attr, _folder, _prefix in self.FILE_FIELDS:
+            f = files.get(field)
+            if f and f.filename:
+                ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+                if ext not in self.IMG_EXT:
+                    errors.append(f'{field.replace("_", " ").title()} harus berformat JPG, JPEG, PNG, atau WEBP.')
         if errors:
             raise ValidationError(errors)
+        return data
 
-        filename = self._save_photo(photo, photo_ext) if photo_ext else None
-        new_admin = Admin(
-            name=name, email=email, phone=phone, emergency_phone=phone,
-            birth_date=self.DEFAULT_BIRTH_DATE, gender=self.DEFAULT_GENDER,
-            role=Admin.ROLE, is_active=True, profile_photo=filename,
-        )
-        new_admin.set_password(password)
-
-        try:
-            db.session.add(new_admin)
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
-            self._delete_photo(filename)
-            raise ValidationError(['Email sudah terdaftar.'])
-        return new_admin
-
-    # Penyimpanan foto profil
+    # ---------- penyimpanan file ----------
     @staticmethod
-    def _photo_folder():
-        return os.path.join(current_app.root_path, 'static', 'uploads', 'profil')
+    def _folder(name):
+        return os.path.join(current_app.root_path, 'static', 'uploads', name)
 
-    def _save_photo(self, file_storage, ext):
-        folder = self._photo_folder()
-        os.makedirs(folder, exist_ok=True)
-        filename = secure_filename(f"admin_{datetime.now().strftime('%Y%m%d%H%M%S%f')}.{ext}")
-        file_storage.save(os.path.join(folder, filename))
-        return filename
+    def _save_file(self, f, folder, prefix):
+        os.makedirs(self._folder(folder), exist_ok=True)
+        ext = f.filename.rsplit('.', 1)[-1].lower()
+        name = secure_filename(f"{prefix}_{datetime.now().strftime('%Y%m%d%H%M%S%f')}.{ext}")
+        f.save(os.path.join(self._folder(folder), name))
+        return name
 
-    def _delete_photo(self, filename):
-        if filename:
-            path = os.path.join(self._photo_folder(), filename)
+    def _delete_file(self, folder, name):
+        if name:
+            path = os.path.join(self._folder(folder), name)
             if os.path.exists(path):
                 os.remove(path)
 
+    def _store_files(self, files):
+        saved = {}
+        for field, attr, folder, prefix in self.FILE_FIELDS:
+            f = files.get(field)
+            if f and f.filename:
+                saved[attr] = (folder, self._save_file(f, folder, prefix))
+        return saved
 
-# ---------- CONTROLLER ADMIN: halaman Pelanggan (admin_bp) ----------
+    # ---------- tambah ----------
+    def create(self, form, files):
+        data = self._validate(form, files)
+        saved = self._store_files(files)
+        cls = SuperAdmin if data['role'] == 'superadmin' else Admin
+        admin = cls(
+            name=data['name'], email=data['email'], phone=data['phone'],
+            emergency_phone=data['emergency_phone'], birth_date=data['birth_date'],
+            gender=data['gender'], role=cls.ROLE, is_active=True,
+            ktp_number=data['ktp_number'] or None, sim_number=data['sim_number'] or None,
+        )
+        for attr, (_folder, name) in saved.items():
+            setattr(admin, attr, name)
+        admin.set_password(data['password'])
+        try:
+            db.session.add(admin)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            for _attr, (folder, name) in saved.items():
+                self._delete_file(folder, name)
+            raise ValidationError(['Email sudah terdaftar.'])
+        return admin
 
-# [OOP - PEWARISAN & CLASS-BASED VIEWS (MethodView)]:
-# Mewarisi MethodView dari Flask untuk menstrukturkan handler HTTP (GET)
-# ke dalam method objek.
-# [OOP - ASOSIASI / KOMPOSISI]: Menggunakan objek CustomerService() untuk delegasi bisnis logic.
+    # ---------- edit (Super Admin boleh mengubah semua data) ----------
+    def update(self, target, form, files, acting_id):
+        is_self = target.id == acting_id
+        data = self._validate(form, files, target)
+        active = form.get('is_active') == '1'
+        if is_self and (data['role'] != target.role or not active):
+            raise ValidationError(['Anda tidak dapat menurunkan peran atau menonaktifkan akun Anda sendiri.'])
+        saved = self._store_files(files)
+        old = {attr: (folder, getattr(target, attr)) for _f, attr, folder, _p in self.FILE_FIELDS if attr in saved}
+        target.name, target.email = data['name'], data['email']
+        target.phone, target.emergency_phone = data['phone'], data['emergency_phone']
+        target.birth_date, target.gender = data['birth_date'], data['gender']
+        target.ktp_number = data['ktp_number'] or None
+        target.sim_number = data['sim_number'] or None
+        target.role = data['role']
+        target.is_active = active
+        if data['password']:
+            target.set_password(data['password'])
+        for attr, (_folder, name) in saved.items():
+            setattr(target, attr, name)
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            for _attr, (folder, name) in saved.items():
+                self._delete_file(folder, name)
+            raise ValidationError(['Email sudah terdaftar.'])
+        for _attr, (folder, name) in old.items():
+            self._delete_file(folder, name)
+        return target
+
+
 class PelangganListView(MethodView):
     """Daftar pelanggan + (jika dipilih) detail, dokumen, dan riwayat penyewaan."""
     decorators = [admin_required]
@@ -3492,6 +3566,9 @@ class PelangganListView(MethodView):
         selected = self.service.find(request.args.get('id', type=int))
         rentals = self.service.rental_history(selected) if selected else []
         total_rentals, total_spent = self.service.rental_summary(rentals)
+        if selected:
+            total_spent = selected.recalc_total_spent()
+            db.session.commit()
 
         return render_template(
             'admin/pelanggan.html',
@@ -3572,6 +3649,7 @@ class AdminListView(MethodView):
             active_admins=self.service.count(active_only=True),
             selected=self.service.find(request.args.get('id', type=int)),
             activities=activities,
+            today=date.today().isoformat(),
             keyword=keyword,
             **admin_context()
         )
@@ -3614,6 +3692,7 @@ class AdminCreateView(MethodView):
             active_menu='admin',
             errors=errors or [],
             form=request.form,
+            today=date.today().isoformat(),
             **admin_context()
         )
 
@@ -3622,11 +3701,31 @@ class AdminCreateView(MethodView):
 
     def post(self):
         try:
-            new_admin = self.service.create(request.form, request.files.get('foto_profil'))
+            new_admin = self.service.create(request.form, request.files)
         except ValidationError as error:
             return self._render(error.messages)
         flash(f'Akun admin {new_admin.name} berhasil ditambahkan.')
         return redirect(url_for('kelola_admin.daftar', id=new_admin.id))
+
+
+class AdminEditView(MethodView):
+    """Simpan perubahan seluruh data admin (hanya Super Admin)."""
+    decorators = [superadmin_required]
+    service = AdminService()
+
+    def post(self, user_id):
+        target = self.service.get_or_404(user_id)
+        try:
+            self.service.update(target, request.form, request.files, session.get('user_id'))
+        except ValidationError as error:
+            for msg in error.messages:
+                flash(msg)
+            return redirect(url_for('kelola_admin.daftar', id=target.id, _anchor='detail'))
+        if target.id == session.get('user_id'):
+            session['user_name'] = target.name
+            session['user_email'] = target.email
+        flash(f'Data admin {target.name} berhasil diperbarui.')
+        return redirect(url_for('kelola_admin.daftar', id=target.id))
 
 
 superadmin_bp.add_url_rule('/', view_func=AdminListView.as_view('daftar'))
@@ -3635,6 +3734,8 @@ superadmin_bp.add_url_rule('/<int:user_id>/status',
                            methods=['POST'])
 superadmin_bp.add_url_rule('/tambah', view_func=AdminCreateView.as_view('tambah'),
                            methods=['GET', 'POST'])
+superadmin_bp.add_url_rule('/<int:user_id>/edit', view_func=AdminEditView.as_view('edit'),
+                           methods=['POST'])
 
 
 def _save_driver_file(file_storage, prefix):

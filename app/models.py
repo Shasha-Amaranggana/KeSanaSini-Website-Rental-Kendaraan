@@ -222,6 +222,14 @@ class User(db.Model):
         self.__sim_number = value
     sim_number = synonym("_User__sim_number", descriptor=property(get_sim_number, set_sim_number))
 
+    # Total transaksi pelanggan (Rp) yang tersimpan di database dan dihitung ulang otomatis.
+    _total_spent = db.Column("total_spent", db.Integer, nullable=False, default=0)
+    def get_total_spent(self):
+        return self._total_spent or 0
+    def set_total_spent(self, value):
+        self._total_spent = int(value or 0)
+    total_spent = synonym("_total_spent", descriptor=property(get_total_spent, set_total_spent))
+
     # SQLAlchemy menggunakan kolom role untuk menentukan jenis kelas objek User saat data dibaca dari database.
     __mapper_args__ = {'polymorphic_on': '_User__role'}         
 
@@ -2337,6 +2345,13 @@ class Customer(ProfileMixin, User):
                 .order_by(Rental.created_at.desc())
                 .all())
 
+    # Menghitung ulang total transaksi: pesanan tidak batal dan sudah Lunas (termasuk denda aktif).
+    def recalc_total_spent(self):
+        self.total_spent = sum(
+            r.final_total_price for r in self.rental_history
+            if r.status != Rental.STATUS_BATAL and r.payment_status == 'Lunas')
+        return self.total_spent
+
 
 
 # ═════════════════════════════════════════════════════════════
@@ -2399,3 +2414,24 @@ class SuperAdmin(Admin):
     # SuperAdmin mengubah hasil get_code() agar memakai awalan SA.
     def get_code(self):
         return f"{self.CODE_PREFIX}-{self.id:04d}-SUPER"
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#   SINKRONISASI TOTAL TRANSAKSI PELANGGAN (REAL TIME)
+# ═════════════════════════════════════════════════════════════════════════════
+from sqlalchemy import event as _event
+from sqlalchemy.orm import Session as _Session
+
+@_event.listens_for(_Session, 'before_flush')
+def _collect_rental_users(session, flush_context, instances):
+    for obj in list(session.new) + list(session.dirty) + list(session.deleted):
+        if isinstance(obj, Rental) and obj.user_id:
+            session.info.setdefault('rental_users', set()).add(obj.user_id)
+
+@_event.listens_for(_Session, 'before_commit')
+def _sync_total_spent(session):
+    session.flush()
+    for uid in session.info.pop('rental_users', set()):
+        customer = session.get(Customer, uid)
+        if customer is not None:
+            customer.recalc_total_spent()

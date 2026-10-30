@@ -134,6 +134,17 @@ Kelola Akun - KeSanaSini
 
                             <div class="card-body">
 
+                                <!-- FOTO PROFIL -->
+                                <div class="form-group">
+                                    <label for="foto_profil">Foto Profil</label>
+                                    <div style="display:flex;align-items:center;gap:14px">
+                                        <img id="foto-preview" alt="Foto profil"
+                                            src="{{ url_for('static', filename='uploads/profil/' ~ user.profile_photo) if user.profile_photo else '' }}"
+                                            style="width:72px;height:72px;border-radius:50%;object-fit:cover;background:#e8ebff;{{ '' if user.profile_photo else 'display:none' }}">
+                                        <input type="file" id="foto_profil" name="foto_profil" accept="image/png,image/jpeg,image/webp">
+                                    </div>
+                                </div>
+
                                 <!-- NAMA LENGKAP -->
                                 <div class="form-group">
                                     <label for="full-name">Nama Lengkap</label>
@@ -518,6 +529,12 @@ Kelola Akun - KeSanaSini
     <!--            tab, visibilitas password, dan validasi. -->
     <!-- ════════════════════════════════════════════════════ -->
     <script>
+        document.getElementById('foto_profil')?.addEventListener('change', function (e) {
+            var f = e.target.files[0], img = document.getElementById('foto-preview');
+            if (!f) return;
+            img.src = URL.createObjectURL(f);
+            img.style.display = '';
+        });
 
 
         // ====================================================

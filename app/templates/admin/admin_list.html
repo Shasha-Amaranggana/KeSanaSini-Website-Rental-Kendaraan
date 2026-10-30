@@ -90,22 +90,99 @@
 </div>
 
 {% if selected %}
-<!-- ===== POPUP DETAIL & EDIT ADMIN (Gambar 2.4) ===== -->
-<div class="kp kp-modal sm" id="detail">
+{% set me = session.get('user_id') == selected.id %}
+<!-- ===== POPUP DETAIL & EDIT ADMIN (semua data bisa diubah Super Admin) ===== -->
+<div class="kp kp-modal lg" id="detail">
     <div class="kp-card">
         <h2>Detail &amp; Edit Admin</h2>
         <div class="kp-code">#{{ selected.code }}</div>
-        <div class="kp-profile" style="justify-content:center">{{ avatar(selected.avatar_path) }}</div>
-        {{ field('Nama', selected.name) }}
-        {{ field('No.KTP', selected.ktp_number) }}
-        {{ field('No.SIM', selected.sim_number) }}
-        {{ field('No. Telepon', selected.phone) }}
-        {{ field('Email', selected.email) }}
-        {{ status_form(selected, url_for('kelola_admin.ubah_status', user_id=selected.id), pagination, keyword) }}
+        {% for message in get_flashed_messages() %}<ul class="kp-errors"><li>{{ message }}</li></ul>{% endfor %}
+        <form method="post" enctype="multipart/form-data" action="{{ url_for('kelola_admin.edit', user_id=selected.id) }}">
+            <div class="kp-profile" style="justify-content:center;flex-direction:column;gap:8px">
+                <div id="editPreview">{{ avatar(selected.avatar_path) }}</div>
+                <label class="kp-btn outline small">Ganti Foto Profil
+                    <input type="file" name="foto_profil" accept="image/png,image/jpeg,image/webp" data-avatar="editPreview" hidden>
+                </label>
+            </div>
+
+            <div class="kp-input"><label>Nama</label>
+                <input type="text" name="name" value="{{ selected.name }}" required></div>
+            <div class="kp-two">
+                <div class="kp-input"><label>Tanggal Lahir</label>
+                    <input type="date" name="birth_date" value="{{ selected.birth_date.strftime('%Y-%m-%d') if selected.birth_date }}" max="{{ today }}" required></div>
+                <div class="kp-input"><label>Jenis Kelamin</label>
+                    <select name="gender" required>
+                        <option value="Laki-laki" {{ 'selected' if selected.gender == 'Laki-laki' }}>Laki-laki</option>
+                        <option value="Perempuan" {{ 'selected' if selected.gender == 'Perempuan' }}>Perempuan</option>
+                        {% if selected.gender not in ('Laki-laki', 'Perempuan') %}<option value="" selected disabled>Pilih jenis kelamin</option>{% endif %}
+                    </select></div>
+            </div>
+            <div class="kp-two">
+                <div class="kp-input"><label>No. Telepon</label>
+                    <input type="tel" name="phone" value="{{ selected.phone }}" maxlength="20" required></div>
+                <div class="kp-input"><label>No. Darurat</label>
+                    <input type="tel" name="emergency_phone" value="{{ selected.emergency_phone }}" maxlength="20" required></div>
+            </div>
+            <div class="kp-input"><label>Email</label>
+                <input type="email" name="email" value="{{ selected.email }}" required></div>
+            <div class="kp-two">
+                <div class="kp-input"><label>No. KTP</label>
+                    <input type="text" name="ktp_number" value="{{ selected.ktp_number or '' }}" maxlength="20"></div>
+                <div class="kp-input"><label>No. SIM</label>
+                    <input type="text" name="sim_number" value="{{ selected.sim_number or '' }}" maxlength="20"></div>
+            </div>
+            <div class="kp-two">
+                {% for d in selected.documents %}
+                <div class="kp-input"><label>Foto {{ d.label }}</label>
+                    <input type="file" name="{{ 'ktp_file' if d.label == 'KTP' else 'sim_file' }}" accept="image/png,image/jpeg,image/webp">
+                    {% if d.path and not d.is_pdf %}<img class="kp-thumb" src="{{ url_for('static', filename=d.path) }}" alt="{{ d.label }}">{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <div class="kp-input"><label>Peran</label>
+                <select name="role" {{ 'disabled' if me }}>
+                    <option value="admin" {{ 'selected' if selected.role == 'admin' }}>Admin</option>
+                    <option value="superadmin" {{ 'selected' if selected.role == 'superadmin' }}>Super Admin</option>
+                </select>
+                {% if me %}<small class="kp-lock">Peran akun sendiri tidak dapat diubah.</small>{% endif %}
+            </div>
+            <div class="kp-two">
+                <div class="kp-input"><label>Password Baru (opsional)</label>
+                    <input type="password" name="password" placeholder="Kosongkan jika tidak diubah" autocomplete="new-password"></div>
+                <div class="kp-input"><label>Konfirmasi Password</label>
+                    <input type="password" name="confirm_password" autocomplete="new-password"></div>
+            </div>
+
+            <div class="kp-status-form"><fieldset {{ 'disabled' if me }} style="border:0;padding:0;margin:0">
+                <div class="kp-status">
+                    <span>Status Akun</span>
+                    <label class="kp-switch">
+                        <input type="checkbox" name="is_active" value="1" {{ 'checked' if selected.is_active }}>
+                        <span class="kp-slider"></span>
+                    </label>
+                    <b class="kp-state {{ 'on' if selected.is_active else 'off' }}">{{ 'Aktif' if selected.is_active else 'Tidak Aktif' }}</b>
+                </div>
+                <small class="kp-hint">Nonaktifkan untuk membatasi akses rental</small>
+            </fieldset></div>
+            {% if me %}<input type="hidden" name="is_active" value="1">{% endif %}
+
+            <div class="kp-actions"><button type="submit" class="kp-btn">Simpan Perubahan</button></div>
+        </form>
         <div class="kp-actions"><a href="{{ url_for('kelola_admin.daftar', id=selected.id, q=keyword or None) }}" class="kp-btn outline">Tutup</a></div>
     </div>
 </div>
 {% endif %}
 {% endblock %}
 
-{% block scripts %}{{ switch_script() }}{% endblock %}
+{% block scripts %}{{ switch_script() }}
+<script>
+    document.querySelectorAll('input[data-avatar]').forEach(function (inp) {
+        inp.addEventListener('change', function () {
+            var f = inp.files[0]; if (!f) return;
+            var box = document.getElementById(inp.dataset.avatar).querySelector('.kp-avatar');
+            box.innerHTML = ''; var img = document.createElement('img');
+            img.src = URL.createObjectURL(f); box.appendChild(img);
+        });
+    });
+</script>
+{% endblock %}
