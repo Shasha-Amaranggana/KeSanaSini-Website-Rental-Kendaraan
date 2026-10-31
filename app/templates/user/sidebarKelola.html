@@ -19,15 +19,11 @@
 
         <!-- FOTO PROFIL -->
         <div class="profile-avatar">
-            {% if session.get('user_id') and user.profile_photo %}
-                <img
-                    src="{{ url_for('static', filename='uploads/foto_profil/' ~ user.profile_photo) }}"
-                    alt="Foto Profil"
-                    class="sidebar-profile-photo"
-                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-
-                <i class="fa-regular fa-user sidebar-profile-fallback"
-                style="display: none;"></i>
+            {% set foto_url = avatar_url(user) %}
+            {% if foto_url %}
+                <img src="{{ foto_url }}" alt="Foto Profil" class="sidebar-profile-photo"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <i class="fa-regular fa-user sidebar-profile-fallback" style="display: none;"></i>
             {% else %}
                 <i class="fa-regular fa-user sidebar-profile-fallback"></i>
             {% endif %}

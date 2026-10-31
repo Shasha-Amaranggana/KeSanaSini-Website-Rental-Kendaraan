@@ -140,16 +140,18 @@ Kelola Akun - KeSanaSini
 
                                     <div class="profile-photo-content">
                                         <div class="profile-photo-preview">
+                                            {% set foto_url = avatar_url(user) %}
                                             <img
                                                 id="profile-photo-preview"
-                                                src="{% if user.profile_photo %}{{ url_for('static', filename='uploads/foto_profil/' ~ user.profile_photo) }}{% else %}{{ url_for('static', filename='images/default-profile.png') }}{% endif %}"
+                                                src="{{ foto_url or '' }}"
                                                 alt="Foto profil pengguna"
+                                                {% if not foto_url %}style="display:none"{% endif %}
                                                 onerror="this.style.display='none'; document.getElementById('profile-photo-fallback').style.display='flex';">
 
                                             <div
                                                 id="profile-photo-fallback"
                                                 class="profile-photo-fallback"
-                                                {% if user.profile_photo %}style="display:none"{% endif %}>
+                                                {% if foto_url %}style="display:none"{% endif %}>
                                                 <i class="fa-regular fa-user"></i>
                                             </div>
                                         </div>
