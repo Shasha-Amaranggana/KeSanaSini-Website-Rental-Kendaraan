@@ -68,7 +68,7 @@
 
         <div class="kp-scroll kp-detail-body">
             <div class="kp-who">
-                {{ avatar('uploads/foto_profil/' ~ selected.profile_photo if selected.profile_photo else None) }}
+                {{ avatar(selected.avatar_path) }}
                 <div>
                     <b>{{ selected.name }}</b><br>
                     <small>ID {{ selected.code }}</small><br>
@@ -84,8 +84,8 @@
             </div>
 
             <div class="kp-tiles">
-                <div class="kp-tile orange"><i class="fa-solid fa-car"></i><small>Total Penyewaan</small><b>{{ total_rentals }}</b></div>
-                <div class="kp-tile blue"><i class="fa-solid fa-wallet"></i><small>Total Transaksi</small><b>Rp {{ total_spent | rupiah }}</b></div>
+                <div class="kp-tile orange"><i class="fa-solid fa-car"></i><small>Total Penyewaan</small><b id="kpTotalRent">{{ total_rentals }}</b></div>
+                <div class="kp-tile blue"><i class="fa-solid fa-wallet"></i><small>Total Transaksi</small><b id="kpTotalTrx">Rp {{ total_spent | rupiah }}</b></div>
             </div>
 
             <h3>Riwayat Penyewaan</h3>
@@ -123,9 +123,19 @@
         <h2>Detail &amp; Edit Pelanggan</h2>
         <div class="kp-code">#{{ selected.code }}</div>
         <div class="kp-profile">
-            {{ avatar('uploads/foto_profil/' ~ selected.profile_photo if selected.profile_photo else None) }}
+            <div id="pelAvatar">{{ avatar(selected.avatar_path) }}</div>
             <div class="kp-docs"><i class="fa-regular fa-id-card"></i><a href="#dokumen" class="kp-btn small">Lihat Foto</a></div>
         </div>
+        {# Ganti foto profil pelanggan (form terpisah agar tidak bentrok dengan form status) #}
+        <form method="post" enctype="multipart/form-data" class="kpx-photo-form"
+              action="{{ url_for('kelola_pelanggan.ubah_foto', user_id=selected.id) }}">
+            <input type="hidden" name="page" value="{{ pagination.page }}">
+            <input type="hidden" name="q" value="{{ keyword }}">
+            <label class="kp-btn outline small">Pilih Foto Baru
+                <input type="file" name="foto_profil" accept="image/png,image/jpeg,image/webp" id="pelFoto" hidden required>
+            </label>
+            <button type="submit" class="kp-btn small">Simpan Foto</button>
+        </form>
         {{ field('Nama', selected.name) }}
         {{ field('No.KTP', selected.ktp_number) }}
         {{ field('No.SIM', selected.sim_number) }}
@@ -162,6 +172,40 @@
 
 {% block scripts %}
 {{ switch_script() }}
+{% if selected %}
+<script>
+    // Pratinjau foto baru sebelum disimpan
+    (function () {
+        var input = document.getElementById('pelFoto');
+        if (!input) return;
+        input.addEventListener('change', function () {
+            var file = input.files[0];
+            if (!file) return;
+            var box = document.querySelector('#pelAvatar .kp-avatar');
+            var img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            box.innerHTML = '';
+            box.appendChild(img);
+        });
+    })();
+
+    // Total penyewaan & total transaksi diperbarui otomatis dari database (tanpa reload)
+    (function () {
+        var url = "{{ url_for('kelola_pelanggan.total', user_id=selected.id) }}";
+        function refresh() {
+            fetch(url, { headers: { 'Accept': 'application/json' }, cache: 'no-store' })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (d) {
+                    if (!d) return;
+                    document.getElementById('kpTotalRent').textContent = d.total_rentals;
+                    document.getElementById('kpTotalTrx').textContent = 'Rp ' + Number(d.total_transaction).toLocaleString('id-ID');
+                })
+                .catch(function () {});
+        }
+        setInterval(refresh, 5000);
+    })();
+</script>
+{% endif %}
 <script>
     // Filter riwayat penyewaan (Semua / Berlangsung / Selesai / Dibatalkan)
     (function () {

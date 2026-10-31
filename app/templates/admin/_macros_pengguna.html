@@ -7,11 +7,7 @@
 {% macro avatar(path) %}
 <div class="kp-avatar">
     {% if path %}
-        <img
-            src="{{ url_for('static', filename='uploads/profil/' ~ path) }}"
-            alt="Foto profil"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-        <i class="fa-solid fa-user" style="display: none;"></i>
+        <img src="{{ url_for('static', filename=path) }}" alt="Foto profil">
     {% else %}
         <i class="fa-solid fa-user"></i>
     {% endif %}
@@ -82,6 +78,63 @@
         cb.addEventListener('change', function () {
             label.textContent = cb.checked ? 'Aktif' : 'Tidak Aktif';
             label.className = 'kp-state ' + (cb.checked ? 'on' : 'off');
+        });
+    });
+</script>
+{% endmacro %}
+
+{# date_input(name, value): isian tanggal DD-MM-YYYY yang bisa diketik DAN dipilih lewat ikon kalender.
+   Format otomatis (tanda "-" ditambah sendiri). Aktifkan perilakunya dengan form_script(). #}
+{% macro date_input(name, value='', required=true) %}
+<div class="kpx-date" data-kpx-date>
+    <input type="text" name="{{ name }}" value="{{ value or '' }}" placeholder="DD-MM-YYYY" maxlength="10"
+           inputmode="numeric" autocomplete="off" pattern="\d{2}-\d{2}-\d{4}" title="Format DD-MM-YYYY" {{ 'required' if required }}>
+    <button type="button" class="kpx-cal" aria-label="Pilih tanggal dari kalender"><i class="fa-regular fa-calendar"></i></button>
+    <input type="date" class="kpx-native" tabindex="-1" aria-hidden="true">
+</div>
+{% endmacro %}
+
+{# form_script(): JS untuk date_input (ketik + kalender) dan pratinjau foto
+   (input file dengan atribut data-preview="id-kotak-avatar") #}
+{% macro form_script() %}
+<script>
+    document.querySelectorAll('[data-kpx-date]').forEach(function (box) {
+        var txt = box.querySelector('input[type=text]');
+        var nat = box.querySelector('.kpx-native');
+        var btn = box.querySelector('.kpx-cal');
+        var now = new Date();
+        nat.max = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+        function toNative() {
+            var m = txt.value.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+            nat.value = m ? m[3] + '-' + m[2] + '-' + m[1] : '';
+        }
+        txt.addEventListener('input', function () {
+            var d = txt.value.replace(/\D/g, '').slice(0, 8), out = d.slice(0, 2);
+            if (d.length > 2) out += '-' + d.slice(2, 4);
+            if (d.length > 4) out += '-' + d.slice(4);
+            txt.value = out;
+            toNative();
+        });
+        nat.addEventListener('change', function () {
+            if (!nat.value) return;
+            var p = nat.value.split('-');
+            txt.value = p[2] + '-' + p[1] + '-' + p[0];
+        });
+        btn.addEventListener('click', function () {
+            toNative();
+            try { nat.showPicker(); } catch (e) { nat.focus(); nat.click(); }
+        });
+        toNative();
+    });
+    document.querySelectorAll('input[type=file][data-preview]').forEach(function (input) {
+        input.addEventListener('change', function () {
+            var file = input.files[0];
+            var box = document.getElementById(input.dataset.preview);
+            if (!file || !box) return;
+            var img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            box.innerHTML = '';
+            box.appendChild(img);
         });
     });
 </script>

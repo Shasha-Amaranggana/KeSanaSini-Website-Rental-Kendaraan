@@ -4,7 +4,7 @@
    Klik baris = pilih admin (oranye). Tombol ">" = popup Detail & Edit (#detail).
    ========================================================= #}
 {% extends 'admin/base_admin.html' %}
-{% from 'admin/_macros_pengguna.html' import avatar, field, status_form, switch_script %}
+{% from 'admin/_macros_pengguna.html' import avatar, date_input, form_script, switch_script %}
 
 {% block title %}Admin{% endblock %}
 
@@ -90,22 +90,75 @@
 </div>
 
 {% if selected %}
-<!-- ===== POPUP DETAIL & EDIT ADMIN (Gambar 2.4) ===== -->
-<div class="kp kp-modal sm" id="detail">
-    <div class="kp-card">
+{% set is_me = selected.id == session.get('user_id') %}
+<!-- ===== POPUP DETAIL & EDIT ADMIN (Super Admin dapat mengubah SEMUA data) ===== -->
+<div class="kp kp-modal" id="detail">
+    <div class="kp-card kpx-edit">
         <h2>Detail &amp; Edit Admin</h2>
         <div class="kp-code">#{{ selected.code }}</div>
-        <div class="kp-profile" style="justify-content:center">{{ avatar(selected.profile_photo) }}</div>
-        {{ field('Nama', selected.name) }}
-        {{ field('No.KTP', selected.ktp_number) }}
-        {{ field('No.SIM', selected.sim_number) }}
-        {{ field('No. Telepon', selected.phone) }}
-        {{ field('Email', selected.email) }}
-        {{ status_form(selected, url_for('kelola_admin.ubah_status', user_id=selected.id), pagination, keyword) }}
-        <div class="kp-actions"><a href="{{ url_for('kelola_admin.daftar', id=selected.id, q=keyword or None) }}" class="kp-btn outline">Tutup</a></div>
+
+        {% if edit_errors %}
+        <ul class="kp-errors">{% for e in edit_errors %}<li>{{ e }}</li>{% endfor %}</ul>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" action="{{ url_for('kelola_admin.ubah_data', user_id=selected.id) }}">
+            <input type="hidden" name="q" value="{{ keyword }}">
+
+            <div class="kp-profile" style="justify-content:center;flex-direction:column">
+                <div id="editAvatar">{{ avatar(selected.avatar_path) }}</div>
+                <label class="kp-btn outline small">Ganti Foto Profil
+                    <input type="file" name="foto_profil" accept="image/png,image/jpeg,image/webp" data-preview="editAvatar" hidden>
+                </label>
+            </div>
+
+            <div class="kpx-grid">
+                <div class="kpx-f"><label>Nama</label><input type="text" name="name" value="{{ selected.name }}" required></div>
+                <div class="kpx-f"><label>Email</label><input type="email" name="email" value="{{ selected.email }}" required></div>
+                <div class="kpx-f"><label>No. Telepon</label><input type="tel" name="phone" value="{{ selected.phone }}" required></div>
+                <div class="kpx-f"><label>No. Darurat</label><input type="tel" name="emergency_phone" value="{{ selected.emergency_phone }}" maxlength="20" required></div>
+                <div class="kpx-f"><label>Tanggal Lahir</label>{{ date_input('birth_date', selected.birth_date.strftime('%d-%m-%Y') if selected.birth_date else '') }}</div>
+                <div class="kpx-f"><label>Jenis Kelamin</label>
+                    <select name="gender" required>
+                        <option value="Laki-laki" {{ 'selected' if selected.gender == 'Laki-laki' }}>Laki-laki</option>
+                        <option value="Perempuan" {{ 'selected' if selected.gender == 'Perempuan' }}>Perempuan</option>
+                        {% if selected.gender not in ('Laki-laki', 'Perempuan') %}<option value="" selected disabled>Pilih</option>{% endif %}
+                    </select>
+                </div>
+                <div class="kpx-f"><label>No.KTP</label><input type="text" name="ktp_number" value="{{ selected.ktp_number or '' }}" maxlength="20" placeholder="-"></div>
+                <div class="kpx-f"><label>No.SIM</label><input type="text" name="sim_number" value="{{ selected.sim_number or '' }}" maxlength="20" placeholder="-"></div>
+                <div class="kpx-f"><label>Foto KTP</label><input type="file" name="ktp_file" accept="image/png,image/jpeg,image/webp" class="kpx-file">
+                    {% if selected.ktp_file %}<a class="kpx-link" target="_blank" href="{{ url_for('static', filename='uploads/dokumen_akun/' ~ selected.ktp_file) }}">Lihat KTP saat ini</a>{% endif %}</div>
+                <div class="kpx-f"><label>Foto SIM</label><input type="file" name="sim_file" accept="image/png,image/jpeg,image/webp" class="kpx-file">
+                    {% if selected.sim_file %}<a class="kpx-link" target="_blank" href="{{ url_for('static', filename='uploads/dokumen_akun/' ~ selected.sim_file) }}">Lihat SIM saat ini</a>{% endif %}</div>
+                <div class="kpx-f"><label>Peran</label>
+                    {% if is_me %}<input type="hidden" name="role" value="{{ selected.role }}">{% endif %}
+                    <select name="role" {{ 'disabled' if is_me }}>
+                        <option value="admin" {{ 'selected' if selected.role == 'admin' }}>Admin</option>
+                        <option value="superadmin" {{ 'selected' if selected.role == 'superadmin' }}>Super Admin</option>
+                    </select>
+                </div>
+                <div class="kpx-f"><label>Password Baru</label><input type="password" name="new_password" placeholder="Kosongkan jika tidak diganti" autocomplete="new-password"></div>
+            </div>
+
+            <div class="kp-status">
+                <span>Status Akun</span>
+                {% if is_me %}<input type="hidden" name="is_active" value="1">{% endif %}
+                <label class="kp-switch">
+                    <input type="checkbox" name="is_active" value="1" {{ 'checked' if selected.is_active }} {{ 'disabled' if is_me }}>
+                    <span class="kp-slider"></span>
+                </label>
+                {% if selected.is_active %}<b class="kp-state on">Aktif</b>{% else %}<b class="kp-state off">Tidak Aktif</b>{% endif %}
+            </div>
+            <small class="kp-hint">Nonaktifkan untuk membatasi akses rental</small>
+
+            <div class="kp-actions">
+                <a href="{{ url_for('kelola_admin.daftar', id=selected.id, q=keyword or None) }}" class="kp-btn outline" style="margin-right:8px">Tutup</a>
+                <button type="submit" class="kp-btn">Simpan Perubahan</button>
+            </div>
+        </form>
     </div>
 </div>
 {% endif %}
 {% endblock %}
 
-{% block scripts %}{{ switch_script() }}{% endblock %}
+{% block scripts %}{{ switch_script() }}{{ form_script() }}{% endblock %}
