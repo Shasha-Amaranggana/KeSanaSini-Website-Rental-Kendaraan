@@ -17,7 +17,7 @@
 #   A.   |   IMPORT
 # ═════════════════════════════════════════════════════════════
 # ↓ Mengimpor objek database SQLAlchemy dari app.
-from app import db, waktu_wita
+from app import db
 from sqlalchemy.orm import synonym
 
 # Catatan enkapsulasi: kolom dipetakan ke penyimpanan internal; getter/setter dan
@@ -221,6 +221,16 @@ class User(db.Model):
     def set_sim_number(self, value):
         self.__sim_number = value
     sim_number = synonym("_User__sim_number", descriptor=property(get_sim_number, set_sim_number))
+
+    # Total transaksi pelanggan (Rp) yang disimpan di database dan diperbarui otomatis
+    # oleh listener Rental di bagian bawah file ini (real time).
+    __total_transaction = db.Column("total_transaction", db.BigInteger, nullable=False, default=0)
+    # Getter dan setter untuk atribut total_transaction.
+    def get_total_transaction(self):
+        return self.__total_transaction or 0
+    def set_total_transaction(self, value):
+        self.__total_transaction = int(value or 0)
+    total_transaction = synonym("_User__total_transaction", descriptor=property(get_total_transaction, set_total_transaction))
 
     # SQLAlchemy menggunakan kolom role untuk menentukan jenis kelas objek User saat data dibaca dari database.
     __mapper_args__ = {'polymorphic_on': '_User__role'}         
@@ -578,7 +588,7 @@ class Driver(db.Model):
         self.__photo = value
     photo = synonym("_Driver__photo", descriptor=property(get_photo, set_photo))
     
-    __created_at      = db.Column("created_at", db.DateTime, nullable=False, default=waktu_wita)
+    __created_at      = db.Column("created_at", db.DateTime, nullable=False, default=datetime.now)
     # Getter dan setter untuk atribut created_at.
     def get_created_at(self):
         return self.__created_at
@@ -660,7 +670,7 @@ class Driver(db.Model):
     @property
     def total_orders(self):
         # Menghitung pesanan yang tidak batal dalam setahun terakhir.
-        batas = waktu_wita() - timedelta(days=365)
+        batas = datetime.now() - timedelta(days=365)
         return (Rental.query
                 .filter(Rental.driver_id == self.id,
                         Rental.status != Rental.STATUS_BATAL,
@@ -862,7 +872,7 @@ class Rental(db.Model):
         self.__status = value
     status = synonym("_Rental__status", descriptor=property(get_status, set_status))
     
-    __created_at          = db.Column("created_at", db.DateTime, nullable=False, default=waktu_wita)
+    __created_at          = db.Column("created_at", db.DateTime, nullable=False, default=datetime.now)
     # Getter dan setter untuk atribut created_at.
     def get_created_at(self):
         return self.__created_at
@@ -1117,7 +1127,7 @@ class Rental(db.Model):
                 self.STATUS_MENUNGGU_KONFIRMASI,
                 self.STATUS_PENGAMBILAN
             )
-            and waktu_wita() > self.return_deadline
+            and datetime.now() > self.return_deadline
         )
     
     @property
@@ -1137,7 +1147,7 @@ class Rental(db.Model):
     @property
     def time_remaining(self):
         # Menghitung sisa waktu sampai batas pengembalian.
-        return self.return_deadline - waktu_wita()
+        return self.return_deadline - datetime.now()
 
     @property
     def is_overdue(self):
@@ -1184,7 +1194,7 @@ class Rental(db.Model):
     def late_days(self):
         # Saat kendaraan masih digunakan, hitung keterlambatan secara langsung.
         if self.is_in_use:
-            return self._late_days_at(waktu_wita())
+            return self._late_days_at(datetime.now())
         # Jika sudah tidak digunakan, ambil jumlah hari yang tersimpan.
         return self.fine_days or 0
 
@@ -1207,7 +1217,7 @@ class Rental(db.Model):
 
     def lock_fine(self):
         # Menyimpan jumlah hari dan total denda saat kendaraan dikembalikan.
-        self.fine_days = self._late_days_at(waktu_wita())
+        self.fine_days = self._late_days_at(datetime.now())
         self.fine_amount = self.fine_days * self.fine_per_day
         if self.fine_amount == 0:
             self.fine_paid = False
@@ -1258,7 +1268,7 @@ class Rental(db.Model):
             RentalStatusHistory(
                 old_status=old_status,
                 new_status=new_status,
-                changed_at=waktu_wita()
+                changed_at=datetime.now()
             )
         )
 
@@ -1389,7 +1399,7 @@ class RentalStatusHistory(db.Model):
         self.__new_status = value
     new_status = synonym("_RentalStatusHistory__new_status", descriptor=property(get_new_status, set_new_status))
 
-    __changed_at      = db.Column("changed_at", db.DateTime, nullable=False, default=waktu_wita, index=True)
+    __changed_at      = db.Column("changed_at", db.DateTime, nullable=False, default=datetime.now, index=True)
     # Getter dan setter untuk atribut changed_at.
     def get_changed_at(self):
         return self.__changed_at
@@ -1588,7 +1598,7 @@ class RentalCancellation(db.Model):
     # Mengenkapsulasi perubahan state saat Admin menyetujui permohonan
     # pembatalan yang diajukan oleh pelanggan.
     def approve(self, refund_amount=None, timestamp=None):
-        waktu = timestamp or waktu_wita()
+        waktu = timestamp or datetime.now()
         self.approved_at = waktu
         self.cancelled_at = waktu
         self.refund_amount = refund_amount
@@ -1602,7 +1612,7 @@ class RentalCancellation(db.Model):
     # Mengenkapsulasi perubahan state saat Admin menolak permohonan
     # pembatalan pelanggan beserta catatan alasan penolakan (admin_note).
     def reject(self, admin_note=None, timestamp=None):
-        waktu = timestamp or waktu_wita()
+        waktu = timestamp or datetime.now()
         self.rejected_at = waktu
         self.status = self.STATUS_DITOLAK
         self.admin_note = (admin_note or '').strip() or None
@@ -1611,7 +1621,7 @@ class RentalCancellation(db.Model):
     # Mengenkapsulasi perubahan state saat Admin mengonfirmasi bahwa dana
     # refund telah dikembalikan kepada pelanggan.
     def mark_refunded(self, nominal=None, timestamp=None):
-        waktu = timestamp or waktu_wita()
+        waktu = timestamp or datetime.now()
         if nominal is not None:
             self.refund_amount = int(nominal)
         self.refunded_at = waktu
@@ -1750,7 +1760,7 @@ class Review(db.Model):
         self.__comment = value
     comment = synonym("_Review__comment", descriptor=property(get_comment, set_comment))
     
-    __created_at  = db.Column("created_at", db.DateTime, nullable=False, default=waktu_wita)
+    __created_at  = db.Column("created_at", db.DateTime, nullable=False, default=datetime.now)
     # Getter dan setter untuk atribut created_at.
     def get_created_at(self):
         return self.__created_at
@@ -1849,7 +1859,7 @@ class Notification(db.Model):
         self.__is_read = value
     is_read = synonym("_Notification__is_read", descriptor=property(get_is_read, set_is_read))
 
-    __created_at  = db.Column("created_at", db.DateTime, nullable=False, default=waktu_wita )
+    __created_at  = db.Column("created_at", db.DateTime, nullable=False, default=datetime.now )
     # Getter dan setter untuk atribut created_at.
     def get_created_at(self):
         return self.__created_at
@@ -2399,3 +2409,52 @@ class SuperAdmin(Admin):
     # SuperAdmin mengubah hasil get_code() agar memakai awalan SA.
     def get_code(self):
         return f"{self.CODE_PREFIX}-{self.id:04d}-SUPER"
+
+
+
+# ═════════════════════════════════════════════════════════════
+#   TOTAL TRANSAKSI PELANGGAN (REAL TIME, TERSIMPAN DI DATABASE)
+# ═════════════════════════════════════════════════════════════
+# Setiap pesanan dibuat / diubah / dihapus, kolom user.total_transaction
+# langsung dihitung ulang. Yang dihitung: pesanan sudah Lunas dan tidak Batal.
+from sqlalchemy import event as _sa_event
+from sqlalchemy.orm import Session as _SaSession
+
+
+class TransactionTotalService:
+    """Menghitung dan menyimpan total transaksi pelanggan."""
+
+    @staticmethod
+    def _sum_rentals(rentals):
+        return int(sum(
+            r.total_price for r in rentals
+            if r.payment_status == 'Lunas' and r.status != Rental.STATUS_BATAL
+        ))
+
+    @classmethod
+    def sync_with_connection(cls, connection, user_id):
+        """Dipanggil dari event flush: memakai koneksi/transaksi yang sedang berjalan."""
+        if not user_id:
+            return
+        with _SaSession(bind=connection) as tmp:
+            rentals = tmp.query(Rental).filter(Rental.user_id == user_id).all()
+            total = cls._sum_rentals(rentals)
+        connection.execute(
+            User.__table__.update().where(User.__table__.c.id == user_id)
+            .values(total_transaction=total)
+        )
+
+    @classmethod
+    def recalculate_all(cls):
+        """Isi ulang total semua pelanggan (backfill data lama)."""
+        for customer in Customer.query.all():
+            customer.total_transaction = cls._sum_rentals(customer.rental_history)
+        db.session.commit()
+
+
+def _rental_total_listener(mapper, connection, rental):
+    TransactionTotalService.sync_with_connection(connection, rental.user_id)
+
+
+for _evt in ('after_insert', 'after_update', 'after_delete'):
+    _sa_event.listen(Rental, _evt, _rental_total_listener)

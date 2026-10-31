@@ -167,6 +167,7 @@ def create_app():
                 ('profile_photo', 'VARCHAR(255)'),
                 ('ktp_number', 'VARCHAR(20)'),
                 ('sim_number', 'VARCHAR(20)'),
+                ('total_transaction', 'BIGINT NOT NULL DEFAULT 0'),
             ],
             'vehicle': [
                 ('current_lat', 'FLOAT'),
@@ -203,18 +204,12 @@ def create_app():
         # Menyimpan perubahan migrasi ke database.
         db.session.commit()
 
+        # Isi ulang total transaksi semua pelanggan dari data pesanan yang sudah ada.
+        try:
+            models.TransactionTotalService.recalculate_all()
+        except Exception as error:
+            db.session.rollback()
+            print(f"[TOTAL TRANSAKSI] Gagal menghitung ulang: {error}")
+
     # Mengembalikan objek aplikasi Flask yang sudah selesai dikonfigurasi agar dapat dijalankan oleh server.
     return app
-
-
-
-# ═════════════════════════════════════════════════════════════
-#   C.   |   PENGATURAN ZONA WAKTU WEBSITE (WITA)
-# ═════════════════════════════════════════════════════════════
-from datetime import datetime, timezone, timedelta
-
-WITA = timezone(timedelta(hours=8))
-
-def waktu_wita():
-    """Mengambil waktu lokal WITA (UTC+8)."""
-    return datetime.now(WITA).replace(tzinfo=None)

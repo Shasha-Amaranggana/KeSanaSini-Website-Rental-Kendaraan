@@ -30,7 +30,7 @@ from werkzeug.datastructures import MultiDict
 # Mengimpor wraps untuk mempertahankan informasi fungsi decorator.
 from functools import wraps
 # Mengimpor database dan OAuth dari aplikasi.
-from app import db, oauth, waktu_wita
+from app import db, oauth
 # Mengelola token bertanda tangan dan memeriksa masa berlakunya.
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 # Mengelola operasi file dan folder.
@@ -92,7 +92,7 @@ MINIMUM_JAM_SEBELUM_PENGAMBILAN = 25
 # Menghasilkan waktu paling awal kendaraan boleh diambil.
 def waktu_minimum_pengambilan():
     """Waktu paling awal kendaraan boleh diambil."""
-    return waktu_wita() + timedelta(
+    return datetime.now() + timedelta(
         hours=MINIMUM_JAM_SEBELUM_PENGAMBILAN
     )
 
@@ -111,7 +111,7 @@ def bulatkan_ke_menit_berikutnya(waktu):
 def waktu_default_pengambilan():
     """Jadwal bawaan agar pengguna punya waktu mengisi formulir."""
     return bulatkan_ke_menit_berikutnya(
-        waktu_wita() + timedelta(hours=26)
+        datetime.now() + timedelta(hours=26)
     )
 
 # Menggabungkan tanggal dan jam dari input menjadi objek datetime.
@@ -178,36 +178,7 @@ def index():
     # Mengambil data pengguna yang sedang login dari database.
     user = User.query.get(session['user_id'])
 
-    # Mengambil seluruh kendaraan yang aktif.
-    semua_kendaraan = Vehicle.query.filter_by(
-        is_active=True
-    ).all()
-
-    # Menghitung jumlah penyewaan yang benar-benar selesai
-    # untuk setiap kendaraan.
-    jumlah_penyewaan = dict(
-        db.session.query(
-            Rental.vehicle_id,
-            db.func.count(Rental.id)
-        )
-        .filter(Rental.status == Rental.STATUS_SELESAI)
-        .group_by(Rental.vehicle_id)
-        .all()
-    )
-
-    # Mengurutkan kendaraan berdasarkan jumlah penyewaan terbanyak.
-    # Jika jumlahnya sama, rating dan jumlah ulasan menjadi penentu.
-    semua_kendaraan.sort(
-        key=lambda vehicle: (
-            jumlah_penyewaan.get(vehicle.id, 0),
-            vehicle.avg_rating,
-            vehicle.review_count
-        ),
-        reverse=True
-    )
-
-    # Menampilkan maksimal 4 kendaraan di halaman utama.
-    vehicles = semua_kendaraan[:10]
+    vehicles = Vehicle.query.all()
 
     now = waktu_default_pengambilan()
 
@@ -577,7 +548,7 @@ def _batalkan_oleh_admin(rental, reason):
 
     waktu_batal = (
         rental.status_history[-1].changed_at
-        if rental.status_history else waktu_wita()
+        if rental.status_history else datetime.now()
     )
     db.session.add(
         Notification.status_changed(rental, old_status, cancelled_by='admin')
@@ -847,7 +818,7 @@ def batalkan_pesanan_kedaluwarsa(rental, commit=True):
 
     deadline = rental.created_at + timedelta(hours=24)
 
-    if waktu_wita() < deadline or rental.payment_status == 'Lunas':
+    if datetime.now() < deadline or rental.payment_status == 'Lunas':
         return False
 
     status_lama = rental.status
@@ -868,8 +839,8 @@ def batalkan_pesanan_kedaluwarsa(rental, commit=True):
             reason=rental.cancellation_reason,
             initiated_by='system',
             status=RentalCancellation.STATUS_DIAJUKAN,
-            requested_at=waktu_wita(),
-            cancelled_at=waktu_wita(),
+            requested_at=datetime.now(),
+            cancelled_at=datetime.now(),
             refund_amount=None
         ))
 
@@ -924,8 +895,8 @@ def batalkan_pesanan_tidak_diambil(rental, commit=True):
             reason=rental.cancellation_reason,
             initiated_by='system',
             status=RentalCancellation.STATUS_MENUNGGU_REFUND,
-            requested_at=waktu_wita(),
-            cancelled_at=waktu_wita(),
+            requested_at=datetime.now(),
+            cancelled_at=datetime.now(),
             refund_amount=rental.total_price
         ))
 
@@ -1136,7 +1107,7 @@ def kelola_akun():
 
                     filename = (
                         f"{field}_{user.id}_"
-                        f"{waktu_wita().strftime('%Y%m%d%H%M%S%f')}."
+                        f"{datetime.now().strftime('%Y%m%d%H%M%S%f')}."
                         f"{extension}"
                     )
 
@@ -1145,44 +1116,6 @@ def kelola_akun():
                     )
 
                     setattr(user, column, filename)
-
-            #   PROSES UPLOAD FOTO PROFIL
-            foto_profil = request.files.get('foto_profil')
-
-            # Foto bersifat opsional.
-            # Jika pengguna tidak memilih foto, foto lama tetap digunakan.
-            if foto_profil and foto_profil.filename:
-                nama_asli = secure_filename(foto_profil.filename)
-
-                if '.' not in nama_asli:
-                    raise ValueError('Format foto tidak valid.')
-
-                ekstensi = nama_asli.rsplit('.', 1)[1].lower()
-
-                if ekstensi not in {'jpg', 'jpeg', 'png'}:
-                    raise ValueError(
-                        'Foto profil harus berformat JPG, JPEG, atau PNG.'
-                    )
-
-                # Menyiapkan folder penyimpanan foto profil.
-                folder_foto = os.path.join(
-                    current_app.root_path,
-                    'static',
-                    'uploads',
-                    'foto_profil'
-                )
-                os.makedirs(folder_foto, exist_ok=True)
-
-                # Membuat nama file unik agar tidak menimpa foto pengguna lain.
-                nama_file = f'user_{user.id}_{uuid.uuid4().hex}.{ekstensi}'
-
-                foto_profil.save(
-                    os.path.join(folder_foto, nama_file)
-                )
-
-                # Menyimpan nama file ke kolom profile_photo.
-                user.profile_photo = nama_file
-
 
             db.session.commit()
 
@@ -1320,7 +1253,7 @@ def batalkan_pesanan_user(rental_id):
         reason=reason,
         initiated_by='customer',
         status=RentalCancellation.STATUS_DIAJUKAN,
-        requested_at=waktu_wita(),
+        requested_at=datetime.now(),
         refund_amount=(
             rental.total_price if perlu_refund else None
         )
@@ -1481,7 +1414,7 @@ def detail_pesanan(rental_id):
         waktu_batal = (
             rental.status_history[-1].changed_at
             if rental.status_history
-            else waktu_wita()
+            else datetime.now()
         )
         cancellation = _catat_pembatalan_admin_berbayar(
             rental,
@@ -1844,7 +1777,7 @@ def periksa_pengingat_dan_denda(user_id=None):
     Memeriksa pengingat pembayaran, pengembalian, dan denda.
     Pengingat H-3 hari yang sudah ada tetap dipertahankan.
     """
-    now = waktu_wita()
+    now = datetime.now()
     today_start = datetime(
         now.year,
         now.month,
@@ -2581,7 +2514,7 @@ def admin_proses_pembatalan(rental_id, cancellation_id):
     ).first_or_404()
 
     action = request.form.get('action')
-    sekarang = waktu_wita()
+    sekarang = datetime.now()
 
     # =====================================================
     # 1. ADMIN MENYETUJUI PERMOHONAN PELANGGAN
@@ -2846,7 +2779,7 @@ ALLOWED_IMAGE_EXT = {'jpg', 'jpeg', 'png', 'webp'}
 MAX_IMAGE_BYTES = 2 * 1024 * 1024
 
 # Pilihan dropdown yang sah. Harus sama dengan <option> di kendaraan_tambah.html dan kendaraan_edit.html.
-VEHICLE_TYPES = ('Mobil', 'Motor')
+VEHICLE_TYPES = ('SUV', 'MPV', 'Sedan', 'Motor')
 TRANSMISSIONS = ('Otomatis', 'Manual')
 FUELS = ('Bensin', 'Solar', 'Listrik')
 RENTAL_TYPES = ('Sopir & Tanpa Sopir', 'Tanpa Sopir', 'Dengan Sopir')
@@ -2911,7 +2844,7 @@ def _read_vehicle_form(form, current=None):
         return data, 'Merek dan tipe wajib diisi.'
     if not data['vehicle_number']:
         return data, 'Plat nomor wajib diisi.'
-    if data['year'] is None or not (1980 <= data['year'] <= waktu_wita().year + 1):
+    if data['year'] is None or not (1980 <= data['year'] <= datetime.now().year + 1):
         return data, 'Tahun tidak valid.'
     if data['vehicle_type'] not in _allowed(VEHICLE_TYPES, current, 'vehicle_type'):
         return data, 'Pilih kategori kendaraan.'
@@ -3253,7 +3186,7 @@ def admin_penyewaan_edit(id):
         waktu_batal = (
             rental.status_history[-1].changed_at
             if rental.status_history
-            else waktu_wita()
+            else datetime.now()
         )
         cancellation = _catat_pembatalan_admin_berbayar(
             rental,
@@ -3299,7 +3232,7 @@ ALLOWED_IMG_EXT = {'jpg', 'jpeg', 'png', 'webp'}
 import re
 from flask.views import MethodView
 from sqlalchemy.exc import IntegrityError
-from app.models import Customer, Admin, RentalStatusHistory
+from app.models import Customer, Admin, SuperAdmin, RentalStatusHistory
 
 admin_bp = Blueprint('kelola_pelanggan', __name__, url_prefix='/admin/kelola-pelanggan')
 superadmin_bp = Blueprint('kelola_admin', __name__, url_prefix='/superadmin/kelola-admin')
@@ -3313,9 +3246,11 @@ def superadmin_required(view_func):
     """Decorator: hanya role 'superadmin'. (Untuk Admin biasa & Super Admin pakai admin_required.)"""
     @wraps(view_func)
     def wrapper(*args, **kwargs):
-        if 'user_id' not in session or session.get('user_role') != 'superadmin':
+        current = db.session.get(User, session['user_id']) if 'user_id' in session else None
+        if current is None or current.role != 'superadmin' or not current.is_active:
             flash('Anda tidak memiliki akses ke halaman ini!')
             return redirect(url_for('main.login'))
+        session['user_role'] = current.role
         return view_func(*args, **kwargs)
     return wrapper
 
@@ -3454,90 +3389,233 @@ class CustomerService(BaseUserService):
         return 'jalan'
 
 
+# [OOP - ENKAPSULASI]: Semua penyimpanan foto profil & dokumen identitas akun
+# dipusatkan di satu kelas supaya dipakai bersama oleh Pelanggan dan Admin.
+class ProfileFileStore:
+    """Simpan / hapus foto profil (uploads/profil) dan KTP/SIM (uploads/dokumen_akun)."""
+    IMAGE_EXT = {'jpg', 'jpeg', 'png', 'webp'}
+    MAX_SIZE = 3 * 1024 * 1024  # 3 MB
+
+    @staticmethod
+    def ext_of(file_storage):
+        name = file_storage.filename or ''
+        return name.rsplit('.', 1)[-1].lower() if '.' in name else ''
+
+    @classmethod
+    def has_file(cls, file_storage):
+        return bool(file_storage and file_storage.filename)
+
+    @classmethod
+    def check_image(cls, file_storage, label):
+        """Return pesan error (str) atau None jika file valid / tidak diisi."""
+        if not cls.has_file(file_storage):
+            return None
+        if cls.ext_of(file_storage) not in cls.IMAGE_EXT:
+            return f'{label} harus berformat JPG, JPEG, PNG, atau WEBP.'
+        file_storage.stream.seek(0, os.SEEK_END)
+        size = file_storage.stream.tell()
+        file_storage.stream.seek(0)
+        if size > cls.MAX_SIZE:
+            return f'{label} maksimal 3 MB.'
+        return None
+
+    @staticmethod
+    def _folder(sub):
+        return os.path.join(current_app.root_path, 'static', 'uploads', sub)
+
+    @classmethod
+    def save(cls, file_storage, sub, prefix):
+        folder = cls._folder(sub)
+        os.makedirs(folder, exist_ok=True)
+        filename = secure_filename(
+            f"{prefix}_{datetime.now().strftime('%Y%m%d%H%M%S%f')}.{cls.ext_of(file_storage)}")
+        file_storage.save(os.path.join(folder, filename))
+        return filename
+
+    @classmethod
+    def delete(cls, filename, sub):
+        if filename:
+            path = os.path.join(cls._folder(sub), filename)
+            if os.path.exists(path):
+                os.remove(path)
+
+
 # [OOP - PEWARISAN & ENKAPSULASI LOGIKA BISNIS]:
 # Mewarisi BaseUserService dan mengarahkan 'model' ke class Admin,
-# sekaligus mengenkapsulasi validasi pendaftaran dan upload foto admin.
+# sekaligus mengenkapsulasi validasi pendaftaran, pengubahan data, dan upload berkas admin.
 class AdminService(BaseUserService):
     model = Admin
 
     EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
     PHONE_RE = re.compile(r'^\+?\d{10,15}$')
+    IDNUM_RE = re.compile(r'^[A-Za-z0-9.\-]{1,20}$')
     MIN_PASSWORD = 8
-    ALLOWED_PHOTO_EXT = {'jpg', 'jpeg', 'png', 'webp'}
+    MIN_AGE = 17
+    GENDERS = ('Laki-laki', 'Perempuan')
+    ROLES = ('admin', 'superadmin')
+    FILE_FIELDS = (
+        ('foto_profil', 'Foto profil', 'profil', 'profile_photo', 'admin'),
+        ('ktp_file', 'Foto KTP', 'dokumen_akun', 'ktp_file', 'ktp'),
+        ('sim_file', 'Foto SIM', 'dokumen_akun', 'sim_file', 'sim'),
+    )
 
     def base_query(self):
         """Daftar administrator mencakup role 'admin' dan 'superadmin'."""
         return self.model.query.filter(self.model.role.in_(['admin', 'superadmin']))
 
-    # Kolom wajib (NOT NULL) milik User yang tidak ada di form "Tambah Admin"
-    DEFAULT_BIRTH_DATE = date(2000, 1, 1)
-    DEFAULT_GENDER = '-'
+    @staticmethod
+    def parse_date(text):
+        """Terima DD-MM-YYYY, DD/MM/YYYY, DD-MM-YY, atau YYYY-MM-DD (dari kalender). None jika salah."""
+        text = (text or '').strip()
+        for fmt in ('%d-%m-%Y', '%d/%m/%Y', '%Y-%m-%d', '%d-%m-%y', '%d/%m/%y'):
+            try:
+                return datetime.strptime(text, fmt).date()
+            except ValueError:
+                continue
+        return None
 
-    def create(self, form, photo=None):
-        """Validasi form lalu buat akun admin baru. Return objek Admin."""
-        name = (form.get('name') or '').strip()
-        email = (form.get('email') or '').strip()
-        phone = (form.get('phone') or '').strip()
-        password = form.get('password') or ''
-        confirm = form.get('confirm_password') or ''
-
-        errors = []
-        if not name:
+    def _clean(self, form, files, errors, target=None):
+        """Validasi bersama untuk tambah & ubah admin. Return dict data bersih."""
+        data = {
+            'name': (form.get('name') or '').strip(),
+            'email': (form.get('email') or '').strip(),
+            'phone': (form.get('phone') or '').strip(),
+            'emergency_phone': (form.get('emergency_phone') or '').strip(),
+            'gender': (form.get('gender') or '').strip(),
+            'role': (form.get('role') or '').strip(),
+            'ktp_number': (form.get('ktp_number') or '').strip() or None,
+            'sim_number': (form.get('sim_number') or '').strip() or None,
+        }
+        if not data['name']:
             errors.append('Nama lengkap wajib diisi.')
-        if not self.EMAIL_RE.match(email):
+        if not self.EMAIL_RE.match(data['email']):
             errors.append('Email tidak valid (contoh: nama@domain.com).')
-        elif User.query.filter(db.func.lower(User.email) == email.lower()).first():
-            errors.append('Email sudah terdaftar.')
-        if not self.PHONE_RE.match(phone):
+        else:
+            query = User.query.filter(db.func.lower(User.email) == data['email'].lower())
+            if target is not None:
+                query = query.filter(User.id != target.id)
+            if query.first():
+                errors.append('Email sudah terdaftar.')
+        if not self.PHONE_RE.match(data['phone']):
             errors.append('Nomor HP harus berupa angka 10-15 digit.')
+        if not self.PHONE_RE.match(data['emergency_phone']):
+            errors.append('Nomor darurat harus berupa angka 10-15 digit.')
+
+        birth = self.parse_date(form.get('birth_date'))
+        if birth is None:
+            errors.append('Tanggal lahir tidak valid (format DD-MM-YYYY).')
+        else:
+            today = date.today()
+            age = today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))
+            if birth > today or age < self.MIN_AGE:
+                errors.append(f'Usia admin minimal {self.MIN_AGE} tahun.')
+        data['birth_date'] = birth
+
+        if data['gender'] not in self.GENDERS:
+            errors.append('Jenis kelamin wajib dipilih.')
+        if data['role'] not in self.ROLES:
+            errors.append('Peran wajib dipilih (Admin atau Super Admin).')
+        for key, label in (('ktp_number', 'Nomor KTP'), ('sim_number', 'Nomor SIM')):
+            if data[key] and not self.IDNUM_RE.match(data[key]):
+                errors.append(f'{label} maksimal 20 karakter (huruf, angka, titik, atau strip).')
+
+        for field, label, _sub, _attr, _prefix in self.FILE_FIELDS:
+            message = ProfileFileStore.check_image(files.get(field), label)
+            if message:
+                errors.append(message)
+        return data
+
+    def _save_files(self, files, saved):
+        """Simpan berkas yang diunggah. `saved` berisi (sub, nama_file) untuk rollback."""
+        names = {}
+        for field, _label, sub, attr, prefix in self.FILE_FIELDS:
+            file_storage = files.get(field)
+            if ProfileFileStore.has_file(file_storage):
+                names[attr] = ProfileFileStore.save(file_storage, sub, prefix)
+                saved.append((sub, names[attr]))
+        return names
+
+    def create(self, form, files):
+        """Validasi form lalu buat akun admin / super admin baru. Return objek Admin."""
+        errors = []
+        data = self._clean(form, files, errors)
+        password = form.get('password') or ''
         if len(password) < self.MIN_PASSWORD:
             errors.append(f'Password minimal {self.MIN_PASSWORD} karakter.')
-        elif password != confirm:
+        elif password != (form.get('confirm_password') or ''):
             errors.append('Konfirmasi password tidak cocok.')
-
-        photo_ext = None
-        if photo and photo.filename:
-            photo_ext = photo.filename.rsplit('.', 1)[-1].lower() if '.' in photo.filename else ''
-            if photo_ext not in self.ALLOWED_PHOTO_EXT:
-                errors.append('Foto profil harus berformat JPG, JPEG, PNG, atau WEBP.')
-
         if errors:
             raise ValidationError(errors)
 
-        filename = self._save_photo(photo, photo_ext) if photo_ext else None
-        new_admin = Admin(
-            name=name, email=email, phone=phone, emergency_phone=phone,
-            birth_date=self.DEFAULT_BIRTH_DATE, gender=self.DEFAULT_GENDER,
-            role=Admin.ROLE, is_active=True, profile_photo=filename,
+        saved = []
+        names = self._save_files(files, saved)
+        account_class = SuperAdmin if data['role'] == 'superadmin' else Admin
+        new_admin = account_class(
+            name=data['name'], email=data['email'], phone=data['phone'],
+            emergency_phone=data['emergency_phone'], birth_date=data['birth_date'],
+            gender=data['gender'], ktp_number=data['ktp_number'], sim_number=data['sim_number'],
+            role=account_class.ROLE, is_active=True,
+            profile_photo=names.get('profile_photo'),
+            ktp_file=names.get('ktp_file'), sim_file=names.get('sim_file'),
         )
         new_admin.set_password(password)
-
         try:
             db.session.add(new_admin)
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
-            self._delete_photo(filename)
+            for sub, name in saved:
+                ProfileFileStore.delete(name, sub)
             raise ValidationError(['Email sudah terdaftar.'])
         return new_admin
 
-    # Penyimpanan foto profil
-    @staticmethod
-    def _photo_folder():
-        return os.path.join(current_app.root_path, 'static', 'uploads', 'profil')
+    def update(self, target, form, files, actor_id):
+        """Super Admin mengubah SEMUA data akun admin. Return objek yang diubah."""
+        errors = []
+        data = self._clean(form, files, errors, target=target)
+        active = form.get('is_active') == '1'
+        new_password = form.get('new_password') or ''
+        if new_password and len(new_password) < self.MIN_PASSWORD:
+            errors.append(f'Password baru minimal {self.MIN_PASSWORD} karakter.')
+        if target.id == actor_id:
+            if not active:
+                errors.append('Anda tidak dapat menonaktifkan akun Anda sendiri.')
+            if data['role'] != target.role:
+                errors.append('Anda tidak dapat mengubah peran akun Anda sendiri.')
+        if errors:
+            raise ValidationError(errors)
 
-    def _save_photo(self, file_storage, ext):
-        folder = self._photo_folder()
-        os.makedirs(folder, exist_ok=True)
-        filename = secure_filename(f"admin_{waktu_wita().strftime('%Y%m%d%H%M%S%f')}.{ext}")
-        file_storage.save(os.path.join(folder, filename))
-        return filename
+        saved, old_files = [], {}
+        names = self._save_files(files, saved)
+        target.name, target.email = data['name'], data['email']
+        target.phone, target.emergency_phone = data['phone'], data['emergency_phone']
+        target.birth_date, target.gender = data['birth_date'], data['gender']
+        target.ktp_number, target.sim_number = data['ktp_number'], data['sim_number']
+        target.is_active = active
+        for attr, filename in names.items():
+            old_files[attr] = getattr(target, attr)
+            setattr(target, attr, filename)
+        if new_password:
+            target.set_password(new_password)
 
-    def _delete_photo(self, filename):
-        if filename:
-            path = os.path.join(self._photo_folder(), filename)
-            if os.path.exists(path):
-                os.remove(path)
+        new_role, user_id = data['role'], target.id
+        role_changed = new_role != target.role
+        try:
+            db.session.commit()
+            if role_changed:
+                # Kolom role adalah pembeda kelas (polymorphic), jadi diubah lewat UPDATE langsung.
+                db.session.execute(User.__table__.update()
+                                   .where(User.__table__.c.id == user_id)
+                                   .values(role=new_role))
+                db.session.commit()
+                db.session.expire_all()
+        except IntegrityError:
+            db.session.rollback()
+            for sub, name in saved:
+                ProfileFileStore.delete(name, sub)
+            raise ValidationError(['Email sudah terdaftar.'])
+        ProfileFileStore.delete(old_files.get('profile_photo'), 'profil')
+        return target
 
 
 # ---------- CONTROLLER ADMIN: halaman Pelanggan (admin_bp) ----------
@@ -3558,7 +3636,8 @@ class PelangganListView(MethodView):
         page = request.args.get('page', 1, type=int)
         selected = self.service.find(request.args.get('id', type=int))
         rentals = self.service.rental_history(selected) if selected else []
-        total_rentals, total_spent = self.service.rental_summary(rentals)
+        total_rentals = len(rentals)
+        total_spent = selected.total_transaction if selected else 0   # tersimpan di database (real time)
 
         return render_template(
             'admin/pelanggan.html',
@@ -3599,7 +3678,52 @@ class PelangganStatusView(MethodView):
         ))
 
 
+# [OOP - PEWARISAN (MethodView)]: Admin mengganti foto profil pelanggan.
+class PelangganFotoView(MethodView):
+    """Unggah / ganti foto profil pelanggan."""
+    decorators = [admin_required]
+    service = CustomerService()
+
+    def post(self, user_id):
+        customer = self.service.get_or_404(user_id)
+        file_storage = request.files.get('foto_profil')
+        if not ProfileFileStore.has_file(file_storage):
+            flash('Pilih file foto terlebih dahulu.')
+        else:
+            message = ProfileFileStore.check_image(file_storage, 'Foto profil')
+            if message:
+                flash(message)
+            else:
+                old_photo = customer.profile_photo
+                customer.profile_photo = ProfileFileStore.save(file_storage, 'profil', 'plg')
+                db.session.commit()
+                ProfileFileStore.delete(old_photo, 'profil')
+                flash(f'Foto profil {customer.name} berhasil diperbarui.')
+        return redirect(url_for(
+            'kelola_pelanggan.daftar', id=customer.id,
+            page=request.form.get('page', 1, type=int),
+            q=request.form.get('q') or None,
+        ))
+
+
+# [OOP - PEWARISAN (MethodView)]: Data ringkasan real time (dipanggil berkala oleh halaman detail).
+class PelangganTotalView(MethodView):
+    """JSON total penyewaan & total transaksi pelanggan langsung dari database."""
+    decorators = [admin_required]
+    service = CustomerService()
+
+    def get(self, user_id):
+        customer = self.service.get_or_404(user_id)
+        return jsonify(total_rentals=len(customer.rental_history),
+                       total_transaction=customer.total_transaction)
+
+
 admin_bp.add_url_rule('/', view_func=PelangganListView.as_view('daftar'))
+admin_bp.add_url_rule('/<int:user_id>/foto',
+                      view_func=PelangganFotoView.as_view('ubah_foto'),
+                      methods=['POST'])
+admin_bp.add_url_rule('/<int:user_id>/total',
+                      view_func=PelangganTotalView.as_view('total'))
 admin_bp.add_url_rule('/<int:user_id>/status',
                       view_func=PelangganStatusView.as_view('ubah_status'),
                       methods=['POST'])
@@ -3638,6 +3762,7 @@ class AdminListView(MethodView):
             total_admins=self.service.count(),
             active_admins=self.service.count(active_only=True),
             selected=self.service.find(request.args.get('id', type=int)),
+            edit_errors=session.pop('kp_edit_errors', []),
             activities=activities,
             keyword=keyword,
             **admin_context()
@@ -3688,25 +3813,36 @@ class AdminCreateView(MethodView):
         return self._render()
 
     def post(self):
-        photo = request.files.get('foto_profil')
-
-        print("=== DEBUG TAMBAH ADMIN ===")
-        print("FILES:", request.files)
-        print("PHOTO:", photo)
-        print("FILENAME:", photo.filename if photo else None)
-        print("==========================")
-
         try:
-            new_admin = self.service.create(request.form, photo)
-            print(new_admin.profile_photo)
+            new_admin = self.service.create(request.form, request.files)
         except ValidationError as error:
             return self._render(error.messages)
-
         flash(f'Akun admin {new_admin.name} berhasil ditambahkan.')
         return redirect(url_for('kelola_admin.daftar', id=new_admin.id))
 
 
+# [OOP - PEWARISAN (MethodView)]: Super Admin mengubah seluruh data akun admin via HTTP POST
+class AdminEditView(MethodView):
+    """Simpan perubahan lengkap data admin (nama, kontak, dokumen, peran, status, password)."""
+    decorators = [superadmin_required]
+    service = AdminService()
+
+    def post(self, user_id):
+        target = self.service.get_or_404(user_id)
+        keyword = request.form.get('q') or None
+        try:
+            self.service.update(target, request.form, request.files, session.get('user_id'))
+        except ValidationError as error:
+            session['kp_edit_errors'] = error.messages
+            return redirect(url_for('kelola_admin.daftar', id=user_id, q=keyword, _anchor='detail'))
+        flash(f'Data akun {target.name} berhasil diperbarui.')
+        return redirect(url_for('kelola_admin.daftar', id=user_id, q=keyword))
+
+
 superadmin_bp.add_url_rule('/', view_func=AdminListView.as_view('daftar'))
+superadmin_bp.add_url_rule('/<int:user_id>/edit',
+                           view_func=AdminEditView.as_view('ubah_data'),
+                           methods=['POST'])
 superadmin_bp.add_url_rule('/<int:user_id>/status',
                            view_func=AdminStatusView.as_view('ubah_status'),
                            methods=['POST'])
@@ -3723,7 +3859,7 @@ def _save_driver_file(file_storage, prefix):
         return None
     folder = os.path.join(current_app.root_path, 'static', 'uploads', 'sopir')
     os.makedirs(folder, exist_ok=True)
-    filename = secure_filename(f"{prefix}_{waktu_wita().strftime('%Y%m%d%H%M%S%f')}.{ext}")
+    filename = secure_filename(f"{prefix}_{datetime.now().strftime('%Y%m%d%H%M%S%f')}.{ext}")
     file_storage.save(os.path.join(folder, filename))
     return filename
 
