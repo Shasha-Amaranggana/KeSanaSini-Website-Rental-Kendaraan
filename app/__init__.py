@@ -134,6 +134,7 @@ def create_app():
     # disediakan ke semua template sebagai `nav_avatar_url`; `avatar_url(user)` untuk akun lain.
     class AvatarResolver:
         FOLDER = 'uploads/profil'
+        FOLDERS = ('uploads/profil', 'uploads/foto_profil')   # folder lama sebagai cadangan
 
         @classmethod
         def url_for_user(cls, user):
@@ -141,11 +142,12 @@ def create_app():
             filename = getattr(user, 'profile_photo', None) if user else None
             if not filename:
                 return None
-            path = os.path.join(app.root_path, 'static', cls.FOLDER, filename)
-            if not os.path.exists(path):
-                return None
-            return url_for('static', filename=f'{cls.FOLDER}/{filename}', v=int(os.path.getmtime(path)))
-
+            for folder in cls.FOLDERS:
+                path = os.path.join(app.root_path, 'static', folder, filename)
+                if os.path.exists(path):
+                    return url_for('static', filename=f'{folder}/{filename}', v=int(os.path.getmtime(path)))
+            return None
+        
         @classmethod
         def current(cls):
             from flask import session

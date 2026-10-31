@@ -1117,10 +1117,29 @@ def kelola_akun():
 
                     setattr(user, column, filename)
 
+            # Proses upload foto profil (disimpan di uploads/profil, sama seperti admin)
+            foto_baru = request.files.get('foto_profil')
+            foto_lama = None
+
+            if ProfileFileStore.has_file(foto_baru):
+                pesan_foto = ProfileFileStore.check_image(foto_baru, 'Foto profil')
+
+                if pesan_foto:
+                    flash(pesan_foto, 'error')
+                    return redirect(url_for('main.kelola_akun'))
+
+                foto_lama = user.profile_photo
+                user.profile_photo = ProfileFileStore.save(
+                    foto_baru, 'profil', f'user_{user.id}'
+                )
+
             db.session.commit()
 
-            # Perbarui nama yang disimpan dalam session
-            session['user_name'] = user.name
+            # Hapus foto profil lama setelah foto baru berhasil disimpan
+            if foto_lama:
+                ProfileFileStore.delete(foto_lama, 'profil')
+
+            # Perbarui nama yang disimpan dalam session            session['user_name'] = user.name
             session['user_email'] = user.email
 
             flash('Data akun berhasil disimpan.', 'success')
