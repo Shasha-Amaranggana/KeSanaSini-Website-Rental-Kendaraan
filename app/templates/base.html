@@ -119,7 +119,7 @@
             <!-- 5.3.1. MENU PROFIL PENGGUNA        -->
             <!-- ════════════════════════════════ -->
             <div class="user-icon">
-                <i class="fa-regular fa-user"></i>
+                {% if nav_avatar_url %}<img src="{{ nav_avatar_url }}" alt="Foto profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">{% else %}<i class="fa-regular fa-user"></i>{% endif %}
             </div>
 
             <span class="user-email">
@@ -143,10 +143,9 @@
                                 class="sidebar-profile-photo"
                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
 
-                            <i class="fa-regular fa-user sidebar-profile-fallback"
-                            style="display: none;"></i>
+                            <div class="dropdown-profile-photo"></div>
                         {% else %}
-                            <i class="fa-regular fa-user sidebar-profile-fallback"></i>
+                            {% if nav_avatar_url %}<img src="{{ nav_avatar_url }}" alt="Foto profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">{% else %}<i class="fa-regular fa-user"></i>{% endif %}
                         {% endif %}
                     </div>
 

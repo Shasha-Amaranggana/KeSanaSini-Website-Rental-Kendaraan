@@ -57,7 +57,7 @@
                 {% set sel = selected and selected.id == a.id %}
                 <div class="kp-adm-row {{ 'sel' if sel }}">
                     <a class="kp-adm-name" href="{{ url_for('kelola_admin.daftar', id=a.id, q=keyword or None) }}">
-                        <span class="kp-ini">{{ (a.name.split() | map('first') | join)[:2] | upper }}</span>{{ a.name }}
+                        {% set a_photo = avatar_url(a) %}{% if a_photo %}<span class="kp-ini kp-ini-img"><img src="{{ a_photo }}" alt="{{ a.name }}"></span>{% else %}<span class="kp-ini">{{ (a.name.split() | map('first') | join)[:2] | upper }}</span>{% endif %}{{ a.name }}
                     </a>
                     <span>{{ a.code }}</span>
                     <span>{% if a.role == 'superadmin' %}<span class="kp-role sa"><i class="fa-solid fa-crown"></i> Super Admin</span>{% else %}<span class="kp-role"><i class="fa-regular fa-user"></i> Admin</span>{% endif %}</span>

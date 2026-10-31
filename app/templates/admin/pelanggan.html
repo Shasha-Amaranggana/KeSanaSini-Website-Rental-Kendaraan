@@ -35,7 +35,7 @@
         <div class="kp-scroll">
         {% for c in customers %}
             <a class="kp-row" href="{{ url_for('kelola_pelanggan.daftar', id=c.id, q=keyword or None) }}">
-                <span class="kp-ini">{{ (c.name.split() | map('first') | join)[:2] | upper }}</span>
+                {% set c_photo = avatar_url(c) %}{% if c_photo %}<span class="kp-ini kp-ini-img"><img src="{{ c_photo }}" alt="{{ c.name }}"></span>{% else %}<span class="kp-ini">{{ (c.name.split() | map('first') | join)[:2] | upper }}</span>{% endif %}
                 <span class="kp-row-main">
                     <b>{{ c.name }}</b>
                     <small>#{{ c.code }} · {{ (c.phone[:4] ~ '-xxxx-xxxx') if c.phone else '-' }}</small>

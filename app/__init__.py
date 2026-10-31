@@ -130,6 +130,33 @@ def create_app():
     app.register_blueprint(routes.admin_bp)        # Mendaftarkan blueprint untuk fitur pengelolaan oleh admin.
     app.register_blueprint(routes.superadmin_bp)   # Mendaftarkan blueprint untuk fitur superadmin.
 
+    # [OOP - ENKAPSULASI]: Foto profil akun yang sedang login (user, admin, super admin)
+    # disediakan ke semua template sebagai `nav_avatar_url`; `avatar_url(user)` untuk akun lain.
+    class AvatarResolver:
+        FOLDER = 'uploads/profil'
+
+        @classmethod
+        def url_for_user(cls, user):
+            from flask import url_for
+            filename = getattr(user, 'profile_photo', None) if user else None
+            if not filename:
+                return None
+            path = os.path.join(app.root_path, 'static', cls.FOLDER, filename)
+            if not os.path.exists(path):
+                return None
+            return url_for('static', filename=f'{cls.FOLDER}/{filename}', v=int(os.path.getmtime(path)))
+
+        @classmethod
+        def current(cls):
+            from flask import session
+            user_id = session.get('user_id')
+            return cls.url_for_user(db.session.get(models.User, user_id)) if user_id else None
+
+    @app.context_processor
+    def inject_avatar():
+        return {'nav_avatar_url': AvatarResolver.current(),
+                'avatar_url': AvatarResolver.url_for_user}
+
 
     # ═════════════════════════════════════════════════════════════
     #   C.6.   |   PEMBUATAN TABEL DAN MIGRASI DATABASE

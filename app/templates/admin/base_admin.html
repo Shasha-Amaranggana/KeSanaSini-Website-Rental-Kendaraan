@@ -67,7 +67,7 @@
             <!-- Profil admin -->
             <div class="profile" id="profile">
                 <button class="profile-btn" type="button" onclick="toggleDropdown('profile')">
-                    <i class="fa-solid fa-circle-user"></i>
+                    {% if nav_avatar_url %}<img src="{{ nav_avatar_url }}" alt="Foto profil" style="width:30px;height:30px;object-fit:cover;border-radius:50%;vertical-align:middle">{% else %}<i class="fa-solid fa-circle-user"></i>{% endif %}
                     {{ admin.email }}
                     <i class="fa-solid fa-chevron-down"></i>
                 </button>
